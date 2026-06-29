@@ -37,6 +37,32 @@ export type {
 } from './components/DataGrid'
 
 export {
+  isGroup,
+  isRule,
+  addGroup,
+  addRule,
+  emptyGroup,
+  getNodeAt,
+  removeNode,
+  setCombinator,
+  updateRule,
+  deserialize,
+  serialize,
+} from './components/FilterBuilder'
+export type {
+  Combinator,
+  FieldShape,
+  FilterGroup,
+  FilterNode,
+  FilterPath,
+  FilterRule,
+  FilterSchema,
+  FilterTree,
+  FilterValue,
+  RulePatch,
+} from './components/FilterBuilder'
+
+export {
   preset,
   lightTokens,
   darkTokens,
