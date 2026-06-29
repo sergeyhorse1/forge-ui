@@ -104,6 +104,89 @@ export const FrozenColumns: Story = {
   },
 }
 
+/** Parse an `rgb()/rgba()` string into its alpha channel (defaults to 1). */
+function alphaOf(color: string): number {
+  const match = color.match(/^rgba?\(([^)]+)\)$/)
+  if (!match) return 1
+  const parts = match[1]!.split(',').map((value) => value.trim())
+  return parts.length === 4 ? Number(parts[3]) : 1
+}
+
+export const HorizontalScrollOcclusion: Story = {
+  name: 'Horizontal scroll occlusion',
+  tags: ['test'],
+  args: {
+    rows: SMALL_ROWS,
+    columns: demoColumns,
+    getRowKey,
+    height: 360,
+    // A narrow grid forces the scroll columns to be wider than their viewport,
+    // so horizontal scrolling actually moves content under the frozen overlay.
+    className: 'w-[420px]',
+  },
+  play: async ({ canvasElement }) => {
+    const scroller = canvasElement.querySelector('.overflow-auto') as HTMLElement
+
+    // Drive a real horizontal scroll well past the frozen width so the Email
+    // column slides underneath the frozen Name/ID columns. (Frozen width is
+    // 80 + 200 = 280px; scrolling 400 moves content clearly behind it.)
+    scroller.scrollLeft = 400
+    scroller.dispatchEvent(new Event('scroll'))
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await expect(scroller.scrollLeft).toBeGreaterThan(0)
+
+    // Occlusion guard (paint). The frozen overlay floats above the scrolled
+    // body and its rows are transparent by default, so it can only hide the
+    // scrolled-under Email text if the overlay container's background is OPAQUE.
+    // This is the exact regression: the container's computed `background-color`
+    // used to be `rgba(0,0,0,0)` (fully transparent), which let the email cells
+    // bleed through. An alpha < 1 here means scrolled content shows through — so
+    // this assertion is load-bearing and would fail on the old behaviour.
+    const presentationCell = canvasElement.querySelector(
+      '[aria-hidden="true"] [role="presentation"]',
+    ) as HTMLElement
+    // presentation cell -> row -> overlay container (the element we fill).
+    const overlay = presentationCell.parentElement!.parentElement as HTMLElement
+    const overlayBg = getComputedStyle(overlay).backgroundColor
+    await expect(alphaOf(overlayBg)).toBe(1)
+
+    // Occlusion guard (stacking). The frozen overlay must also sit on top of the
+    // scroll body at the same point, so the opaque fill actually covers the
+    // scrolled cell rather than being painted behind it. Probe a point inside
+    // the frozen width over the first body row: the hit must be a frozen overlay
+    // presentation cell, never a scroll-body gridcell carrying the Email text.
+    const overlayRect = overlay.getBoundingClientRect()
+    const cellRect = presentationCell.getBoundingClientRect()
+    const hit = document.elementFromPoint(
+      overlayRect.left + overlayRect.width - 10,
+      cellRect.top + cellRect.height / 2,
+    ) as HTMLElement | null
+    await expect(hit).not.toBeNull()
+    const overlayContainer = presentationCell.closest(
+      '[aria-hidden="true"]',
+    ) as HTMLElement
+    await expect(overlayContainer.contains(hit)).toBe(true)
+    await expect(hit!.closest('[role="gridcell"]')).toBeNull()
+
+    // Header-corner guard: the frozen header corner must likewise be opaque so
+    // the scrolled header cells beneath it do not bleed through.
+    const corner = canvasElement.querySelector(
+      '[role="row"][aria-rowindex="1"] > div',
+    ) as HTMLElement
+    await expect(alphaOf(getComputedStyle(corner).backgroundColor)).toBe(1)
+    const cornerRect = corner.getBoundingClientRect()
+    const headerHit = document.elementFromPoint(
+      cornerRect.left + cornerRect.width - 10,
+      cornerRect.top + cornerRect.height / 2,
+    ) as HTMLElement | null
+    await expect(headerHit).not.toBeNull()
+    const hitHeader = headerHit!.closest('[role="columnheader"]') as HTMLElement
+    await expect(hitHeader).not.toBeNull()
+    await expect(corner.contains(hitHeader)).toBe(true)
+  },
+}
+
 export const MultiSort: Story = {
   tags: ['test'],
   args: {

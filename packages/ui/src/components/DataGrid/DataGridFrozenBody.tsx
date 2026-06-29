@@ -54,6 +54,12 @@ export function DataGridFrozenBody<TRow>({
   return (
     <div
       aria-hidden
+      // An opaque background is load-bearing, not cosmetic: this overlay floats
+      // above the horizontally scrolling body, and the rows it paints are
+      // transparent by default. Without a solid fill the scroll body's cells
+      // (e.g. the Email column) bleed *through* the frozen columns once the user
+      // scrolls right. Selection tint and the mirrored focus ring stack on top.
+      className={cn('bg-background')}
       style={{
         position: 'relative',
         width: model.frozenWidth,

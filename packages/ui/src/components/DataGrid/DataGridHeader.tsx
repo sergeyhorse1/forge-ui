@@ -1,5 +1,6 @@
 import { type Virtualizer } from '@tanstack/react-virtual'
 
+import { cn } from '../../utils/cn'
 import { DataGridHeaderCell } from './DataGridHeaderCell'
 import type { DataGridModel, ResolvedColumn } from './types'
 
@@ -54,6 +55,12 @@ export function DataGridHeader<TRow>({
       >
         {model.frozenColumns.length > 0 ? (
           <div
+            // The frozen corner sits above the scroll header, whose cells slide
+            // underneath it horizontally. The per-cell `bg-muted/60` is
+            // translucent, so on its own the scrolled headers would bleed
+            // through. A solid `bg-background` under the corner makes it opaque
+            // while keeping the same muted composite as the scroll header band.
+            className={cn('bg-background')}
             style={{
               position: 'absolute',
               top: 0,
