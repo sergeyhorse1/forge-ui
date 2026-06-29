@@ -280,3 +280,92 @@ describe('deserialize validation', () => {
     expect(() => deserialize(payload)).toThrow(/rules\[0\]\.value\.hi/)
   })
 })
+
+describe('deserialize strict node keys', () => {
+  it('rejects a group carrying an extra key', () => {
+    expect(() =>
+      deserialize(JSON.stringify({ v: 1, tree: { combinator: 'and', rules: [], extra: 1 } })),
+    ).toThrow(/unexpected key "extra"/)
+  })
+
+  it('rejects a rule carrying an extra key', () => {
+    expect(() =>
+      deserialize(
+        JSON.stringify({
+          v: 1,
+          tree: {
+            combinator: 'and',
+            rules: [{ field: 'a', operator: 'eq', value: 1, label: 'oops' }],
+          },
+        }),
+      ),
+    ).toThrow(/rules\[0\]: unexpected key "label"/)
+  })
+
+  it('rejects a group/rule hybrid node', () => {
+    // `combinator` routes it to the group validator, which then rejects the
+    // stray rule keys.
+    expect(() =>
+      deserialize(
+        JSON.stringify({
+          v: 1,
+          tree: { combinator: 'and', rules: [], field: 'a', operator: 'eq', value: 1 },
+        }),
+      ),
+    ).toThrow(/unexpected key "field"/)
+  })
+
+  it('rejects an extra key on the envelope', () => {
+    expect(() =>
+      deserialize(
+        JSON.stringify({ v: 1, tree: { combinator: 'and', rules: [] }, hacked: true }),
+      ),
+    ).toThrow(/envelope: unexpected key "hacked"/)
+  })
+
+  it('reports the path to an extra key on a deeply nested node', () => {
+    expect(() =>
+      deserialize(
+        JSON.stringify({
+          v: 1,
+          tree: {
+            combinator: 'and',
+            rules: [
+              { field: 'a', operator: 'eq', value: 1 },
+              {
+                combinator: 'or',
+                rules: [{ field: 'b', operator: 'eq', value: 2, stray: 9 }],
+              },
+            ],
+          },
+        }),
+      ),
+    ).toThrow(/rules\[1\]\.rules\[0\]: unexpected key "stray"/)
+  })
+
+  it('still accepts a clean tree with no extra keys', () => {
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [
+        { field: 'a', operator: 'eq', value: 1 },
+        { combinator: 'or', rules: [{ field: 'b', operator: 'in', value: [1, 2] }] },
+      ],
+    }
+    expect(deserialize(serialize(tree))).toEqual(tree)
+  })
+
+  it('does not constrain keys inside a rule value object', () => {
+    // Strictness is node-level only: arbitrary keys within `value` are allowed.
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [
+        {
+          field: 'meta',
+          operator: 'matches',
+          value: { anyKey: 1, another: 'ok', nested: { deep: [true, null] } },
+        },
+      ],
+    }
+    expect(deserialize(serialize(tree))).toEqual(tree)
+  })
+})

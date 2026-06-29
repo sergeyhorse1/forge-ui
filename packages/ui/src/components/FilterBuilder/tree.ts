@@ -29,6 +29,19 @@ function describePath(path: FilterPath): string {
 }
 
 /**
+ * Read `path[depth]` as a definite number. `noUncheckedIndexedAccess` types the
+ * lookup as `number | undefined`; this narrows it with a real check instead of a
+ * bare `as` cast, so an out-of-bounds depth surfaces as a clear error.
+ */
+function pathIndexAt(path: FilterPath, depth: number): number {
+  const index = path[depth]
+  if (index === undefined) {
+    throw new Error(`Path ${describePath(path)} has no index at position ${depth}`)
+  }
+  return index
+}
+
+/**
  * Resolve the node a path points at. Throws if any index along the way is out
  * of range or descends into a leaf rule.
  */
@@ -43,7 +56,7 @@ export function getNodeAt<S extends FilterSchema>(
         `Cannot descend into a rule at path ${describePath(path.slice(0, depth))}`,
       )
     }
-    const index = path[depth] as number
+    const index = pathIndexAt(path, depth)
     const child: FilterNode<S> | undefined = node.rules[index]
     if (child === undefined) {
       throw new Error(`No node at index ${index} in path ${describePath(path)}`)
@@ -66,7 +79,7 @@ function rewriteGroupAt<S extends FilterSchema>(
 ): FilterGroup<S> {
   if (path.length === 0) return transform(group)
 
-  const index = path[0] as number
+  const index = pathIndexAt(path, 0)
   const child = group.rules[index]
   if (child === undefined) {
     throw new Error(`No node at index ${index} while updating group`)
@@ -117,7 +130,7 @@ export function removeNode<S extends FilterSchema>(
     throw new Error('Cannot remove the root group')
   }
   const parentPath = path.slice(0, -1)
-  const index = path[path.length - 1] as number
+  const index = pathIndexAt(path, path.length - 1)
   return rewriteGroupAt(tree, parentPath, (parent) => {
     if (parent.rules[index] === undefined) {
       throw new Error(`No node at index ${index} to remove`)
@@ -129,7 +142,16 @@ export function removeNode<S extends FilterSchema>(
   })
 }
 
-/** Patch object or updater function accepted by {@link updateRule}. */
+/**
+ * Patch object or updater function accepted by {@link updateRule}.
+ *
+ * Caveat: a `Partial<FilterRule<S>>` patch does not preserve the discriminated
+ * union's internal consistency. Against a concrete schema, patching `field`
+ * alone (without the matching `operator`/`value`) yields a structurally invalid
+ * rule that the compiler cannot catch, because `Partial` over a union widens
+ * each member independently. When changing the field, patch `field`, `operator`
+ * and `value` together — or use the updater form to return a complete rule.
+ */
 export type RulePatch<S extends FilterSchema> =
   | Partial<FilterRule<S>>
   | ((rule: FilterRule<S>) => FilterRule<S>)
@@ -138,6 +160,9 @@ export type RulePatch<S extends FilterSchema> =
  * Replace or patch the rule addressed by `path`. `patch` is either a partial
  * object merged onto the rule or an updater receiving the current rule.
  * Throws if `path` points at a group rather than a rule.
+ *
+ * See {@link RulePatch} for the partial-patch caveat around keeping the
+ * field/operator/value discriminant in sync.
  */
 export function updateRule<S extends FilterSchema>(
   tree: FilterTree<S>,
@@ -148,7 +173,7 @@ export function updateRule<S extends FilterSchema>(
     throw new Error('Path [] (root) refers to a group, not a rule')
   }
   const parentPath = path.slice(0, -1)
-  const index = path[path.length - 1] as number
+  const index = pathIndexAt(path, path.length - 1)
   return rewriteGroupAt(tree, parentPath, (parent) => {
     const target = parent.rules[index]
     if (target === undefined) {

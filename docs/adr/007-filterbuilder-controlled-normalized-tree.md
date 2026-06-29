@@ -76,6 +76,16 @@ rule (`field` and `operator` are strings, `value` is a JSON value), and the root
 must be a group. Malformed input throws an `Error` that names the offending node
 path instead of returning a broken tree.
 
+Validation is **strict at the node level**: a group node must carry exactly
+`combinator` + `rules`, a rule node exactly `field` + `operator` + `value`, and
+the envelope exactly `v` + `tree`. Any unknown or extra key — and therefore any
+group/rule hybrid — is rejected, so payloads arriving from untrusted sources
+(URL/query state) cannot smuggle stray keys into the normalized tree. Strictness
+deliberately stops at the node boundary: a rule's `value` is opaque JSON, so its
+own nested keys are unconstrained and validated only for JSON-serializability and
+finite numbers. Forward compatibility is carried by the envelope version field,
+never by lenient key handling.
+
 ## Consequences
 
 - **The component will be a controlled value/onChange surface.** Because the
@@ -94,3 +104,9 @@ path instead of returning a broken tree.
 - **The wire format is versioned.** The envelope's `v` field lets the format
   evolve; `deserialize` rejects unknown versions rather than silently
   misreading newer payloads.
+- **Deserialized trees are normalized, not lenient.** Because node-level keys
+  are validated against an exact set, the output of `deserialize` carries only
+  the canonical fields — no caller can rely on extra keys surviving a round trip,
+  and new optional fields must arrive through a version bump rather than being
+  tolerated silently. The opaque `value` payload is the one place where arbitrary
+  keys remain by design.
