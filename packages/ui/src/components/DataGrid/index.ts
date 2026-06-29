@@ -3,6 +3,14 @@ export type { DataGridProps } from './DataGrid'
 
 export { useDataGrid } from './useDataGrid'
 
+export {
+  DEFAULT_COLUMN_WIDTH,
+  MIN_COLUMN_WIDTH,
+  MAX_COLUMN_WIDTH,
+  DEFAULT_ROW_HEIGHT,
+  RESIZE_KEYBOARD_STEP,
+} from './types'
+
 export type {
   ColumnAlign,
   ColumnDef,

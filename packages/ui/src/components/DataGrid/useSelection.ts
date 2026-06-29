@@ -65,10 +65,9 @@ export function useSelection<TRow>(
   )
 
   const toggleAll = useCallback(() => {
-    if (mode !== 'multi') return
+    if (mode !== 'multi' || allKeys.length === 0) return
     setSelectedKeys((prev) => {
-      const everySelected =
-        allKeys.length > 0 && allKeys.every((key) => prev.has(key))
+      const everySelected = allKeys.every((key) => prev.has(key))
       return everySelected ? new Set<Key>() : new Set<Key>(allKeys)
     })
   }, [mode, allKeys, setSelectedKeys])
@@ -79,7 +78,12 @@ export function useSelection<TRow>(
 
   const allSelected =
     allKeys.length > 0 && allKeys.every((key) => selectedKeys.has(key))
-  const someSelected = !allSelected && selectedKeys.size > 0
+  // Compute "some selected" against the *visible* rows, not the raw set size, so
+  // a header tristate checkbox is not stuck indeterminate when every still-
+  // selected key belongs to rows that are no longer present (e.g. after a filter
+  // or dataset change left stale keys in the controlled set).
+  const someSelected =
+    !allSelected && allKeys.some((key) => selectedKeys.has(key))
 
   return {
     mode,

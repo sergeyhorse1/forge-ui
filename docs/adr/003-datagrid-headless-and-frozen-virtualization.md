@@ -89,6 +89,22 @@ Two decisions follow directly from the quadrant model:
   columns first, then scroll columns), matching `aria-colcount`. Cells also
   mirror `aria-rowindex`, which lets navigation address a cell by `(row, col)`
   across windows.
+- **Frozen focus ring is mirrored onto the overlay.** The canonical frozen
+  gridcell that actually receives keyboard focus is clipped to a 1×1 box inside
+  the horizontally-scrolling row, so it can never paint its own focus ring. Moving
+  focus to the visible overlay is not an option: the overlay is `aria-hidden`
+  `presentation`, and focusing it would be an axe violation and would corrupt the
+  grid tree. Instead, the active cell is lifted into `DataGrid` state and, when it
+  is a frozen column *and* the grid holds focus *and* the global modality is
+  keyboard, the matching overlay cell renders a mirrored ring (a `focused` cva
+  variant). Body and header cells get a normal inset `:focus-visible` ring; an
+  inset ring is required because cells are absolutely positioned edge-to-edge and
+  an outset ring would be clipped.
+- **The active cell stays mounted (pinned).** Both virtualizers use a
+  `rangeExtractor` that always includes the active row/column index, so a
+  mouse-wheel scroll can never virtualize the focused cell out of the DOM. That
+  keeps focus alive (losing it would strand arrow navigation), and the grid root
+  is a `tabIndex={-1}` recovery target so focus can be restored if it is ever lost.
 
 ### Package structure is an intentional multi-file exception
 

@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import {
   DEFAULT_COLUMN_WIDTH,
   MIN_COLUMN_WIDTH,
+  type ColumnDef,
   type DataGridModel,
   type ResolvedColumn,
   type UseDataGridOptions,
@@ -10,6 +11,45 @@ import {
 import { useColumnResize } from './useColumnResize'
 import { useSelection } from './useSelection'
 import { useSort } from './useSort'
+
+/**
+ * Whether the build is a production bundle. Read defensively off `globalThis` so
+ * the library does not depend on Node's `process` type or its presence at
+ * runtime; bundlers that statically define `process.env.NODE_ENV` still tree-
+ * shake the development-only branch out of production output.
+ */
+function isProduction(): boolean {
+  const env = (
+    globalThis as { process?: { env?: { NODE_ENV?: string } } }
+  ).process?.env
+  return env?.NODE_ENV === 'production'
+}
+
+/**
+ * Warn (in development only) about duplicate column ids: layout resolves them
+ * first-wins while sorting matches the first declared column, so a collision
+ * silently splits behaviour across the two. Stripped from production builds.
+ */
+function useDuplicateColumnIdWarning<TRow>(
+  columns: readonly ColumnDef<TRow>[],
+): void {
+  useEffect(() => {
+    if (isProduction()) return
+    const seen = new Set<string>()
+    const duplicates = new Set<string>()
+    for (const column of columns) {
+      const id = String(column.id)
+      if (seen.has(id)) duplicates.add(id)
+      seen.add(id)
+    }
+    if (duplicates.size > 0) {
+      console.warn(
+        `[DataGrid] Duplicate column id(s): ${[...duplicates].join(', ')}. ` +
+          'Column ids must be unique; layout and sorting may disagree otherwise.',
+      )
+    }
+  }, [columns])
+}
 
 /**
  * Headless DataGrid controller.
@@ -23,6 +63,8 @@ export function useDataGrid<TRow>(
   options: UseDataGridOptions<TRow>,
 ): DataGridModel<TRow> {
   const { rows, columns, getRowKey } = options
+
+  useDuplicateColumnIdWarning(columns)
 
   const resize = useColumnResize(
     useMemo(
@@ -44,12 +86,16 @@ export function useDataGrid<TRow>(
   const sort = useSort(rows, columns, options.sort)
   const selection = useSelection(sort.sortedRows, getRowKey, options.selection)
 
+  // Depend on the stable `widthOf` callback (keyed on the widths map) rather than
+  // the whole `resize` object, which is a fresh reference every render and would
+  // defeat this memo.
+  const { widthOf } = resize
   const { frozenColumns, scrollColumns, resolvedColumns, frozenWidth } =
     useMemo(() => {
       const resolved = columns.map((def) => ({
         def,
         id: String(def.id),
-        width: resize.widthOf(String(def.id)),
+        width: widthOf(String(def.id)),
         minWidth: def.minWidth ?? MIN_COLUMN_WIDTH,
         align: def.align ?? 'left',
         frozen: def.frozen ?? false,
@@ -74,7 +120,7 @@ export function useDataGrid<TRow>(
         resolvedColumns: ordered,
         frozenWidth: width,
       }
-    }, [columns, resize])
+    }, [columns, widthOf])
 
   return useMemo<DataGridModel<TRow>>(
     () => ({

@@ -3,9 +3,10 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
+  type Dispatch,
   type KeyboardEvent,
   type RefObject,
+  type SetStateAction,
 } from 'react'
 
 /** Active cell address. `colIndex` is the canonical 1-based column position. */
@@ -26,6 +27,14 @@ interface UseGridNavigationParams {
   columnVirtualizer: Virtualizer<HTMLDivElement, Element>
   /** Toggle selection for the data row at `rowIndex` (0-based). */
   onActivateRow: (rowIndex: number) => void
+  /**
+   * Active cell, lifted to the parent so the virtualizers can keep it mounted
+   * (pinned) and so the frozen overlay can mirror its focus ring.
+   */
+  active: ActiveCell
+  setActive: Dispatch<SetStateAction<ActiveCell>>
+  /** Whether the grid currently has selection enabled (drives Space handling). */
+  selectable: boolean
 }
 
 interface UseGridNavigationResult {
@@ -42,6 +51,9 @@ const FIRST_DATA_ROW = 0
 
 /** Rows skipped by a single PageUp/PageDown press. */
 const PAGE_STEP = 10
+
+/** Deferred-focus retries before giving up, so focus is never stranded. */
+const MAX_FOCUS_ATTEMPTS = 3
 
 /**
  * Pure reducer from a navigation key to the next active cell, clamped to the
@@ -105,18 +117,20 @@ export function useGridNavigation({
   rowVirtualizer,
   columnVirtualizer,
   onActivateRow,
+  active,
+  setActive,
+  selectable,
 }: UseGridNavigationParams): UseGridNavigationResult {
   const colIndices = [...frozenColIndices, ...scrollColIndices]
-  const firstColIndex = colIndices[0] ?? 1
-  const [active, setActive] = useState<ActiveCell>({
-    rowIndex: FIRST_DATA_ROW,
-    colIndex: firstColIndex,
-  })
 
   // After a move that may require scrolling an off-window cell into view, focus
   // is deferred until the cell has mounted. The pending target lives in a ref so
   // the layout effect can pick it up without re-running on unrelated renders.
-  const pendingFocus = useRef<ActiveCell | null>(null)
+  // `attempts` bounds the retry so a target that never mounts (e.g. out-of-range
+  // index) cannot leave focus pinned to a stale pending cell forever.
+  const pendingFocus = useRef<{ cell: ActiveCell; attempts: number } | null>(
+    null,
+  )
 
   const focusCell = useCallback(
     (cell: ActiveCell) => {
@@ -149,30 +163,54 @@ export function useGridNavigation({
       ensureColumnVisible(cell.colIndex)
       // Try an immediate focus; if the target is not mounted yet (it was outside
       // the window), the layout effect retries once the scroll has rendered it.
-      if (!focusCell(cell)) pendingFocus.current = cell
+      if (!focusCell(cell)) pendingFocus.current = { cell, attempts: 0 }
     },
-    [rowVirtualizer, ensureColumnVisible, focusCell],
+    [rowVirtualizer, ensureColumnVisible, focusCell, setActive],
   )
 
   useEffect(() => {
-    const cell = pendingFocus.current
-    if (!cell) return
-    if (focusCell(cell)) pendingFocus.current = null
+    const pending = pendingFocus.current
+    if (!pending) return
+    if (focusCell(pending.cell)) {
+      pendingFocus.current = null
+      return
+    }
+    // Give up after a few renders so a never-mounting target does not strand the
+    // pending state (the active cell is pinned mounted, so this is a safety net).
+    pending.attempts += 1
+    if (pending.attempts >= MAX_FOCUS_ATTEMPTS) pendingFocus.current = null
   })
 
-  const onCellFocus = useCallback((cell: ActiveCell) => {
-    setActive(cell)
-  }, [])
+  const onCellFocus = useCallback(
+    (cell: ActiveCell) => {
+      setActive(cell)
+    },
+    [setActive],
+  )
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
-      // Only react to keys originating from a body gridcell; header cells and the
-      // resize separator keep their own handlers.
       const target = event.target as HTMLElement
-      if (target.getAttribute('role') !== 'gridcell') return
+      const role = target.getAttribute('role')
+
+      // Header cells and the resize separator own their own key handlers; never
+      // hijack their keys.
+      if (role === 'columnheader' || role === 'separator') return
+
+      // Normal path: focus is on a body gridcell. Recovery path: focus fell back
+      // to the grid root (target === currentTarget) because the active cell was
+      // virtualized away by mouse-wheel scrolling. In both cases we drive the
+      // active cell; recovery additionally re-mounts and re-focuses it.
+      const fromCell = role === 'gridcell'
+      const fromRoot = target === event.currentTarget
+      if (!fromCell && !fromRoot) return
 
       if (event.key === 'Enter' || event.key === ' ') {
+        // Without selection, Space has no action — let it scroll the viewport
+        // rather than swallowing the keypress.
+        if (!selectable && event.key === ' ') return
         event.preventDefault()
+        if (fromRoot) focusCell(active)
         onActivateRow(active.rowIndex)
         return
       }
@@ -182,7 +220,15 @@ export function useGridNavigation({
       event.preventDefault()
       moveTo(next)
     },
-    [active, colIndices, rowCount, moveTo, onActivateRow],
+    [
+      active,
+      colIndices,
+      rowCount,
+      moveTo,
+      onActivateRow,
+      selectable,
+      focusCell,
+    ],
   )
 
   const tabIndexFor = useCallback(

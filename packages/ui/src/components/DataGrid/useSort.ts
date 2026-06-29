@@ -24,13 +24,36 @@ function cycleDirection<TRow>(
   return null
 }
 
-/** Default comparison: numbers compare numerically, everything else by locale. */
+/**
+ * Type rank used to give mixed-type columns a *total* order. A comparator that
+ * falls back to `String(a).localeCompare(String(b))` only when both operands are
+ * the same type is not transitive across mixed types (e.g. number vs string vs
+ * Date), which yields a non-deterministic sort. Ranking by type first guarantees
+ * transitivity; values within a rank compare naturally. Nullish values rank
+ * lowest so they sink to the start of an ascending sort.
+ */
+function typeRank(value: unknown): number {
+  if (value == null) return 0
+  if (typeof value === 'number') return Number.isNaN(value) ? 0 : 1
+  if (value instanceof Date) return 2
+  if (typeof value === 'boolean') return 3
+  return 4 // strings and everything else, compared via String()
+}
+
+/**
+ * Total-order comparator. Values are first ordered by {@link typeRank}; within a
+ * rank, numbers compare numerically, dates by timestamp, booleans false<true and
+ * the rest lexicographically. This keeps the sort deterministic and transitive
+ * even when a column mixes value types.
+ */
 function compareValues(a: unknown, b: unknown): number {
-  if (a == null && b == null) return 0
-  if (a == null) return -1
-  if (b == null) return 1
-  if (typeof a === 'number' && typeof b === 'number') return a - b
-  if (a instanceof Date && b instanceof Date) return a.getTime() - b.getTime()
+  const rankA = typeRank(a)
+  const rankB = typeRank(b)
+  if (rankA !== rankB) return rankA - rankB
+  if (rankA === 0) return 0 // both nullish/NaN — equal
+  if (rankA === 1) return (a as number) - (b as number)
+  if (rankA === 2) return (a as Date).getTime() - (b as Date).getTime()
+  if (rankA === 3) return Number(a as boolean) - Number(b as boolean)
   return String(a).localeCompare(String(b))
 }
 
@@ -59,6 +82,11 @@ export function useSort<TRow>(
 
   const toggle = useCallback(
     (columnId: string, additive: boolean) => {
+      // Ignore toggles for columns that do not exist: appending a phantom entry
+      // would leave stale state and needlessly break referential equality of the
+      // derived rows.
+      if (!columnsById.has(columnId)) return
+
       setState((prev) => {
         const existing = prev.find((entry) => entry.columnId === columnId)
         const nextDirection = cycleDirection(existing)
@@ -68,14 +96,24 @@ export function useSort<TRow>(
           return [{ columnId, direction: nextDirection }]
         }
 
-        const withoutColumn = prev.filter(
-          (entry) => entry.columnId !== columnId,
-        )
-        if (nextDirection === null) return withoutColumn
-        return [...withoutColumn, { columnId, direction: nextDirection }]
+        if (nextDirection === null) {
+          return prev.filter((entry) => entry.columnId !== columnId)
+        }
+
+        // Replace an existing entry *in place* so changing the direction of a
+        // non-last column keeps its multi-sort priority; only a brand-new column
+        // is appended to the end.
+        if (existing) {
+          return prev.map((entry) =>
+            entry.columnId === columnId
+              ? { columnId, direction: nextDirection }
+              : entry,
+          )
+        }
+        return [...prev, { columnId, direction: nextDirection }]
       })
     },
-    [multiSort, setState],
+    [multiSort, setState, columnsById],
   )
 
   const sortedRows = useMemo(() => {

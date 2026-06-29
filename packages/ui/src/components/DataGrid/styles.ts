@@ -18,7 +18,7 @@ export const headerCell = cva(
   {
     variants: {
       sortable: {
-        true: 'cursor-pointer hover:bg-muted focus-visible:bg-muted',
+        true: 'cursor-pointer hover:bg-muted focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
         false: '',
       },
     },
@@ -27,7 +27,24 @@ export const headerCell = cva(
 )
 
 export const bodyCell = cva(
-  'flex h-full items-center overflow-hidden px-3 whitespace-nowrap',
+  // A designed, inset focus ring: cells are absolutely positioned edge-to-edge,
+  // so an outset (default) ring would be clipped by the row's overflow or by
+  // neighbouring cells. `z-10` lifts the focused cell above its siblings so the
+  // ring is never occluded; the ring colour reads in both light and dark themes
+  // via the shared `--color-ring` token. `focusRing` carries the same ring for
+  // the frozen overlay mirror (see DataGridFrozenBody).
+  'relative flex h-full items-center overflow-hidden px-3 whitespace-nowrap focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+  {
+    variants: {
+      /**
+       * The real frozen gridcell is clipped to a 1x1 box so it does not paint a
+       * duplicate behind the visual overlay, which means its own focus ring is
+       * never visible. The overlay cell therefore mirrors the ring on demand.
+       */
+      focused: { true: 'z-10 ring-2 ring-ring ring-inset', false: '' },
+    },
+    defaultVariants: { focused: false },
+  },
 )
 
 export const rowBase = cva('flex border-b border-border/60', {
@@ -44,11 +61,15 @@ export const rowBase = cva('flex border-b border-border/60', {
   defaultVariants: { selected: false },
 })
 
+// The handle drops the native outline (it sits half-outside the header and an
+// outset ring would be clipped) but is NOT left without a focus indicator: the
+// inner bar takes over via `group-focus-visible`, widening and turning primary
+// so keyboard resize has a clearly visible target.
 export const resizeHandle = cva(
-  'absolute top-0 right-0 z-10 flex h-full w-2 translate-x-1/2 cursor-col-resize touch-none items-stretch justify-center focus-visible:outline-none',
+  'group absolute top-0 right-0 z-10 flex h-full w-2 translate-x-1/2 cursor-col-resize touch-none items-stretch justify-center focus-visible:outline-none',
 )
 
-export const resizeBar = cva('w-px bg-border', {
+export const resizeBar = cva('w-px bg-border group-focus-visible:w-0.5 group-focus-visible:bg-primary', {
   variants: {
     active: { true: 'bg-primary', false: 'group-hover:bg-primary/60' },
   },

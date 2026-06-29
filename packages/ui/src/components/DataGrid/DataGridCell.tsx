@@ -22,6 +22,11 @@ interface DataGridCellProps<TRow> {
   tabIndex?: 0 | -1
   /** Called when this cell gains focus, so navigation can track the active cell. */
   onCellFocus?: () => void
+  /**
+   * Render the cell with a focus ring even though it is not itself focused. Used
+   * by the frozen overlay to mirror the ring of its clipped, real gridcell.
+   */
+  focused?: boolean
 }
 
 /** Resolve the rendered content of a single cell from its column definition. */
@@ -31,11 +36,15 @@ function renderCellContent<TRow>(
   rowIndex: number,
 ): ReactNode {
   const { def } = column
+  // Custom renderers own their own layout, so they are passed through verbatim.
   if (def.cell) return def.cell(row, rowIndex)
   const value = def.accessor
     ? def.accessor(row)
     : (row as Record<string, unknown>)[column.id]
-  return value == null ? '' : String(value)
+  // Wrap the default (text) value in a truncating span so overflow shows an
+  // ellipsis, matching the header cell rather than hard-clipping mid-character.
+  // `min-w-0` lets the span shrink below its content inside the flex cell.
+  return <span className="min-w-0 truncate">{value == null ? '' : String(value)}</span>
 }
 
 export function DataGridCell<TRow>({
@@ -46,6 +55,7 @@ export function DataGridCell<TRow>({
   presentational = false,
   tabIndex,
   onCellFocus,
+  focused = false,
 }: DataGridCellProps<TRow>) {
   return (
     <div
@@ -57,7 +67,7 @@ export function DataGridCell<TRow>({
       aria-colindex={presentational ? undefined : column.colIndex}
       tabIndex={presentational ? undefined : tabIndex}
       onFocus={presentational ? undefined : onCellFocus}
-      className={cn(bodyCell(), ALIGN_CLASS[column.align])}
+      className={cn(bodyCell({ focused }), ALIGN_CLASS[column.align])}
       style={style}
     >
       {renderCellContent(column, row, rowIndex)}

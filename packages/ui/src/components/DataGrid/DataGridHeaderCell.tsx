@@ -103,7 +103,7 @@ export function DataGridHeaderCell<TRow>({
           aria-valuemin={column.minWidth}
           aria-valuemax={MAX_COLUMN_WIDTH}
           tabIndex={0}
-          className={cn('group', resizeHandle())}
+          className={cn(resizeHandle())}
           onPointerDown={handleHandlePointerDown}
           onKeyDown={handleHandleKeyDown}
           onClick={(e) => e.stopPropagation()}

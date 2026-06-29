@@ -192,6 +192,95 @@ export const KeyboardSelection: Story = {
   },
 }
 
+export const FocusIndicators: Story = {
+  name: 'Focus indicators',
+  tags: ['test'],
+  args: {
+    rows: SMALL_ROWS,
+    columns: demoColumns,
+    getRowKey,
+    height: 360,
+  },
+  play: async ({ canvasElement }) => {
+    const hasVisibleRing = (element: HTMLElement) => {
+      const style = getComputedStyle(element)
+      // Tailwind's `ring-*` utilities render as a box-shadow; a real outline also
+      // counts. Either being non-`none` proves a visible focus indicator.
+      return (
+        (style.boxShadow !== '' && style.boxShadow !== 'none') ||
+        (style.outlineStyle !== '' && style.outlineStyle !== 'none')
+      )
+    }
+
+    const cellAt = (rowIndex: number, colIndex: number) =>
+      canvasElement.querySelector<HTMLElement>(
+        `.overflow-auto [role="gridcell"][aria-rowindex="${rowIndex}"][aria-colindex="${colIndex}"]`,
+      )!
+
+    // Enter the grid at the first frozen cell, then arrow into the first scroll
+    // column (colindex 3). Driving the move from the keyboard activates
+    // `:focus-visible` so the designed ring actually paints.
+    const firstCell = cellAt(2, 1)
+    firstCell.focus()
+    await userEvent.keyboard('{End}')
+
+    const scrollCell = cellAt(2, demoColumns.length)
+    await expect(scrollCell).toHaveFocus()
+    await expect(hasVisibleRing(scrollCell)).toBe(true)
+
+    // The frozen column's real gridcell is clipped off-screen, so its ring is
+    // mirrored onto the visible overlay cell. Arrow back onto the first frozen
+    // column (colindex 1) and assert the overlay cell shows a ring.
+    await userEvent.keyboard('{Home}')
+    const frozenReal = cellAt(2, 1)
+    await expect(frozenReal).toHaveFocus()
+
+    const overlayCell = canvasElement.querySelector<HTMLElement>(
+      '[aria-hidden="true"] [role="presentation"]',
+    )!
+    await expect(hasVisibleRing(overlayCell)).toBe(true)
+  },
+}
+
+export const FocusSurvivesScroll: Story = {
+  name: 'Focus survives mouse scroll',
+  tags: ['test'],
+  args: {
+    rows: SMALL_ROWS,
+    columns: demoColumns,
+    getRowKey,
+    height: 240,
+    selection: { mode: 'multi' },
+  },
+  play: async ({ canvasElement }) => {
+    const viewport = canvasElement.querySelector('.overflow-auto') as HTMLElement
+    const cellAt = (rowIndex: number, colIndex: number) =>
+      canvasElement.querySelector<HTMLElement>(
+        `.overflow-auto [role="gridcell"][aria-rowindex="${rowIndex}"][aria-colindex="${colIndex}"]`,
+      )
+
+    // Focus the first body cell (first scroll column = colindex 3).
+    const firstCell = cellAt(2, 3)!
+    firstCell.focus()
+    await expect(firstCell).toHaveFocus()
+
+    // Mouse-scroll far past the visible window. The focused cell would normally
+    // be virtualized away, dropping focus; pinning the active row keeps it
+    // mounted so focus and arrow navigation survive.
+    viewport.scrollTop = 4000
+    viewport.dispatchEvent(new Event('scroll'))
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+
+    // The active cell is still mounted and still focused despite the scroll.
+    await expect(cellAt(2, 3)).toBeInTheDocument()
+    await expect(cellAt(2, 3)).toHaveFocus()
+
+    // Arrow keys still navigate from the (recovered) active cell.
+    await userEvent.keyboard('{ArrowDown}')
+    await expect(cellAt(3, 3)).toHaveFocus()
+  },
+}
+
 export const ResizableColumns: Story = {
   tags: ['test'],
   args: {

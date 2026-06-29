@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { ColumnDef, SelectionOptions, SortState } from './types'
-import { MIN_COLUMN_WIDTH } from './types'
+import { MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH } from './types'
 import { useDataGrid } from './useDataGrid'
 
 interface Player {
@@ -86,6 +86,68 @@ describe('DataGrid sorting – multi-key tie-breaks', () => {
     const { result } = setup({ sort: { multiSort: true } })
     act(() => result.current.sort.toggle('team', false))
     expect(result.current.sort.infoFor('team').priority).toBeNull()
+  })
+
+  it('keeps a column priority when its direction changes in place', () => {
+    const { result } = setup({ sort: { multiSort: true } })
+    // team (priority 1), score (priority 2), joined (priority 3).
+    act(() => result.current.sort.toggle('team', false))
+    act(() => result.current.sort.toggle('score', true))
+    act(() => result.current.sort.toggle('joined', true))
+    expect(result.current.sort.infoFor('score').priority).toBe(2)
+
+    // Re-toggling the *middle* column (asc -> desc) must not demote it to last:
+    // the previous filter+append put it at the end and reshuffled priorities.
+    act(() => result.current.sort.toggle('score', true))
+    expect(result.current.sort.infoFor('score').direction).toBe('desc')
+    expect(result.current.sort.infoFor('team').priority).toBe(1)
+    expect(result.current.sort.infoFor('score').priority).toBe(2)
+    expect(result.current.sort.infoFor('joined').priority).toBe(3)
+  })
+
+  it('ignores a toggle for a column id that does not exist', () => {
+    const { result } = setup({ sort: { multiSort: true } })
+    const before = result.current.rows
+    act(() => result.current.sort.toggle('does-not-exist', false))
+    // No phantom entry, and the derived rows keep referential identity.
+    expect(result.current.sort.state).toEqual([])
+    expect(result.current.rows).toBe(before)
+  })
+})
+
+describe('DataGrid sorting – mixed-type comparator is a total order', () => {
+  interface Mixed {
+    id: number
+    value: unknown
+  }
+  // A single column whose values span number, string, Date and null. A
+  // comparator that only fast-paths same-typed pairs and otherwise localeCompares
+  // their String() forms is intransitive, so the resulting order depends on the
+  // input permutation. Ranking by type first makes the order deterministic.
+  const sortValues = (values: unknown[]) => {
+    const rows: Mixed[] = values.map((value, id) => ({ id, value }))
+    const columns: ColumnDef<Mixed>[] = [
+      { id: 'value', header: 'Value', accessor: (row) => row.value },
+    ]
+    const { result } = renderHook(() =>
+      useDataGrid<Mixed>({ rows, columns, getRowKey: (row) => row.id }),
+    )
+    act(() => result.current.sort.toggle('value', false))
+    return result.current.rows.map((row) => row.value)
+  }
+
+  it('produces the same order regardless of input permutation', () => {
+    const mixed = [42, 'apple', new Date('2024-01-01'), null, 7, 'zebra']
+    const a = sortValues(mixed)
+    const b = sortValues([...mixed].reverse())
+    const c = sortValues([mixed[3], mixed[1], mixed[5], mixed[0], mixed[4], mixed[2]])
+    expect(b).toEqual(a)
+    expect(c).toEqual(a)
+  })
+
+  it('sinks nullish values to the front of an ascending sort', () => {
+    const order = sortValues(['b', null, 'a'])
+    expect(order[0]).toBeNull()
   })
 })
 
@@ -179,6 +241,36 @@ describe('DataGrid selection – clear and single-mode reset', () => {
     expect(result.current.selection.someSelected).toBe(false)
     expect(result.current.selection.selectedKeys.size).toBe(PLAYERS.length)
   })
+
+  it('is not indeterminate when only stale (non-visible) keys remain selected', () => {
+    // A controlled set holding a key for a row that is not in the data must not
+    // light up the tristate: no *visible* row is selected.
+    const value: SelectionOptions['value'] = new Set([999])
+    const { result } = setup({ selection: { mode: 'multi', value } })
+
+    expect(result.current.selection.someSelected).toBe(false)
+    expect(result.current.selection.allSelected).toBe(false)
+  })
+
+  it('is indeterminate when at least one visible row is selected', () => {
+    const value: SelectionOptions['value'] = new Set([2, 999])
+    const { result } = setup({ selection: { mode: 'multi', value } })
+
+    expect(result.current.selection.someSelected).toBe(true)
+  })
+
+  it('toggleAll is a no-op on an empty dataset', () => {
+    const onChange = vi.fn()
+    const { result } = setup({
+      rows: [],
+      selection: { mode: 'multi', onChange },
+    })
+    act(() => result.current.selection.toggleAll())
+
+    expect(result.current.selection.allSelected).toBe(false)
+    expect(result.current.selection.someSelected).toBe(false)
+    expect(onChange).not.toHaveBeenCalled()
+  })
 })
 
 describe('DataGrid column resize – pointer drag', () => {
@@ -249,6 +341,32 @@ describe('DataGrid column resize – widths and constraints', () => {
 
     act(() => result.current.resize.nudge('team', 20))
     expect(onColumnWidthsChange).toHaveBeenCalledWith({ team: 260 })
+  })
+
+  it('clamps a width to MAX_COLUMN_WIDTH so it never exceeds aria-valuemax', () => {
+    const columns: ColumnDef<Player>[] = [
+      { id: 'team', header: 'Team', width: MAX_COLUMN_WIDTH - 10 },
+    ]
+    const { result } = setup({ columns })
+    act(() => result.current.resize.nudge('team', 1000))
+    expect(result.current.columns.find((c) => c.id === 'team')!.width).toBe(
+      MAX_COLUMN_WIDTH,
+    )
+  })
+
+  it('accumulates back-to-back synchronous nudges without dropping steps', () => {
+    const columns: ColumnDef<Player>[] = [
+      { id: 'team', header: 'Team', width: 200 },
+    ]
+    const { result } = setup({ columns })
+    act(() => {
+      result.current.resize.nudge('team', 16)
+      result.current.resize.nudge('team', 16)
+      result.current.resize.nudge('team', 16)
+    })
+    // Three 16px steps from 200 land on 248, not 216 (which a stale-closure read
+    // of the width would produce).
+    expect(result.current.columns.find((c) => c.id === 'team')!.width).toBe(248)
   })
 })
 

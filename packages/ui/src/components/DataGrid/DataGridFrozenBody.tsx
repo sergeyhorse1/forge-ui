@@ -13,6 +13,12 @@ interface DataGridFrozenBodyProps<TRow> {
   scrollTop: number
   selectable: boolean
   onRowActivate: (key: string | number) => void
+  /**
+   * Canonical address of the cell currently focused via the keyboard, or `null`.
+   * The matching overlay cell mirrors a focus ring because the real frozen
+   * gridcell that holds focus is clipped off-screen and cannot show its own.
+   */
+  focusedCell: { rowIndex: number; colIndex: number } | null
 }
 
 /**
@@ -29,6 +35,7 @@ export function DataGridFrozenBody<TRow>({
   scrollTop,
   selectable,
   onRowActivate,
+  focusedCell,
 }: DataGridFrozenBodyProps<TRow>) {
   if (model.frozenColumns.length === 0) return null
   const virtualRows = rowVirtualizer.getVirtualItems()
@@ -80,6 +87,11 @@ export function DataGridFrozenBody<TRow>({
                 row={row}
                 rowIndex={virtualRow.index}
                 presentational
+                focused={
+                  focusedCell !== null &&
+                  focusedCell.rowIndex === virtualRow.index &&
+                  focusedCell.colIndex === column.colIndex
+                }
                 style={{
                   position: 'absolute',
                   top: 0,

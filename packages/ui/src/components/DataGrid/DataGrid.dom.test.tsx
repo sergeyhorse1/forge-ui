@@ -170,4 +170,47 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
       'false',
     )
   })
+
+  it('does not preventDefault Space when selection is disabled', () => {
+    renderGrid() // default selection mode is 'none'
+
+    const firstCell = screen
+      .getAllByRole('gridcell')
+      .find((cell) => cell.getAttribute('aria-rowindex') === '2')!
+    firstCell.focus()
+
+    // With no selection action, Space should fall through so the viewport can
+    // scroll, i.e. the handler must not call preventDefault.
+    const defaultPrevented = !fireEvent.keyDown(firstCell, { key: ' ' })
+    expect(defaultPrevented).toBe(false)
+    // No row gains a selected state either.
+    expect(firstCell.closest('[role="row"]')).not.toHaveAttribute(
+      'aria-selected',
+    )
+  })
+
+  it('still navigates with arrows after focus falls back to the grid root', () => {
+    renderGrid({ selection: { mode: 'multi' } })
+
+    const grid = screen.getByRole('grid')
+    const firstCell = screen
+      .getAllByRole('gridcell')
+      .find((cell) => cell.getAttribute('aria-rowindex') === '2')!
+    firstCell.focus()
+
+    // Simulate the active cell being lost: focus the grid root directly (as the
+    // browser would after virtualization unmounts the focused cell) and fire an
+    // arrow from there. The recovery path must still move the active cell.
+    grid.focus()
+    fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+    const movedCell = screen
+      .getAllByRole('gridcell')
+      .find(
+        (cell) =>
+          cell.getAttribute('aria-rowindex') === '3' &&
+          cell.getAttribute('aria-colindex') === '1',
+      )
+    expect(movedCell).toHaveAttribute('tabindex', '0')
+  })
 })

@@ -10,7 +10,15 @@ import './styles/globals.css'
 
 export { cn } from './utils/cn'
 
-export { DataGrid, useDataGrid } from './components/DataGrid'
+export {
+  DataGrid,
+  useDataGrid,
+  DEFAULT_COLUMN_WIDTH,
+  MIN_COLUMN_WIDTH,
+  MAX_COLUMN_WIDTH,
+  DEFAULT_ROW_HEIGHT,
+  RESIZE_KEYBOARD_STEP,
+} from './components/DataGrid'
 export type {
   ColumnAlign,
   ColumnDef,

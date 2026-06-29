@@ -42,6 +42,9 @@
     },
     "date-fns": {
       "optional": true
+    },
+    "radix-ui": {
+      "optional": true
     }
   },
   "devDependencies": {

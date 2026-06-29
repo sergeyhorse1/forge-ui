@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useControllableState } from '../../hooks'
-import { MIN_COLUMN_WIDTH } from './types'
+import { MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH } from './types'
 
 interface ResizeConstraints {
   /** Resolved minimum width per column id. */
@@ -55,25 +55,39 @@ export function useColumnResize(
     [widths],
   )
 
+  const clampWidth = useCallback((columnId: string, rawWidth: number) => {
+    const min = constraintsRef.current.minWidthOf(columnId) || MIN_COLUMN_WIDTH
+    // Clamp both ends: the lower bound is the column's minWidth; the upper bound
+    // is MAX_COLUMN_WIDTH so the resolved width never exceeds the slider's
+    // announced aria-valuemax (an ARIA range contract the header cell relies on).
+    return Math.min(MAX_COLUMN_WIDTH, Math.max(min, Math.round(rawWidth)))
+  }, [])
+
   const applyWidth = useCallback(
     (columnId: string, rawWidth: number) => {
-      const min = constraintsRef.current.minWidthOf(columnId) || MIN_COLUMN_WIDTH
-      const next = Math.max(min, Math.round(rawWidth))
+      const next = clampWidth(columnId, rawWidth)
       setWidths((prev) => {
         if (prev[columnId] === next) return prev
         return { ...prev, [columnId]: next }
       })
     },
-    [setWidths],
+    [clampWidth, setWidths],
   )
 
   const nudge = useCallback(
     (columnId: string, deltaPx: number) => {
-      const current =
-        widths[columnId] ?? constraintsRef.current.baseWidthOf(columnId)
-      applyWidth(columnId, current + deltaPx)
+      // Resolve the delta against the latest committed width inside the updater so
+      // back-to-back synchronous nudges accumulate instead of all reading the
+      // same stale closure value.
+      setWidths((prev) => {
+        const current =
+          prev[columnId] ?? constraintsRef.current.baseWidthOf(columnId)
+        const next = clampWidth(columnId, current + deltaPx)
+        if (prev[columnId] === next) return prev
+        return { ...prev, [columnId]: next }
+      })
     },
-    [widths, applyWidth],
+    [clampWidth, setWidths],
   )
 
   const start = useCallback(

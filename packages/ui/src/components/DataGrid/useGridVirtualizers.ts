@@ -1,5 +1,10 @@
-import { useVirtualizer, type Virtualizer } from '@tanstack/react-virtual'
-import { type RefObject, useCallback } from 'react'
+import {
+  defaultRangeExtractor,
+  useVirtualizer,
+  type Range,
+  type Virtualizer,
+} from '@tanstack/react-virtual'
+import { type RefObject, useCallback, useMemo } from 'react'
 
 import type { ResolvedColumn } from './types'
 
@@ -10,6 +15,31 @@ interface UseGridVirtualizersParams<TRow> {
   overscanRows: number
   scrollColumns: ResolvedColumn<TRow>[]
   overscanColumns: number
+  /**
+   * Row index that must stay mounted even when scrolled out of the window, so
+   * the keyboard-focused cell never unmounts (which would drop focus and break
+   * arrow navigation). `null` pins nothing.
+   */
+  pinnedRowIndex: number | null
+  /** Scroll-column position (0-based within `scrollColumns`) to keep mounted. */
+  pinnedColumnPos: number | null
+}
+
+/**
+ * Build a range extractor that always includes `pinned` in the mounted range.
+ * Keeping the focused cell mounted preserves focus through mouse-wheel scrolling
+ * that would otherwise virtualize it away.
+ */
+function pinnedRangeExtractor(
+  pinned: number | null,
+): (range: Range) => number[] {
+  return (range) => {
+    const base = defaultRangeExtractor(range)
+    if (pinned === null || pinned < 0 || base.includes(pinned)) return base
+    // Splicing keeps the list ascending, which the virtualizer relies on.
+    const next = [...base, pinned].sort((a, b) => a - b)
+    return next
+  }
 }
 
 interface GridVirtualizers {
@@ -32,6 +62,8 @@ export function useGridVirtualizers<TRow>({
   overscanRows,
   scrollColumns,
   overscanColumns,
+  pinnedRowIndex,
+  pinnedColumnPos,
 }: UseGridVirtualizersParams<TRow>): GridVirtualizers {
   const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
@@ -40,6 +72,10 @@ export function useGridVirtualizers<TRow>({
     getScrollElement,
     estimateSize: useCallback(() => rowHeight, [rowHeight]),
     overscan: overscanRows,
+    rangeExtractor: useMemo(
+      () => pinnedRangeExtractor(pinnedRowIndex),
+      [pinnedRowIndex],
+    ),
   })
 
   const columnVirtualizer = useVirtualizer({
@@ -51,6 +87,10 @@ export function useGridVirtualizers<TRow>({
       [scrollColumns],
     ),
     overscan: overscanColumns,
+    rangeExtractor: useMemo(
+      () => pinnedRangeExtractor(pinnedColumnPos),
+      [pinnedColumnPos],
+    ),
   })
 
   return { rowVirtualizer, columnVirtualizer }

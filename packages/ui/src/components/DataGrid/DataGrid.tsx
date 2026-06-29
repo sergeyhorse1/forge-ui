@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react'
 
+import { useFocusVisible } from '../../hooks'
 import { cn } from '../../utils/cn'
 import { DataGridFrozenBody } from './DataGridFrozenBody'
 import { DataGridHeader } from './DataGridHeader'
@@ -20,7 +21,7 @@ import {
   type SortOptions,
 } from './types'
 import { useDataGrid } from './useDataGrid'
-import { useGridNavigation } from './useGridNavigation'
+import { useGridNavigation, type ActiveCell } from './useGridNavigation'
 import { useGridVirtualizers } from './useGridVirtualizers'
 
 export interface DataGridProps<TRow> {
@@ -76,6 +77,8 @@ export function DataGrid<TRow>({
 }: DataGridProps<TRow>) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [offset, setOffset] = useState<ScrollOffset>({ top: 0, left: 0 })
+  const [hasFocus, setHasFocus] = useState(false)
+  const keyboardModality = useFocusVisible()
 
   // An explicit body height (rather than `flex: 1` / `height: 100%`) guarantees
   // the scroll viewport has a definite px height when the virtualizer measures
@@ -93,6 +96,27 @@ export function DataGrid<TRow>({
     onColumnWidthsChange,
   })
 
+  const frozenColIndices = useMemo(
+    () => model.frozenColumns.map((column) => column.colIndex),
+    [model.frozenColumns],
+  )
+  const scrollColIndices = useMemo(
+    () => model.scrollColumns.map((column) => column.colIndex),
+    [model.scrollColumns],
+  )
+
+  // The active (keyboard-focused) cell is owned here so the virtualizers can pin
+  // it mounted and the frozen overlay can mirror its ring. It defaults to the
+  // first canonical column of the first row.
+  const [active, setActive] = useState<ActiveCell>(() => ({
+    rowIndex: 0,
+    colIndex: frozenColIndices[0] ?? scrollColIndices[0] ?? 1,
+  }))
+
+  // Pin the active row/column so a mouse-wheel scroll never virtualizes the
+  // focused cell out of the DOM (which would drop focus and kill arrow keys).
+  const pinnedColumnPos = scrollColIndices.indexOf(active.colIndex)
+
   const { rowVirtualizer, columnVirtualizer } = useGridVirtualizers({
     scrollRef,
     rowCount: model.rows.length,
@@ -100,6 +124,8 @@ export function DataGrid<TRow>({
     overscanRows,
     scrollColumns: model.scrollColumns,
     overscanColumns,
+    pinnedRowIndex: active.rowIndex,
+    pinnedColumnPos: pinnedColumnPos >= 0 ? pinnedColumnPos : null,
   })
 
   // Re-measure the column virtualizer when widths change (resize) so the
@@ -130,15 +156,6 @@ export function DataGrid<TRow>({
     [selectable, model],
   )
 
-  const frozenColIndices = useMemo(
-    () => model.frozenColumns.map((column) => column.colIndex),
-    [model.frozenColumns],
-  )
-  const scrollColIndices = useMemo(
-    () => model.scrollColumns.map((column) => column.colIndex),
-    [model.scrollColumns],
-  )
-
   const navigation = useGridNavigation({
     scrollRef,
     rowCount: model.rows.length,
@@ -147,6 +164,9 @@ export function DataGrid<TRow>({
     rowVirtualizer,
     columnVirtualizer,
     onActivateRow: activateRow,
+    active,
+    setActive,
+    selectable,
   })
 
   // Keep the frozen body vertically aligned even when the scroll element resets
@@ -158,6 +178,16 @@ export function DataGrid<TRow>({
     }
   }, [model.rows, offset.top])
 
+  // The real frozen gridcell that owns keyboard focus is clipped off-screen, so
+  // its focus ring is invisible. When a frozen cell is the active (focused) cell
+  // and the grid actually holds keyboard focus, surface a mirrored ring on the
+  // matching visible overlay cell instead.
+  const focusedFrozenCell = useMemo(() => {
+    if (!hasFocus || !keyboardModality) return null
+    if (!frozenColIndices.includes(active.colIndex)) return null
+    return active
+  }, [hasFocus, keyboardModality, frozenColIndices, active])
+
   return (
     <div
       role="grid"
@@ -165,9 +195,20 @@ export function DataGrid<TRow>({
       aria-rowcount={model.rows.length + 1}
       aria-colcount={model.columns.length}
       aria-multiselectable={model.selection.mode === 'multi' || undefined}
+      // `-1` keeps the single roving cell as the only Tab stop while still letting
+      // the root hold focus as a recovery target if the active cell is ever lost.
+      tabIndex={-1}
       className={cn(gridRoot(), className)}
       style={{ height, display: 'flex', flexDirection: 'column' }}
       onKeyDown={navigation.onKeyDown}
+      onFocus={() => setHasFocus(true)}
+      // `focusout` bubbles; a relatedTarget still inside the grid means focus
+      // only moved between cells, so the grid keeps its focused state.
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setHasFocus(false)
+        }
+      }}
     >
       <DataGridHeader
         model={model}
@@ -199,6 +240,7 @@ export function DataGrid<TRow>({
                 scrollTop={offset.top}
                 selectable={selectable}
                 onRowActivate={model.selection.toggle}
+                focusedCell={focusedFrozenCell}
               />
             </div>
           </div>

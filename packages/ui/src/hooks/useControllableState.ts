@@ -33,16 +33,24 @@ export function useControllableState<T>({
   const current = (isControlled ? value : uncontrolled) as T
 
   // Keep the latest value in a ref so the setter stays referentially stable even
-  // when functional updaters need to read the controlled value.
+  // when functional updaters need to read the controlled value. `pendingRef`
+  // additionally tracks the value across back-to-back synchronous updates in the
+  // same tick (before a re-render commits), so chained functional updaters
+  // accumulate the way they do with a plain `useState`.
   const currentRef = useRef(current)
   currentRef.current = current
+  const pendingRef = useRef(current)
 
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
   const setValue = useCallback(
     (next: SetStateAction<T>) => {
-      const resolved = isUpdater(next) ? next(currentRef.current) : next
+      // Resolve against the most recent value: the pending one if a synchronous
+      // update is mid-flight this tick, otherwise the committed value.
+      const base = isUpdater(next) ? pendingRef.current : currentRef.current
+      const resolved = isUpdater(next) ? next(base) : next
+      pendingRef.current = resolved
       if (!isControlled) {
         setUncontrolled(resolved)
       }
@@ -50,6 +58,9 @@ export function useControllableState<T>({
     },
     [isControlled],
   )
+
+  // After each commit the pending value is the committed value again.
+  pendingRef.current = current
 
   return [current, setValue]
 }
