@@ -1,0 +1,36 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build
+dist/
+build/
+.turbo/
+
+# storybook
+storybook-static/
+
+# misc
+.DS_Store
+Thumbs.db
+*.log
+
+# env
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# typescript
+*.tsbuildinfo
+
+# tests
+coverage/
+
+# generated screenshots tmp
+/docs/screenshots/_tmp/

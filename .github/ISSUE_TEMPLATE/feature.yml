@@ -1,0 +1,19 @@
+name: Feature request
+description: Propose a new feature or enhancement
+title: "[feat] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / use case
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

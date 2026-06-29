@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  placeholder:
+    name: Placeholder (replaced in Stage 0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Notice
+        run: |
+          echo "Placeholder CI workflow."
+          echo "Real lint / typecheck / test / build steps are added in PLAN.md Stage 0 (Bootstrap)."
