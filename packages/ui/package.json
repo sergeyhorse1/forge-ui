@@ -26,6 +26,8 @@
   },
   "scripts": {
     "build": "vite build",
+    "verify-styles": "node scripts/verify-dist-styles.mjs",
+    "build:verify": "vite build && node scripts/verify-dist-styles.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.stories.json --noEmit"
   },

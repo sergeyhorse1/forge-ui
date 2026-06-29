@@ -35,5 +35,5 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build
-        run: pnpm --filter @sergeyhorse/forge build
+      - name: Build & verify published styles
+        run: pnpm --filter @sergeyhorse/forge build:verify

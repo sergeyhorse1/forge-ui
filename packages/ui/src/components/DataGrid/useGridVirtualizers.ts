@@ -36,7 +36,8 @@ function pinnedRangeExtractor(
   return (range) => {
     const base = defaultRangeExtractor(range)
     if (pinned === null || pinned < 0 || base.includes(pinned)) return base
-    // Splicing keeps the list ascending, which the virtualizer relies on.
+    // Re-sort ascending after appending: the virtualizer relies on the index
+    // list being ordered.
     const next = [...base, pinned].sort((a, b) => a - b)
     return next
   }

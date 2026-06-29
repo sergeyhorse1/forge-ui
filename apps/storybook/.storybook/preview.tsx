@@ -5,6 +5,10 @@ import type { Decorator, Preview } from '@storybook/react-vite'
 // Pre-built design tokens. Importing the source stylesheet lets the Tailwind
 // Vite plugin (see main.ts) compile the same utilities the library ships with.
 import '../../../packages/ui/src/styles/globals.css'
+// Utilities used only by demo, preview and story files. globals.css scopes its
+// scan to published code so dist stays lean; this re-adds those classes for the
+// Storybook build (see storybook.css).
+import './storybook.css'
 
 type Theme = 'light' | 'dark'
 

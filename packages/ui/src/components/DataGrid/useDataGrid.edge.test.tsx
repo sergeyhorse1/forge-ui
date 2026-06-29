@@ -145,6 +145,26 @@ describe('DataGrid sorting – mixed-type comparator is a total order', () => {
     expect(c).toEqual(a)
   })
 
+  it('breaks the number/string comparison cycle that a typeless sort permits', () => {
+    // 2 and 10 compare numerically (2 < 10), but `String(2)` > `String(10)` and
+    // `String('15')` falls between them lexically, so a comparator that only
+    // fast-paths same-typed pairs forms the cycle 2 < 10 < '15' < 2. Under it the
+    // final order depends on the input permutation; a total order pins it down.
+    const orders = [
+      [2, 10, '15'],
+      ['15', 2, 10],
+      [10, '15', 2],
+      ['15', 10, 2],
+      [2, '15', 10],
+      [10, 2, '15'],
+    ].map((permutation) => sortValues(permutation))
+
+    for (const order of orders) {
+      // Numbers always sort ahead of strings, and numerically among themselves.
+      expect(order).toEqual([2, 10, '15'])
+    }
+  })
+
   it('sinks nullish values to the front of an ascending sort', () => {
     const order = sortValues(['b', null, 'a'])
     expect(order[0]).toBeNull()
@@ -308,6 +328,25 @@ describe('DataGrid column resize – pointer drag', () => {
 
     expect(result.current.columns.find((c) => c.id === 'team')!.width).toBe(120)
   })
+
+  it('clamps a pointer drag at MAX_COLUMN_WIDTH', () => {
+    const columns: ColumnDef<Player>[] = [
+      { id: 'team', header: 'Team', width: MAX_COLUMN_WIDTH - 40 },
+      { id: 'score', header: 'Score' },
+    ]
+    const { result } = setup({ columns })
+
+    act(() => result.current.resize.start('team', 0))
+    act(() => {
+      // Drag far past the right edge — the resolved width must not overshoot the
+      // announced aria-valuemax even when the gesture asks for much more.
+      window.dispatchEvent(new MouseEvent('pointermove', { clientX: 5000 }))
+    })
+
+    expect(result.current.columns.find((c) => c.id === 'team')!.width).toBe(
+      MAX_COLUMN_WIDTH,
+    )
+  })
 })
 
 describe('DataGrid column resize – widths and constraints', () => {
@@ -384,5 +423,28 @@ describe('DataGrid – reacting to dataset changes', () => {
 
     // The new low-score row sorts to the front under the still-active asc sort.
     expect(result.current.rows[0]!.id).toBe(5)
+  })
+})
+
+describe('DataGrid – duplicate column ids', () => {
+  it('warns when two columns share an id', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const columns: ColumnDef<Player>[] = [
+      { id: 'team', header: 'Team' },
+      { id: 'team', header: 'Squad' },
+    ]
+    setup({ columns })
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]![0]).toContain('team')
+    warn.mockRestore()
+  })
+
+  it('stays silent when every column id is unique', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    setup() // COLUMNS has distinct ids
+
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 })

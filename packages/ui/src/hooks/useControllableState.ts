@@ -37,6 +37,11 @@ export function useControllableState<T>({
   // additionally tracks the value across back-to-back synchronous updates in the
   // same tick (before a re-render commits), so chained functional updaters
   // accumulate the way they do with a plain `useState`.
+  //
+  // Caveat (controlled mode): `pendingRef` holds the value we *proposed* via
+  // `onChange`, which a controlled parent may not actually apply. The per-render
+  // reset below realigns it with the committed `value`, so any divergence lasts
+  // at most one tick.
   const currentRef = useRef(current)
   currentRef.current = current
   const pendingRef = useRef(current)

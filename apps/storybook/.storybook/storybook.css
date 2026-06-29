@@ -1,0 +1,23 @@
+/*
+ * Storybook-only utility source.
+ *
+ * The shipped stylesheet (globals.css) deliberately scopes its content scan to
+ * the component package's *published* directories so demo, preview, story and
+ * test classes never leak into `dist/styles.css`. Storybook, however, renders
+ * those very files, so it needs their utilities too. This stylesheet adds them
+ * back for the Storybook build only.
+ *
+ * `@reference` pulls in the design tokens (the `--color-*` theme keys and the
+ * `dark` variant) so utilities like `bg-primary` resolve, without re-emitting
+ * the theme, preflight or base layers — those already ship via globals.css,
+ * which preview.tsx imports first. Only the utilities layer is emitted here, and
+ * `source(none)` disables automatic detection so the scan is limited to the
+ * explicit sources below.
+ */
+@reference '../../../packages/ui/src/styles/globals.css';
+@import 'tailwindcss/utilities' layer(utilities) source(none);
+
+@source '../../../packages/ui/src/preview';
+@source '../../../packages/ui/src/components/DataGrid/demo';
+@source '../../../packages/ui/src/**/*.stories.tsx';
+@source '.';

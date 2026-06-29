@@ -108,6 +108,11 @@ export function DataGrid<TRow>({
   // The active (keyboard-focused) cell is owned here so the virtualizers can pin
   // it mounted and the frozen overlay can mirror its ring. It defaults to the
   // first canonical column of the first row.
+  //
+  // The lazy initialiser runs only on mount, so it does not re-derive if the
+  // columns change later. That is intentional: keyboard navigation clamps the
+  // active cell to the live column/row bounds on every move, so a stale default
+  // is corrected on first interaction rather than needing an effect to reset it.
   const [active, setActive] = useState<ActiveCell>(() => ({
     rowIndex: 0,
     colIndex: frozenColIndices[0] ?? scrollColIndices[0] ?? 1,
