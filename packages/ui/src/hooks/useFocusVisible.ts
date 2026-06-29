@@ -9,7 +9,10 @@ import { useSyncExternalStore } from 'react'
  * a boolean: `true` after keyboard input, `false` after pointer input.
  */
 
-let hadKeyboardEvent = true
+// Start in pointer modality so the client's initial snapshot matches the SSR
+// snapshot (`false`), avoiding a hydration mismatch and a focus-ring flash on
+// the first paint before any interaction has happened.
+let hadKeyboardEvent = false
 let isListening = false
 const listeners = new Set<() => void>()
 

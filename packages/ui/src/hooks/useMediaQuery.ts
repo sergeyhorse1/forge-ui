@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 function getServerSnapshot(): boolean {
   // No `matchMedia` during SSR; default to "does not match" so the first client
@@ -13,23 +13,26 @@ function getServerSnapshot(): boolean {
  * rendering and tearing-free across multiple subscribers to the same query.
  */
 export function useMediaQuery(query: string): boolean {
-  const subscribe = (onChange: () => void): (() => void) => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return () => {}
-    }
-    const list = window.matchMedia(query)
-    list.addEventListener('change', onChange)
-    return () => {
-      list.removeEventListener('change', onChange)
-    }
-  }
+  const subscribe = useCallback(
+    (onChange: () => void): (() => void) => {
+      if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+        return () => {}
+      }
+      const list = window.matchMedia(query)
+      list.addEventListener('change', onChange)
+      return () => {
+        list.removeEventListener('change', onChange)
+      }
+    },
+    [query],
+  )
 
-  const getSnapshot = (): boolean => {
+  const getSnapshot = useCallback((): boolean => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return false
     }
     return window.matchMedia(query).matches
-  }
+  }, [query])
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
