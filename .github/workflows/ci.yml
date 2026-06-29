@@ -6,13 +6,34 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  placeholder:
-    name: Placeholder (replaced in Stage 0)
+  ci:
+    name: Lint, typecheck & build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Notice
-        run: |
-          echo "Placeholder CI workflow."
-          echo "Real lint / typecheck / test / build steps are added in PLAN.md Stage 0 (Bootstrap)."
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm --filter @sergeyhorse/forge build
