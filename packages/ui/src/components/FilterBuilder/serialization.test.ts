@@ -76,6 +76,60 @@ describe('round trip', () => {
     }
     expect(roundTrip(tree)).toEqual(tree)
   })
+
+  it('preserves empty array and empty object values', () => {
+    const tree: FilterTree = {
+      combinator: 'or',
+      rules: [
+        { field: 'tags', operator: 'in', value: [] },
+        { field: 'meta', operator: 'matches', value: {} },
+      ],
+    }
+    expect(roundTrip(tree)).toEqual(tree)
+  })
+
+  it('preserves negative and fractional numbers', () => {
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [
+        { field: 'balance', operator: 'lt', value: -42.5 },
+        { field: 'ratio', operator: 'eq', value: 0.0001 },
+      ],
+    }
+    expect(roundTrip(tree)).toEqual(tree)
+  })
+
+  it('round-trips a heterogeneous deeply nested tree', () => {
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [
+        { field: 'status', operator: 'eq', value: 'open' },
+        {
+          combinator: 'or',
+          rules: [
+            { field: 'priority', operator: 'in', value: ['high', 'urgent'] },
+            {
+              combinator: 'and',
+              rules: [
+                { field: 'assignee', operator: 'is', value: null },
+                {
+                  combinator: 'or',
+                  rules: [
+                    {
+                      field: 'labels',
+                      operator: 'matches',
+                      value: { any: ['bug', 'regression'], none: [] },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+    expect(roundTrip(tree)).toEqual(tree)
+  })
 })
 
 describe('serialize output', () => {
@@ -155,5 +209,74 @@ describe('deserialize validation', () => {
     // malformed payload reaching the validator.
     const payload = '{"v":1,"tree":{"combinator":"and","rules":[{"field":"a","operator":"eq","value":1e999}]}}'
     expect(() => deserialize(payload)).toThrow(/finite/)
+  })
+
+  it('throws when the envelope itself is not an object', () => {
+    expect(() => deserialize(JSON.stringify([1, 2, 3]))).toThrow(/envelope/)
+    expect(() => deserialize(JSON.stringify('plain string'))).toThrow(/envelope/)
+  })
+
+  it('throws when the tree node is not an object', () => {
+    expect(() => deserialize(JSON.stringify({ v: 1, tree: 42 }))).toThrow(/tree/)
+    expect(() => deserialize(JSON.stringify({ v: 1, tree: null }))).toThrow(/tree/)
+  })
+
+  it('throws when a missing version reads as undefined', () => {
+    expect(() =>
+      deserialize(JSON.stringify({ tree: { combinator: 'and', rules: [] } })),
+    ).toThrow(/version/)
+  })
+
+  it('throws on a bad combinator buried several levels deep', () => {
+    expect(() =>
+      deserialize(
+        JSON.stringify({
+          v: 1,
+          tree: {
+            combinator: 'and',
+            rules: [
+              { field: 'a', operator: 'eq', value: 1 },
+              {
+                combinator: 'or',
+                rules: [{ combinator: 'nand', rules: [] }],
+              },
+            ],
+          },
+        }),
+      ),
+    ).toThrow(/rules\[1\]\.rules\[0\]/)
+  })
+
+  it('throws on a non-JSON value nested inside a rule array', () => {
+    // A non-finite number tucked inside an array value must still be rejected,
+    // with a path pointing at the offending array index.
+    const payload =
+      '{"v":1,"tree":{"combinator":"and","rules":[{"field":"a","operator":"in","value":[1,1e999,3]}]}}'
+    expect(() => deserialize(payload)).toThrow(/rules\[0\]\.value\[1\]/)
+  })
+
+  it('throws on a non-string operator deep in the tree', () => {
+    expect(() =>
+      deserialize(
+        JSON.stringify({
+          v: 1,
+          tree: {
+            combinator: 'and',
+            rules: [
+              {
+                combinator: 'or',
+                rules: [{ field: 'a', operator: 5, value: 1 }],
+              },
+            ],
+          },
+        }),
+      ),
+    ).toThrow(/operator/)
+  })
+
+  it('reports the path to a malformed value nested in an object', () => {
+    const payload =
+      '{"v":1,"tree":{"combinator":"and","rules":[{"field":"a","operator":"matches","value":{"hi":1e999}}]}}'
+    expect(() => deserialize(payload)).toThrow(/rules\[0\]\.value\.hi/)
   })
 })
