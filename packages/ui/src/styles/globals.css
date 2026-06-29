@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+
+/*
+ * Dark mode is opt-in via a `data-theme="dark"` attribute on (or above) the
+ * element tree. The `@variant dark` definition lets `dark:` utilities target
+ * that attribute instead of the default `prefers-color-scheme` media query.
+ */
+@variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Semantic design tokens. These map to Tailwind utilities (e.g. `bg-background`,
+ * `text-foreground`, `rounded-md`) and are the single source of truth shared by
+ * the pre-built `styles.css` and the exported Tailwind preset.
+ *
+ * Values are authored for the light theme; the dark theme overrides the same
+ * custom properties below.
+ */
+@theme {
+  /* Surfaces */
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.22 0.01 286);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.22 0.01 286);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.22 0.01 286);
+
+  /* Brand / actions */
+  --color-primary: oklch(0.55 0.21 263);
+  --color-primary-foreground: oklch(0.98 0.01 263);
+  --color-secondary: oklch(0.96 0.01 286);
+  --color-secondary-foreground: oklch(0.3 0.01 286);
+  --color-accent: oklch(0.96 0.01 286);
+  --color-accent-foreground: oklch(0.3 0.01 286);
+
+  /* States */
+  --color-muted: oklch(0.97 0.01 286);
+  --color-muted-foreground: oklch(0.55 0.01 286);
+  --color-destructive: oklch(0.58 0.22 27);
+  --color-destructive-foreground: oklch(0.98 0.01 27);
+  --color-success: oklch(0.6 0.16 150);
+  --color-success-foreground: oklch(0.98 0.02 150);
+  --color-warning: oklch(0.75 0.16 75);
+  --color-warning-foreground: oklch(0.27 0.04 75);
+
+  /* Lines & focus */
+  --color-border: oklch(0.92 0.01 286);
+  --color-input: oklch(0.92 0.01 286);
+  --color-ring: oklch(0.55 0.21 263);
+
+  /* Radii */
+  --radius: 0.5rem;
+  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 0.25rem);
+  --radius-xl: calc(var(--radius) + 0.5rem);
+}
+
+/*
+ * Dark theme overrides. Re-declaring the `--color-*` custom properties on the
+ * themed scope swaps every utility that references them, no `dark:` variants
+ * required on individual elements.
+ */
+[data-theme='dark'] {
+  --color-background: oklch(0.18 0.01 286);
+  --color-foreground: oklch(0.96 0.01 286);
+  --color-card: oklch(0.21 0.01 286);
+  --color-card-foreground: oklch(0.96 0.01 286);
+  --color-popover: oklch(0.21 0.01 286);
+  --color-popover-foreground: oklch(0.96 0.01 286);
+
+  --color-primary: oklch(0.65 0.19 263);
+  --color-primary-foreground: oklch(0.18 0.02 263);
+  --color-secondary: oklch(0.27 0.01 286);
+  --color-secondary-foreground: oklch(0.96 0.01 286);
+  --color-accent: oklch(0.27 0.01 286);
+  --color-accent-foreground: oklch(0.96 0.01 286);
+
+  --color-muted: oklch(0.27 0.01 286);
+  --color-muted-foreground: oklch(0.7 0.01 286);
+  --color-destructive: oklch(0.65 0.2 27);
+  --color-destructive-foreground: oklch(0.98 0.01 27);
+  --color-success: oklch(0.68 0.15 150);
+  --color-success-foreground: oklch(0.18 0.02 150);
+  --color-warning: oklch(0.8 0.15 75);
+  --color-warning-foreground: oklch(0.27 0.04 75);
+
+  --color-border: oklch(0.3 0.01 286);
+  --color-input: oklch(0.32 0.01 286);
+  --color-ring: oklch(0.65 0.19 263);
+}

@@ -1,8 +1,27 @@
 /**
  * Public entry point for the Forge UI kit.
  *
- * Components, hooks and utilities are re-exported from here as they land.
- * For now this exposes only the package version marker so the build pipeline
- * has a real ESM artifact to emit.
+ * Importing the package's stylesheet here makes the pre-built `dist/styles.css`
+ * a side effect of `@sergeyhorse/forge` so bundlers that respect the
+ * `sideEffects: ["*.css"]` field keep it. Consumers using their own Tailwind
+ * build can instead import `@sergeyhorse/forge/preset`.
  */
-export const version = '0.0.0' as const
+import './styles/globals.css'
+
+export { cn } from './utils/cn'
+
+export {
+  preset,
+  lightTokens,
+  darkTokens,
+  darkSelector,
+} from './styles/preset'
+export type { ForgeThemeTokens, ForgePreset } from './styles/preset'
+
+export {
+  useControllableState,
+  useDebouncedValue,
+  useMediaQuery,
+  useFocusVisible,
+} from './hooks'
+export type { UseControllableStateParams } from './hooks'
