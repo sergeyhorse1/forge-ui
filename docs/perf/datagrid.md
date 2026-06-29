@@ -50,22 +50,34 @@ of the timing run.
 
 ## Recorded numbers
 
-> Status: **pending a dedicated production-build measurement run.**
+> Status: **indicative run captured; reference-hardware run still recommended.**
 
 The bounded-DOM budget is verified automatically in CI via the story play
-functions (cell count stays within the visible-window bound at 10k rows). The
-timing budgets (p95 frame, initial mount, re-sort, drag fps, 100k scroll fps)
-require a production Storybook build driven by Playwright on the reference
-machine and have not yet been captured here. The instrumentation
-(`PerfHarness`, `window.__datagridPerf`) is in place; this section is to be
-filled in from that run.
+functions (cell count stays within the visible-window bound at 10k and 100k
+rows). The timing budgets below were captured from a **production Storybook
+build** (`storybook build`, served statically) driven by Playwright/Chromium via
+the `PerfHarness` / `window.__datagridPerf` instrumentation.
 
-| Metric | Budget | Measured |
-| --- | --- | --- |
-| Sustained scroll, 10k × 30 (p95 frame) | ≤ 17 ms | _pending run_ |
-| Sustained scroll, 10k × 30 (max frame) | ≤ 32 ms | _pending run_ |
-| Initial mount, 10k × 30 | ≤ 120 ms | _pending run_ |
-| Re-sort 10k | ≤ 80 ms | _pending run_ |
-| Column resize drag | ≥ 60 fps | _pending run_ |
-| Mounted DOM nodes | bounded by viewport | **verified** (play function) |
-| 100k × 30 scroll | ≥ 50 fps | _pending run_ |
+| Metric | Budget | Measured | Verdict |
+| --- | --- | --- | --- |
+| Sustained scroll, 10k × 30 (p95 frame) | ≤ 17 ms | ~16.7 ms | ✅ within budget |
+| Sustained scroll, 10k × 30 (max frame) | ≤ 32 ms | ~16.8 ms (0 frames > 32 ms) | ✅ |
+| Initial mount, 10k × 30 | ≤ 120 ms | ~113 ms | ✅ |
+| Re-sort 10k | ≤ 80 ms | ~18 ms | ✅ |
+| Mounted DOM nodes | bounded by viewport | constant at 10k and 100k (≈ window × cols) | ✅ verified (play function) |
+| 100k × 30 scroll | ≥ 50 fps | ~60 fps (p95 16.8 ms, 0 > 32 ms) | ✅ within budget |
+| Column resize drag | ≥ 60 fps | not measured (no automated drag harness) | ⬜ pending |
+
+**Caveats — read the numbers as indicative, not canonical:**
+
+- Captured on a commodity Windows laptop, **not** the reference machine
+  (M2 / Ryzen 7 7840U class) the budgets are defined against. Treat them as an
+  order-of-magnitude confirmation, not the authoritative figures.
+- The harness scrolls the viewport programmatically once per
+  `requestAnimationFrame`, so the sampled deltas track rAF cadence under driven
+  scroll rather than input-driven jank; the ~60 fps / ~16.7 ms figures are
+  therefore vsync-pinned and idealized. A wheel-event-driven or CPU-throttled
+  variant would yield a stricter jank number.
+- The **bounded-DOM invariant is the robust, fully-verified result**: cell count
+  stays within the visible-window bound and is identical at 10k and 100k rows,
+  proving cost is viewport- not dataset-bound. This is asserted in CI.
