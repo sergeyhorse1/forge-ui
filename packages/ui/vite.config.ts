@@ -19,10 +19,11 @@ export default defineConfig({
     rollupOptions: {
       // ADR-006: every peer dependency stays external. The regexes also cover
       // the unified radix-ui package and scoped subpath imports. Runtime
-      // `dependencies` (clsx, tailwind-merge) are externalised too: they are
-      // declared in package.json so a consumer's installer pulls them in, and
-      // keeping them out of the bundle avoids embedding hashed node_modules
-      // paths in the published output while letting them dedupe across the app.
+      // `dependencies` (clsx, tailwind-merge, class-variance-authority,
+      // @tanstack/react-virtual) are externalised too: they are declared in
+      // package.json so a consumer's installer pulls them in, and keeping them
+      // out of the bundle avoids embedding hashed node_modules paths in the
+      // published output while letting them dedupe across the app.
       external: [
         /^react($|\/)/,
         /^react-dom($|\/)/,
@@ -32,6 +33,8 @@ export default defineConfig({
         /^date-fns\//,
         'clsx',
         'tailwind-merge',
+        'class-variance-authority',
+        '@tanstack/react-virtual',
       ],
       output: {
         preserveModules: true,

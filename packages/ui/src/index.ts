@@ -10,6 +10,24 @@ import './styles/globals.css'
 
 export { cn } from './utils/cn'
 
+export { DataGrid, useDataGrid } from './components/DataGrid'
+export type {
+  ColumnAlign,
+  ColumnDef,
+  ColumnId,
+  ColumnSortInfo,
+  DataGridModel,
+  DataGridProps,
+  ResolvedColumn,
+  RowKey,
+  SelectionMode,
+  SelectionOptions,
+  SortDirection,
+  SortOptions,
+  SortState,
+  UseDataGridOptions,
+} from './components/DataGrid'
+
 export {
   preset,
   lightTokens,
