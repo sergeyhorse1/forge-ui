@@ -1,6 +1,17 @@
 @import 'tailwindcss';
 
 /*
+ * Explicitly register this package's source as a content source. The stylesheet
+ * is consumed from two different build roots: the library build (this package)
+ * and Storybook (a sibling app). Tailwind's automatic content detection is
+ * anchored to the build root, so from Storybook the component sources here sit
+ * outside the scanned tree and their utilities would be dropped, shipping an
+ * unstyled grid. The path is resolved relative to this file, so it points at
+ * `packages/ui/src` regardless of which build imports the stylesheet.
+ */
+@source '../';
+
+/*
  * Dark mode is opt-in via a `data-theme="dark"` attribute on (or above) the
  * element tree. The `@variant dark` definition lets `dark:` utilities target
  * that attribute instead of the default `prefers-color-scheme` media query.

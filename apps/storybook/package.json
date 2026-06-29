@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "storybook dev -p 6006 --no-open",
     "build": "storybook build",
+    "verify-styles": "node scripts/verify-styles.mjs",
+    "build:verify": "storybook build && node scripts/verify-styles.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
