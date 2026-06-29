@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import storybook from 'eslint-plugin-storybook'
 import tseslint from 'typescript-eslint'
 import globals from 'globals'
 
@@ -32,4 +33,5 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
   },
+  ...storybook.configs['flat/recommended'],
 )

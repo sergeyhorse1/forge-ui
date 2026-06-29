@@ -27,7 +27,7 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.test.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.stories.json --noEmit"
   },
   "peerDependencies": {
     "date-fns": "^4",
@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.58.9",
+    "@storybook/react-vite": "10.4.6",
     "@tailwindcss/vite": "4.3.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
@@ -57,6 +58,7 @@
     "lucide-react": "^1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "storybook": "10.4.6",
     "tailwindcss": "4.3.1",
     "vite": "8.1.0",
     "vite-plugin-dts": "5.0.3",
