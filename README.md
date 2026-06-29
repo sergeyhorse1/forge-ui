@@ -16,7 +16,7 @@
 A focused UI library for the gaps in `shadcn/ui` when building data-dense dashboards: virtualized `DataGrid`, grouped async `Combobox`, AND/OR `FilterBuilder`, `MetricCard` with trend sparkline, `KpiGrid`, `CommandMenu` (⌘K). Shipped as a tree-shakable ESM-only npm package with Storybook, a Nextra docs site, and Changesets-driven releases.
 
 ### Stack
-Vite (library mode) · TypeScript (strict) · Radix UI primitives · class-variance-authority · Tailwind · @tanstack/react-virtual · Storybook 8 + Test Runner + addon-a11y · Vitest + Testing Library · Changesets · Nextra · pnpm workspaces
+Vite (library mode) · TypeScript (strict) · Radix UI primitives · class-variance-authority · Tailwind · @tanstack/react-virtual · Storybook 9 + Test Runner + addon-a11y · Vitest + Testing Library · Changesets · Astro Starlight (docs site) · pnpm workspaces
 
 ### Highlights
 - Tree-shakable ESM-only build via Vite library mode + `vite-plugin-dts`
@@ -42,7 +42,7 @@ pnpm --filter docs dev              # http://localhost:3000
 Фокусированная UI-библиотека для дыр в `shadcn/ui` при сборке data-dense дашбордов: виртуализированный `DataGrid`, grouped async `Combobox`, AND/OR `FilterBuilder`, `MetricCard` с trend-spark, `KpiGrid`, `CommandMenu` (⌘K). Публикуется как tree-shakable ESM-only npm-пакет со Storybook, Nextra docs-сайтом и Changesets-релизами.
 
 ### Стек
-Vite (library mode) · TypeScript (strict) · Radix UI primitives · class-variance-authority · Tailwind · @tanstack/react-virtual · Storybook 8 + Test Runner + addon-a11y · Vitest + Testing Library · Changesets · Nextra · pnpm workspaces
+Vite (library mode) · TypeScript (strict) · Radix UI primitives · class-variance-authority · Tailwind · @tanstack/react-virtual · Storybook 9 + Test Runner + addon-a11y · Vitest + Testing Library · Changesets · Astro Starlight (docs site) · pnpm workspaces
 
 ### Highlights
 - Tree-shakable ESM-only build через Vite library mode + `vite-plugin-dts`
