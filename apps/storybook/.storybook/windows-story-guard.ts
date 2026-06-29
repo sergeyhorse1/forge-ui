@@ -19,6 +19,11 @@ import type { Plugin } from 'vite'
  * The plugin wraps both operands in a normaliser that decodes percent-escapes
  * and unifies separators before comparing. It runs after the addon transform and
  * is a no-op where the operands already match.
+ *
+ * Both rewrites are global: a single `.stories.tsx` file produces one guard block
+ * per tested story, so missing later occurrences would silently drop every story
+ * but the first. Remove this plugin once vitest-dev/vitest#6367 lands and the
+ * addon compares normalised paths upstream.
  */
 const GUARD_CALL = 'convertToFilePath(import.meta.url).includes('
 const HELPER_NAME = '__forgeNormalizedPath'
@@ -29,15 +34,16 @@ export function windowsStoryGuard(): Plugin {
     name: 'forge:windows-story-guard',
     enforce: 'post',
     transform(code) {
+      // No-op if the upstream addon stops emitting this exact guard call.
       if (!code.includes(GUARD_CALL)) return null
 
-      const guarded = code.replace(
+      const guarded = code.replaceAll(
         GUARD_CALL,
         `${HELPER_NAME}(convertToFilePath(import.meta.url)).includes(${HELPER_NAME}(`,
       )
 
-      // Close the wrapper opened around the operand, which ends at `.testPath`.
-      const closed = guarded.replace(/\.testPath\);/, '.testPath));')
+      // Close every wrapper opened around an operand, each ending at `.testPath`.
+      const closed = guarded.replace(/\.testPath\);/g, '.testPath));')
 
       return `${HELPER}\n${closed}`
     },

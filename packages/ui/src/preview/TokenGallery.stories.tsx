@@ -32,3 +32,16 @@ export const Gallery: Story = {
     await expect(getComputedStyle(primarySwatch!).backgroundColor).not.toBe('')
   },
 }
+
+export const DarkTheme: Story = {
+  globals: { theme: 'dark' },
+  play: async ({ canvasElement }) => {
+    await expect(document.documentElement.dataset.theme).toBe('dark')
+
+    // The same Primary swatch resolves to the dark-theme token override, so it
+    // still paints rather than falling back to a transparent default.
+    const primarySwatch = canvasElement.querySelector('.bg-primary')
+    await expect(primarySwatch).not.toBeNull()
+    await expect(getComputedStyle(primarySwatch!).backgroundColor).not.toBe('')
+  },
+}

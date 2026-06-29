@@ -6,10 +6,8 @@ import { defineConfig } from 'vitest/config'
 
 import { windowsStoryGuard } from './.storybook/windows-story-guard'
 
-const dirname = fileURLToPath(new URL('.', import.meta.url))
-
 const storybookPlugins = await storybookTest({
-  configDir: `${dirname}.storybook`,
+  configDir: fileURLToPath(new URL('.storybook', import.meta.url)),
 })
 
 /**
