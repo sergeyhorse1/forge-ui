@@ -131,12 +131,47 @@ export function reconcileField(
     ? rule.operator
     : defaultOperatorForField(nextFieldName, schema)
 
+  // Operator ids overlap across types (`between` is both number and date; `is`
+  // both boolean and enum), so keeping the id is not enough: a number value
+  // must not survive into a date field, nor a `true` into an enum. Carry the
+  // value only when the *type* is unchanged; otherwise reset to the new type's
+  // default. `rule` still names the OLD field here (reconciliation runs before
+  // the update), so its config gives the previous type.
+  const prevConfig = fieldConfig(rule.field, schema)
+  const sameType = prevConfig?.type === config.type
+
   const inputKind = inputKindFor(nextFieldName, nextOperator, schema)
-  const nextValue = keepsOperator
-    ? coerceValue(rule.value, config.type, inputKind, config)
-    : defaultValueFor(config.type, inputKind, config)
+  const carried =
+    keepsOperator && sameType
+      ? coerceValue(rule.value, config.type, inputKind, config)
+      : defaultValueFor(config.type, inputKind, config)
+  // Even within the same type, enum→enum with different options can leave a
+  // value outside the new option set; sanitize closes that last gap.
+  const nextValue = sanitizeForField(carried, config, inputKind)
 
   return { field: nextFieldName, operator: nextOperator, value: nextValue }
+}
+
+/**
+ * Drop enum values that are not in the target field's option set, so a
+ * controlled `<select>` never holds a value with no matching option. For a
+ * `multi` enum the array is filtered (empty when nothing survives); for a single
+ * enum an out-of-set value falls back to the enum default. Non-enum fields pass
+ * through unchanged.
+ */
+function sanitizeForField(
+  value: FilterValue,
+  config: FilterFieldConfig,
+  inputKind: OperatorInputKind,
+): FilterValue {
+  if (config.type !== 'enum') return value
+  const allowed = new Set<FilterValue>(config.options.map((option) => option.value))
+
+  if (inputKind === 'multi') {
+    return Array.isArray(value) ? value.filter((item) => allowed.has(item)) : []
+  }
+  if (allowed.has(value)) return value
+  return defaultValueFor('enum', inputKind, config)
 }
 
 /**

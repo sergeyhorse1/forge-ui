@@ -91,8 +91,13 @@ function formatValue(
 
   if (Array.isArray(value)) {
     if (inputKind === 'range' && value.length >= 2) {
-      const from = labelFor(value[0] ?? '', field, schema)
-      const to = labelFor(value[1] ?? '', field, schema)
+      const fromValue = value[0] ?? ''
+      const toValue = value[1] ?? ''
+      // An untouched range (`['', '']`) should read like any other empty value,
+      // not as a dangling " – ".
+      if (fromValue === '' && toValue === '') return '—'
+      const from = labelFor(fromValue, field, schema)
+      const to = labelFor(toValue, field, schema)
       return `${from} – ${to}`
     }
     const labels = value

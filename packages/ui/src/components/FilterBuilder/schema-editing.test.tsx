@@ -40,6 +40,15 @@ const SCHEMA: FilterFieldSchema = [
     type: 'string',
     operators: ['equals', 'contains'],
   },
+  {
+    field: 'region',
+    label: 'Region',
+    type: 'enum',
+    options: [
+      { label: 'East', value: 'east' },
+      { label: 'West', value: 'west' },
+    ],
+  },
 ]
 
 describe('operatorsForField — type-scoped operator sets', () => {
@@ -144,6 +153,92 @@ describe('reconcileField — no broken combination after a field change', () => 
   })
 })
 
+describe('reconcileField — value reset when the field TYPE changes (shared op id)', () => {
+  // Operator ids overlap across types: `between` is number AND date, `is` is
+  // boolean AND enum. Keeping the id must NOT keep a value of the old type.
+  it('drops a numeric range when moving to a date field that also has between', () => {
+    const rule: FilterRule = {
+      field: 'price',
+      operator: 'between',
+      value: [100, 200],
+    }
+    const next = reconcileField(rule, 'createdAt', SCHEMA)
+    expect(next.field).toBe('createdAt')
+    // The shared operator id stays valid for the date field…
+    expect(next.operator).toBe('between')
+    // …but the numeric pair must not survive into a date rule.
+    expect(next.value).not.toEqual([100, 200])
+    expect(next.value).toEqual(['', ''])
+  })
+
+  it('drops a boolean value when moving to an enum field that also has is', () => {
+    const rule: FilterRule = { field: 'active', operator: 'is', value: true }
+    const next = reconcileField(rule, 'plan', SCHEMA)
+    expect(next.field).toBe('plan')
+    expect(next.operator).toBe('is')
+    // `true` has no matching enum option; reset to the first option value.
+    expect(next.value).not.toBe(true)
+    expect(next.value).toBe('free')
+  })
+
+  it('sanitizes a value outside the new enum option set (enum → enum)', () => {
+    const rule: FilterRule = { field: 'plan', operator: 'is', value: 'pro' }
+    const next = reconcileField(rule, 'region', SCHEMA)
+    expect(next.field).toBe('region')
+    expect(next.operator).toBe('is')
+    // 'pro' is not in Region's options (east/west) → reset to its first option.
+    expect(next.value).not.toBe('pro')
+    expect(next.value).toBe('east')
+  })
+
+  it('filters a multi enum value down to the new field option set', () => {
+    const rule: FilterRule = {
+      field: 'plan',
+      operator: 'in',
+      value: ['pro', 'team'],
+    }
+    const next = reconcileField(rule, 'region', SCHEMA)
+    expect(next.operator).toBe('in')
+    // Neither 'pro' nor 'team' exists in Region → the array empties out.
+    expect(next.value).toEqual([])
+  })
+})
+
+describe('SchemaRuleEditor — value control re-renders after a type-changing field swap', () => {
+  it('shows empty date inputs after number-between → date-between', () => {
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [{ field: 'price', operator: 'between', value: [100, 200] }],
+    }
+    render(<SchemaHost initial={tree} />)
+
+    const field = screen.getByLabelText('Field') as HTMLSelectElement
+    fireEvent.change(field, { target: { value: 'createdAt' } })
+
+    const from = screen.getByLabelText('Created value from') as HTMLInputElement
+    const to = screen.getByLabelText('Created value to') as HTMLInputElement
+    expect(from.type).toBe('date')
+    expect(to.type).toBe('date')
+    expect(from.value).toBe('')
+    expect(to.value).toBe('')
+  })
+
+  it('shows a valid enum option after boolean-is → enum-is', () => {
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [{ field: 'active', operator: 'is', value: true }],
+    }
+    render(<SchemaHost initial={tree} />)
+
+    const field = screen.getByLabelText('Field') as HTMLSelectElement
+    fireEvent.change(field, { target: { value: 'plan' } })
+
+    const value = screen.getByLabelText('Plan value') as HTMLSelectElement
+    expect(value.tagName).toBe('SELECT')
+    expect(value.value).toBe('free')
+  })
+})
+
 describe('reconcileOperator — reshaping value when arity changes', () => {
   it('reshapes single → range when moving to between', () => {
     const rule: FilterRule = { field: 'price', operator: 'eq', value: 42 }
@@ -195,6 +290,15 @@ describe('summarizeRule — readable chip parts', () => {
       value: ['pro', 'team'],
     }
     expect(summarizeRule(rule, SCHEMA).value).toBe('Pro, Team')
+  })
+
+  it('renders an untouched range as a single dash, not a dangling " – "', () => {
+    const rule: FilterRule = {
+      field: 'price',
+      operator: 'between',
+      value: ['', ''],
+    }
+    expect(summarizeRule(rule, SCHEMA).value).toBe('—')
   })
 })
 

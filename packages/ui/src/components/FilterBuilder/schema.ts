@@ -141,8 +141,8 @@ export function operatorsForField(
 }
 
 /**
- * Look up one operator definition. Pass the field type directly, or pass a
- * `schema` + field type when only the field name is known at the call site.
+ * Look up one operator definition by field type and operator id. When only a
+ * field *name* is known, use {@link operatorDefForField} instead.
  */
 export function operatorDef(
   type: FieldType,

@@ -46,7 +46,8 @@ export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
   /**
    * Display mode. `'expanded'` (default) shows full editable controls;
    * `'compact'` shows a read-only chip summary; `'auto'` picks compact on a
-   * narrow container. `'auto'` needs `fields` to summarise meaningfully.
+   * narrow container. The chip summary needs `fields`, so without `fields` both
+   * `'compact'` and `'auto'` fall back to the editable tree.
    */
   mode?: FilterMode
   /** Container width (px) at/below which `'auto'` resolves to compact. */
