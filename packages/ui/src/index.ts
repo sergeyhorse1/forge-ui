@@ -37,6 +37,7 @@ export type {
 } from './components/DataGrid'
 
 export {
+  FilterBuilder,
   isGroup,
   isRule,
   addGroup,
@@ -52,6 +53,7 @@ export {
 export type {
   Combinator,
   FieldShape,
+  FilterBuilderProps,
   FilterGroup,
   FilterNode,
   FilterPath,
@@ -59,6 +61,7 @@ export type {
   FilterSchema,
   FilterTree,
   FilterValue,
+  RenderRuleContext,
   RulePatch,
 } from './components/FilterBuilder'
 

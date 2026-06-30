@@ -1,3 +1,7 @@
+export { FilterBuilder } from './FilterBuilder'
+export type { FilterBuilderProps } from './FilterBuilder'
+export type { RenderRuleContext } from './FilterRule'
+
 export { isGroup, isRule } from './types'
 export type {
   Combinator,
