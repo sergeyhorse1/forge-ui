@@ -49,6 +49,21 @@ export {
   updateRule,
   deserialize,
   serialize,
+  OPERATORS_BY_TYPE,
+  fieldConfig,
+  operatorsForField,
+  operatorDef,
+  operatorDefForField,
+  defaultOperatorForField,
+  defaultValueFor,
+  coerceValue,
+  reconcileField,
+  reconcileOperator,
+  describeCombinator,
+  summarizeGroup,
+  summarizeRule,
+  summarizeRuleText,
+  DEFAULT_COMPACT_BREAKPOINT,
 } from './components/FilterBuilder'
 export type {
   Combinator,
@@ -63,6 +78,15 @@ export type {
   FilterValue,
   RenderRuleContext,
   RulePatch,
+  EnumOption,
+  FieldType,
+  FilterFieldConfig,
+  FilterFieldSchema,
+  FilterMode,
+  OperatorDef,
+  OperatorInputKind,
+  ResolvedFilterMode,
+  RuleSummaryParts,
 } from './components/FilterBuilder'
 
 export {

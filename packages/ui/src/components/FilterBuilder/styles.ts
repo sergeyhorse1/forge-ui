@@ -86,3 +86,61 @@ export const ruleRow = cva(
 export const ruleControl = cva(
   'h-8 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
 )
+
+/**
+ * Wrapper for a range (`between`) operator's two value controls. Laid out with
+ * flex (deliberately not a two-column grid, which the dist guard forbids) so the
+ * pair shares the remaining row width and still wraps on a narrow container.
+ */
+export const ruleRangeGroup = cva('flex min-w-0 flex-1 items-center gap-2')
+
+/** The "to" separator between the two range controls. */
+export const ruleRangeSeparator = cva('shrink-0 text-xs text-muted-foreground')
+
+/** Multi-select value control: a little taller so several rows are visible. */
+export const ruleMultiControl = cva(
+  'min-h-16 min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+)
+
+/**
+ * Read-only compact summary. Chips wrap and long values break so a narrow
+ * container (≈360px) never overflows horizontally — the very failure mode the
+ * editable controls hit at that width, which compact mode replaces.
+ */
+export const summaryRoot = cva('flex flex-col gap-2 text-sm text-foreground')
+
+/** A group's summary block: combinator caption above its child chips. */
+export const summaryGroup = cva(
+  'flex flex-col gap-2 rounded-md border border-border p-2',
+  {
+    variants: {
+      root: { true: 'bg-card', false: 'bg-muted/40' },
+    },
+    defaultVariants: { root: true },
+  },
+)
+
+/** The "AND of N conditions" / "OR of N conditions" caption for a group. */
+export const summaryCombinator = cva(
+  'text-xs font-semibold tracking-wide text-muted-foreground uppercase',
+)
+
+/** Row holding a group's child chips and nested group blocks. */
+export const summaryChildren = cva('flex flex-wrap items-start gap-2')
+
+/**
+ * One read-only rule chip. `break-words` keeps a long value legible on a narrow
+ * container by wrapping instead of clipping or forcing a horizontal scrollbar.
+ */
+export const summaryChip = cva(
+  'inline-flex max-w-full items-baseline gap-1 rounded-md border border-border bg-muted px-2 py-1 text-xs break-words text-foreground',
+)
+
+/** The field name part of a chip, given slightly more weight than the rest. */
+export const summaryChipField = cva('font-medium text-foreground')
+
+/** The operator verb part of a chip. */
+export const summaryChipOperator = cva('text-muted-foreground')
+
+/** The value part of a chip. */
+export const summaryChipValue = cva('font-medium text-foreground')

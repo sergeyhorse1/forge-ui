@@ -4,6 +4,7 @@ import { expect, userEvent, within } from 'storybook/test'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import { FilterBuilder } from './FilterBuilder'
+import type { FilterFieldSchema } from './schema'
 import type { FilterTree } from './types'
 
 /**
@@ -37,6 +38,58 @@ const NESTED: FilterTree = {
       ],
     },
   ],
+}
+
+const FIELDS: FilterFieldSchema = [
+  { field: 'name', label: 'Name', type: 'string' },
+  { field: 'price', label: 'Price', type: 'number' },
+  { field: 'createdAt', label: 'Created', type: 'date' },
+  { field: 'active', label: 'Active', type: 'boolean' },
+  {
+    field: 'plan',
+    label: 'Plan',
+    type: 'enum',
+    options: [
+      { label: 'Free', value: 'free' },
+      { label: 'Pro', value: 'pro' },
+      { label: 'Team', value: 'team' },
+    ],
+  },
+]
+
+const SCHEMA_TREE: FilterTree = {
+  combinator: 'and',
+  rules: [
+    { field: 'name', operator: 'contains', value: 'acme' },
+    {
+      combinator: 'or',
+      rules: [
+        { field: 'price', operator: 'between', value: [100, 200] },
+        { field: 'plan', operator: 'in', value: ['pro', 'team'] },
+      ],
+    },
+  ],
+}
+
+/** Stateful host that also threads a field schema and a forced mode. */
+function SchemaFilterBuilder({
+  initial,
+  mode,
+}: {
+  initial: FilterTree
+  mode?: 'expanded' | 'compact' | 'auto'
+}) {
+  const [value, setValue] = useState<FilterTree>(initial)
+  return (
+    <div className="max-w-2xl">
+      <FilterBuilder
+        value={value}
+        onChange={setValue}
+        fields={FIELDS}
+        mode={mode}
+      />
+    </div>
+  )
 }
 
 const meta = {
@@ -144,5 +197,55 @@ export const CustomRuleRenderer: Story = {
         />
       </div>
     )
+  },
+}
+
+export const SchemaDriven: Story = {
+  tags: ['test'],
+  render: () => <SchemaFilterBuilder initial={SCHEMA_TREE} mode="expanded" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The field selector is a real <select> populated from the schema labels.
+    const fields = canvas.getAllByLabelText('Field') as HTMLSelectElement[]
+    await expect(fields[0]!.tagName).toBe('SELECT')
+
+    // The first rule is a string field on "contains"; its operator <select>
+    // must offer string operators and not, say, a numeric "between".
+    const operators = canvas.getAllByLabelText('Operator') as HTMLSelectElement[]
+    const firstOptions = Array.from(operators[0]!.options, (o) => o.value)
+    await expect(firstOptions).toContain('contains')
+    await expect(firstOptions).not.toContain('between')
+
+    // Switching the first rule to the number field reconciles the operator to a
+    // valid numeric one (string "contains" is invalid for numbers).
+    await userEvent.selectOptions(fields[0]!, 'price')
+    const afterOperators = canvas.getAllByLabelText(
+      'Operator',
+    ) as HTMLSelectElement[]
+    const numericOptions = Array.from(afterOperators[0]!.options, (o) => o.value)
+    await expect(numericOptions).toContain('eq')
+    await expect(numericOptions).not.toContain('contains')
+    await expect(afterOperators[0]!.value).not.toBe('contains')
+  },
+}
+
+export const CompactSummary: Story = {
+  tags: ['test'],
+  render: () => <SchemaFilterBuilder initial={SCHEMA_TREE} mode="compact" />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Compact mode is read-only: no editable field controls are present.
+    await expect(canvas.queryByLabelText('Field')).toBeNull()
+
+    // Group captions describe the combinator and its direct child count.
+    await expect(canvas.getByText('AND of 2 conditions')).toBeInTheDocument()
+    await expect(canvas.getByText('OR of 2 conditions')).toBeInTheDocument()
+
+    // Field labels and operator verbs surface as chip text.
+    await expect(canvas.getByText('Name')).toBeInTheDocument()
+    await expect(canvas.getByText('Price')).toBeInTheDocument()
+    await expect(canvas.getByText('between')).toBeInTheDocument()
   },
 }
