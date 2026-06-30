@@ -43,14 +43,17 @@ export const combinatorToggle = cva(
  * One segment of the combinator toggle. The active segment carries the primary
  * surface (>= 4.5:1 against `primary-foreground`); the inactive one is muted but
  * still legible, with a clear hover and a focus ring for keyboard users.
+ *
+ * Active vs inactive is signalled by font weight as well as fill, so the state
+ * is distinguishable without relying on colour alone (WCAG 1.4.1).
  */
 export const combinatorButton = cva(
-  'px-3 py-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+  'px-3 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
   {
     variants: {
       active: {
-        true: 'bg-primary text-primary-foreground',
-        false: 'bg-muted text-muted-foreground hover:bg-muted/70',
+        true: 'bg-primary font-semibold text-primary-foreground',
+        false: 'bg-muted font-normal text-muted-foreground hover:bg-muted/70',
       },
     },
     defaultVariants: { active: false },

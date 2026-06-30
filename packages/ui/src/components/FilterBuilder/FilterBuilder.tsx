@@ -39,6 +39,12 @@ export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
 // string; value: FilterValue }`, so a blank rule is structurally valid; the cast
 // is only needed for the parameterised-schema case, where the consumer supplies
 // its own `createRule`.
+//
+// Footgun: against a CONCRETE schema with no `createRule` prop, "Add rule" emits
+// this blank rule into `value` — a structurally off-union rule the cast hides
+// from the type system (empty field/operator may not exist in the schema).
+// Concrete-schema consumers should always pass `createRule` so new rules satisfy
+// the discriminated union.
 function defaultCreateRule<S extends FilterSchema>(): FilterRule<S> {
   return { field: '', operator: '', value: '' } as FilterRule<S>
 }

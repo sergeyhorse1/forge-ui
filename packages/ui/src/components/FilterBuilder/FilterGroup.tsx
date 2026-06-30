@@ -86,6 +86,8 @@ function FilterGroupInner<S extends FilterSchema>({
         <div className={cn(groupChildren())}>
           {group.rules.map((child, index) => {
             const childPath = childPaths[index]!
+            // Keyed by position — see the accepted-limitation note below the
+            // component for why index keys are used and their one trade-off.
             if (isGroup(child)) {
               return (
                 <FilterGroup
@@ -136,8 +138,24 @@ function FilterGroupInner<S extends FilterSchema>({
  * `React.memo` so a change isolated to one branch — thanks to the tree's
  * structural sharing — does not re-render unrelated sibling groups.
  *
- * Children are keyed by array index rather than a node id because the model
- * carries no ids and a node's identity *is* its position; the tree ops rebuild
- * the affected slice on every edit, so index keys track the structure exactly.
+ * ## Positional keying (accepted limitation)
+ *
+ * Children are keyed by their array index, because the normalized model carries
+ * no node id — a node's identity *is* its position in the parent's `rules`. Both
+ * alternatives are unsound here:
+ *
+ * - **A `WeakMap<node, id>` keyed by object identity** would remount the input
+ *   on every keystroke: an edit replaces the rule with a new object
+ *   (`{ ...rule, ...patch }`), so its identity — and thus its key — changes on
+ *   each change event, dropping focus mid-type. Strictly worse.
+ * - **An explicit `id` field on rules/groups** is a model and wire-format change
+ *   (it touches the type, serialization and round trip), which the model layer
+ *   deliberately rejected: node identity is positional by design.
+ *
+ * The trade-off this accepts: when a non-last sibling is removed, React reuses
+ * DOM nodes by index, so transient DOM state (focus, caret, IME composition) can
+ * stay on a physical input that now backs the next rule. The controlled
+ * **values** always re-project correctly — only momentary focus can misattribute
+ * across a mid-list removal. Revisit if the model ever gains stable node ids.
  */
 export const FilterGroup = memo(FilterGroupInner) as typeof FilterGroupInner
