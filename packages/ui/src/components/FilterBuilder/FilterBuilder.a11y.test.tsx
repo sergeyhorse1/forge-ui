@@ -204,3 +204,130 @@ describe('FilterBuilder — group and toggle semantics', () => {
     expect(screen.queryByRole('group', { name: 'Combinator' })).toBeNull()
   })
 })
+
+/**
+ * A consumer's custom `renderRule` that deliberately stamps no focus attribute.
+ * `FilterRule` wraps every row in a `data-rule-path` element itself, so focus
+ * management works without the renderer's cooperation.
+ */
+function CustomHost({ initial }: { initial: FilterTree }) {
+  const [value, setValue] = useState<FilterTree>(initial)
+  return (
+    <FilterBuilder
+      value={value}
+      onChange={setValue}
+      renderRule={({ rule, update, idBase }) => (
+        <div className="flex gap-2">
+          <label className="sr-only" htmlFor={`${idBase}-condition`}>
+            Condition
+          </label>
+          <input
+            id={`${idBase}-condition`}
+            value={String(rule.value ?? '')}
+            onChange={(event) => update({ value: event.target.value })}
+          />
+        </div>
+      )}
+    />
+  )
+}
+
+describe('FilterBuilder — focus works for custom renderRule', () => {
+  it('moves focus into a custom row that stamps no path itself', () => {
+    render(<CustomHost initial={{ combinator: 'and', rules: [makeRule('a')] }} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
+
+    // The centralised wrapper stamps data-rule-path even though the custom
+    // renderer does not; focus lands on the custom input inside the new row.
+    // Disproof: dropping the `contents` wrapper leaves no addressable row, so
+    // focus would be stranded on the Add rule button instead.
+    const newRow = ruleRowAt([1])
+    const control = within(newRow).getByRole('textbox')
+    expect(document.activeElement).toBe(control)
+  })
+})
+
+/**
+ * Host that rejects removals (a min-rules guard) but accepts every other edit,
+ * plus a button that swaps in an unrelated tree from outside the builder. This
+ * reproduces a stale `afterRemove` intent: the remove is recorded but never
+ * commits, so a later unrelated commit must not resolve it.
+ */
+function RejectRemoveHost({ initial }: { initial: FilterTree }) {
+  const [value, setValue] = useState<FilterTree>(initial)
+  return (
+    <div>
+      <button
+        type="button"
+        data-testid="external"
+        onClick={() =>
+          setValue({ combinator: 'and', rules: [makeRule('external')] })
+        }
+      >
+        external change
+      </button>
+      <FilterBuilder
+        value={value}
+        onChange={(next) =>
+          setValue((current) =>
+            next.rules.length < current.rules.length ? current : next,
+          )
+        }
+      />
+    </div>
+  )
+}
+
+describe('FilterBuilder — stale focus intent does not steal focus', () => {
+  it('ignores a rejected remove when an unrelated commit follows', () => {
+    render(
+      <RejectRemoveHost
+        initial={{
+          combinator: 'and',
+          rules: [makeRule('alpha'), makeRule('beta'), makeRule('gamma')],
+        }}
+      />,
+    )
+
+    // Attempt to remove the middle rule; the host rejects it (no commit), so the
+    // afterRemove intent is left pending, expecting a tree that never arrives.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove rule' })[1]!)
+    expect(screen.getAllByLabelText('Field')).toHaveLength(3)
+
+    // An unrelated external commit changes `value` to a different tree. The gate
+    // (`value === expected`) must reject the stale intent so focus is not yanked
+    // onto a rule row. Disproof: removing the gate lets the stale intent resolve
+    // against this new tree and steal focus to its first rule's field.
+    const external = screen.getByTestId('external')
+    external.focus()
+    fireEvent.click(external)
+
+    expect(document.activeElement).toBe(external)
+  })
+
+  it('keeps focus in the edited row after a rejected remove', () => {
+    render(
+      <RejectRemoveHost
+        initial={{
+          combinator: 'and',
+          rules: [makeRule('alpha'), makeRule('beta'), makeRule('gamma')],
+        }}
+      />,
+    )
+
+    // Reject a remove, then edit a different row's field. Editing clears the
+    // stale intent and the gate backs it up, so focus stays where the user types.
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove rule' })[1]!)
+
+    // The third row's field input (rows keep their order; the remove was
+    // rejected, so all three survive).
+    const gammaField = screen.getAllByLabelText('Field')[2] as HTMLInputElement
+    expect(gammaField.value).toBe('gamma')
+    gammaField.focus()
+    fireEvent.change(gammaField, { target: { value: 'gamma-edited' } })
+
+    expect(document.activeElement).toBe(gammaField)
+    expect(gammaField.value).toBe('gamma-edited')
+  })
+})

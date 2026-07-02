@@ -8,12 +8,16 @@ import type { RulePatch } from './tree'
 import type { FilterPath, FilterRule as FilterRuleModel, FilterSchema } from './types'
 
 /**
- * Context handed to a custom {@link FilterRuleProps.renderRule}. It exposes the
+ * Context handed to a custom {@link FilterBuilderProps.renderRule}. It exposes the
  * current rule plus pre-bound `update`/`remove` callbacks, an `idBase` for
  * deriving stable, unique control ids — the seam the schema-driven editor uses to
- * swap itself in without re-implementing the tree wiring — and the rule's `path`,
- * which the built-in editors stamp as `data-rule-path` so post-commit focus
- * management can address a specific row.
+ * swap itself in without re-implementing the tree wiring — and the rule's `path`.
+ *
+ * A custom renderer does **not** need to stamp any focus attribute: `FilterRule`
+ * wraps every rendered row (built-in or custom) in a `display:contents` element
+ * carrying `data-rule-path`, so post-commit focus management can address the row
+ * without the renderer's cooperation. `path` is exposed for renderers that want
+ * to derive their own addressing.
  */
 export interface RenderRuleContext<S extends FilterSchema> {
   rule: FilterRuleModel<S>
@@ -36,10 +40,9 @@ function DefaultRuleEditor<S extends FilterSchema>({
   update,
   remove,
   idBase,
-  path,
 }: RenderRuleContext<S>) {
   return (
-    <div className={cn(ruleRow())} data-rule-path={encodePath(path)}>
+    <div className={cn(ruleRow())}>
       <label className="sr-only" htmlFor={`${idBase}-field`}>
         Field
       </label>
@@ -106,8 +109,21 @@ function FilterRuleInner<S extends FilterSchema>({
     remove: () => actions.removeNode(path),
   }
 
-  if (renderRule) return <>{renderRule(ctx)}</>
-  return <DefaultRuleEditor {...ctx} />
+  // Stamp `data-rule-path` on a single `display:contents` wrapper around whatever
+  // the row renders — built-in editor or a consumer's `renderRule`. Centralising
+  // it here (rather than in each editor) means custom renderers get post-commit
+  // focus management for free, and `contents` keeps the wrapper out of layout so
+  // the row's own flex/grid is unaffected.
+  // Stamp `data-rule-path` on a single `display:contents` wrapper around whatever
+  // the row renders — built-in editor or a consumer's `renderRule`. Centralising
+  // it here (rather than in each editor) means custom renderers get post-commit
+  // focus management for free, and `contents` keeps the wrapper out of layout so
+  // the row's own flex/grid is unaffected.
+  return (
+    <div className="contents" data-rule-path={encodePath(path)}>
+      {renderRule ? renderRule(ctx) : <DefaultRuleEditor {...ctx} />}
+    </div>
+  )
 }
 
 /**

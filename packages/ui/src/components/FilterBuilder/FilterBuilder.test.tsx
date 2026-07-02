@@ -396,8 +396,8 @@ describe('FilterBuilder — deep recursion path threading', () => {
   // in; find it by walking up from the field input of the rule it alone holds.
   function deepestGroupPanel(): HTMLElement {
     const deepField = screen.getByDisplayValue('deepField')
-    // input -> ruleRow -> groupChildren -> deepest groupPanel
-    return deepField.parentElement!.parentElement!.parentElement!
+    // input -> ruleRow -> data-rule-path wrapper -> groupChildren -> groupPanel
+    return deepField.parentElement!.parentElement!.parentElement!.parentElement!
   }
 
   it('adds a rule into a group nested two levels deep at path [1, 1]', () => {

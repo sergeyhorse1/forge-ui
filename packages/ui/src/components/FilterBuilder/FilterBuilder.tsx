@@ -112,11 +112,15 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
   const rootRef = useRef<HTMLDivElement>(null)
   const resolvedMode = useFilterMode(mode, rootRef, compactBreakpoint)
 
-  // Records where focus should land after the next commit. A ref (not state) so
-  // recording an intent neither triggers a render nor reintroduces tree state —
-  // it is stable across renders, which is why the `actions` memo below can close
-  // over it with an empty dependency list.
-  const pendingFocusRef = useRef<FocusIntent | null>(null)
+  // Records where focus should land after the next commit, paired with the exact
+  // tree that commit is expected to produce. A ref (not state) so recording an
+  // intent neither triggers a render nor reintroduces tree state — it is stable
+  // across renders, which is why the `actions` memo below can close over it with
+  // an empty dependency list.
+  const pendingFocusRef = useRef<{
+    intent: FocusIntent
+    expected: FilterTree<S>
+  } | null>(null)
 
   const actions = useMemo<FilterActions<S>>(() => {
     const emit = (next: FilterTree<S>) => onChangeRef.current(next)
@@ -130,46 +134,65 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
     }
     return {
       addRule: (path: FilterPath) => {
+        const next = addRule(treeRef.current, path, make())
         pendingFocusRef.current = {
-          kind: 'ruleFirstControl',
-          path: [...path, appendIndex(path)],
+          intent: { kind: 'ruleFirstControl', path: [...path, appendIndex(path)] },
+          expected: next,
         }
-        emit(addRule(treeRef.current, path, make()))
+        emit(next)
       },
       addGroup: (path: FilterPath) => {
+        const next = addGroup(treeRef.current, path)
         pendingFocusRef.current = {
-          kind: 'groupFirstControl',
-          path: [...path, appendIndex(path)],
+          intent: { kind: 'groupFirstControl', path: [...path, appendIndex(path)] },
+          expected: next,
         }
-        emit(addGroup(treeRef.current, path))
+        emit(next)
       },
       removeNode: (path: FilterPath) => {
+        const next = removeNode(treeRef.current, path)
         pendingFocusRef.current = {
-          kind: 'afterRemove',
-          parentPath: path.slice(0, -1),
-          index: path[path.length - 1]!,
+          intent: {
+            kind: 'afterRemove',
+            parentPath: path.slice(0, -1),
+            index: path[path.length - 1]!,
+          },
+          expected: next,
         }
-        emit(removeNode(treeRef.current, path))
+        emit(next)
       },
-      updateRule: (path, patch) =>
-        emit(updateRule(treeRef.current, path, patch)),
-      setCombinator: (path, combinator) =>
-        emit(setCombinator(treeRef.current, path, combinator)),
+      // Editing clears any stale focus intent: the user is typing, so a focus
+      // jump is unwanted, and a leftover add/remove intent must not fire on this
+      // commit.
+      updateRule: (path, patch) => {
+        pendingFocusRef.current = null
+        emit(updateRule(treeRef.current, path, patch))
+      },
+      setCombinator: (path, combinator) => {
+        pendingFocusRef.current = null
+        emit(setCombinator(treeRef.current, path, combinator))
+      },
     }
   }, [])
 
-  // Resolve any pending focus intent after the edited tree has committed and the
-  // new/removed row exists in the DOM. No dependency array: it runs after every
-  // commit but short-circuits immediately unless an action queued an intent, so
-  // an unrelated re-render never moves focus.
+  // Resolve a pending focus intent only when the consumer echoed back exactly the
+  // tree the action computed (`value === expected`). Depending on `[value]`, this
+  // runs on every tree change; the identity gate ensures a rejected, transformed,
+  // or superseded edit never moves focus — so a stale intent can neither steal
+  // focus from a field the user is editing nor fire on an unrelated re-render.
+  //
+  // Trade-off: a consumer that clones/normalises the tree instead of echoing it
+  // by reference (the `onChange={setValue}` pattern used everywhere here echoes
+  // exactly) simply gets no focus movement — graceful degradation, never a theft.
   useEffect(() => {
-    const intent = pendingFocusRef.current
-    if (intent === null) return
+    const pending = pendingFocusRef.current
+    if (pending === null) return
+    if (value !== pending.expected) return
     pendingFocusRef.current = null
     const root = rootRef.current
     if (root === null) return
-    focusIntent(root, intent, value)
-  })
+    focusIntent(root, pending.intent, value)
+  }, [value])
 
   // Precedence: an explicit `renderRule` always wins; otherwise, given `fields`,
   // build the schema-driven editor; otherwise fall back to the default editor.

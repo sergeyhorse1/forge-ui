@@ -46,13 +46,23 @@ export const combinatorToggle = cva(
  *
  * Active vs inactive is signalled by font weight as well as fill, so the state
  * is distinguishable without relying on colour alone (WCAG 1.4.1).
+ *
+ * The base focus ring is `ring-ring`, which reads on the inactive (`bg-muted`)
+ * segment. The active segment is filled with `bg-primary`, and `--color-ring`
+ * equals `--color-primary`, so the same ring would be invisible there (1:1
+ * contrast); the `active:true` variant overrides it to `ring-primary-foreground`
+ * — the same colour as the active label, so the ring is guaranteed to contrast
+ * against `bg-primary`. `tailwind-merge` collapses the two ring-colour utilities
+ * so only the variant's wins on the active segment. `ring-inset` is kept: the
+ * inset ring sits inside the button box, so the toggle's `overflow-hidden` does
+ * not clip it.
  */
 export const combinatorButton = cva(
   'px-3 py-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
   {
     variants: {
       active: {
-        true: 'bg-primary font-semibold text-primary-foreground',
+        true: 'bg-primary font-semibold text-primary-foreground focus-visible:ring-primary-foreground',
         false: 'bg-muted font-normal text-muted-foreground hover:bg-muted/70',
       },
     },
@@ -129,11 +139,13 @@ export const summaryCombinator = cva(
 export const summaryChildren = cva('flex flex-wrap items-start gap-2')
 
 /**
- * One read-only rule chip. `break-words` keeps a long value legible on a narrow
- * container by wrapping instead of clipping or forcing a horizontal scrollbar.
+ * One read-only rule chip. `min-w-0` lets the chip shrink below its content's
+ * intrinsic width inside the flex row (without it a long unbreakable token forces
+ * horizontal overflow); `break-words` keeps ordinary long text legible by
+ * wrapping instead of clipping or scrolling.
  */
 export const summaryChip = cva(
-  'inline-flex max-w-full items-baseline gap-1 rounded-md border border-border bg-muted px-2 py-1 text-xs break-words text-foreground',
+  'inline-flex min-w-0 max-w-full items-baseline gap-1 rounded-md border border-border bg-muted px-2 py-1 text-xs break-words text-foreground',
 )
 
 /** The field name part of a chip, given slightly more weight than the rest. */
@@ -142,5 +154,11 @@ export const summaryChipField = cva('font-medium text-foreground')
 /** The operator verb part of a chip. */
 export const summaryChipOperator = cva('text-muted-foreground')
 
-/** The value part of a chip. */
-export const summaryChipValue = cva('font-medium text-foreground')
+/**
+ * The value part of a chip. `min-w-0` + `wrap-anywhere` (`overflow-wrap:anywhere`)
+ * force a break inside an unbroken run — a URL, hash or id with no spaces — so it
+ * wraps within the chip rather than pushing the compact summary into a horizontal
+ * scroll. Unlike `break-words`, `anywhere` also reduces the element's min-content
+ * width, which is what actually lets the flex chip shrink.
+ */
+export const summaryChipValue = cva('min-w-0 wrap-anywhere font-medium text-foreground')

@@ -22,9 +22,6 @@ import {
 } from './schema'
 import type { FilterRule, FilterValue } from './types'
 
-/** A fully-formed permissive rule — the shape the schema editor reads/writes. */
-type Rule = FilterRule
-
 /**
  * The default value for a freshly (re)shaped control. `number`/`string`/`date`
  * start empty (`''`) so the native control shows a blank rather than a
@@ -116,10 +113,10 @@ function inputKindFor(
  *    field's type, so no broken combination survives the change.
  */
 export function reconcileField(
-  rule: Rule,
+  rule: FilterRule,
   nextFieldName: string,
   schema: FilterFieldSchema,
-): Rule {
+): FilterRule {
   const config = fieldConfig(nextFieldName, schema)
   if (config === undefined) {
     return { field: nextFieldName, operator: rule.operator, value: rule.value }
@@ -180,10 +177,10 @@ function sanitizeForField(
  * range), so the value is reshaped via {@link coerceValue} to keep it valid.
  */
 export function reconcileOperator(
-  rule: Rule,
+  rule: FilterRule,
   nextOperatorId: string,
   schema: FilterFieldSchema,
-): Rule {
+): FilterRule {
   const config = fieldConfig(rule.field, schema)
   if (config === undefined) {
     return { field: rule.field, operator: nextOperatorId, value: rule.value }

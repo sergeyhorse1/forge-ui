@@ -1,5 +1,4 @@
 import { cn } from '../../utils/cn'
-import { encodePath } from './focus'
 import type { RenderRuleContext } from './FilterRule'
 import { reconcileField, reconcileOperator } from './reconcile'
 import { RuleValueControl } from './RuleValueControl'
@@ -36,7 +35,7 @@ export function SchemaRuleEditor<S extends FilterSchema>({
   ctx,
   schema,
 }: SchemaRuleEditorProps<S>) {
-  const { rule, update, remove, idBase, path } = ctx
+  const { rule, update, remove, idBase } = ctx
   const field = String(rule.field)
   const operatorId = String(rule.operator)
   const config = fieldConfig(field, schema)
@@ -56,7 +55,7 @@ export function SchemaRuleEditor<S extends FilterSchema>({
   }
 
   return (
-    <div className={cn(ruleRow())} data-rule-path={encodePath(path)}>
+    <div className={cn(ruleRow())}>
       <label className="sr-only" htmlFor={`${idBase}-field`}>
         Field
       </label>
