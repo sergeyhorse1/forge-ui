@@ -63,9 +63,10 @@ const perfWindow = (): Record<string, unknown> =>
  * instruments each rule row with a per-`field` render counter (a stable
  * `renderRule` writing into a ref map). Two buttons drive the two budgets:
  *
- * - **Measure isolation** resets the counters, programmatically edits a single
+ * - **Measure isolation** snapshots the counters, programmatically edits a single
  *   leaf rule through the same immutable tree op the UI uses, then reports how
- *   many rule rows re-rendered — the render-count proof that an edit stays local.
+ *   many rule rows re-rendered by diffing against that snapshot — the render-count
+ *   proof that an edit stays local.
  * - **Measure serialize** times `serialize`/`deserialize` over the whole tree and
  *   reports the medians.
  *

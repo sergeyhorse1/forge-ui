@@ -28,8 +28,8 @@ serializing a few-hundred-rule tree stays well under a frame.
 
 | Metric | Budget | How it is measured |
 | --- | --- | --- |
-| Tree of 200 rules / 20 groups: add / remove / edit | re-render ≤ 16 ms | render-count test + Perf-story harness |
-| Re-render isolation | editing one rule does **not** re-render sibling rows | render-count test (per-`field` counter in a stable `renderRule`) |
+| Re-render isolation | editing one rule does **not** re-render sibling rows | render-count test (per-`field` counter in a stable `renderRule`), asserted in CI |
+| Edit re-render wall-time, 200 rules / 20 groups | ≤ 16 ms (indicative target) | observed via the Perf-story harness on reference hardware — **not** asserted in CI; the render-count test above asserts *isolation* (bounded work) instead |
 | Serialize 200 rules | median ≤ 5 ms | `performance.now()` around `serialize`, warm-up + median |
 | Deserialize 200 rules | median ≤ 5 ms | `performance.now()` around `deserialize`, warm-up + median |
 | Round trip 200 rules | `deserialize(serialize(x))` deep-equals `x` | equality assertion in the perf test |
