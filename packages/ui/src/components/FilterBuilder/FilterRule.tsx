@@ -114,11 +114,6 @@ function FilterRuleInner<S extends FilterSchema>({
   // it here (rather than in each editor) means custom renderers get post-commit
   // focus management for free, and `contents` keeps the wrapper out of layout so
   // the row's own flex/grid is unaffected.
-  // Stamp `data-rule-path` on a single `display:contents` wrapper around whatever
-  // the row renders — built-in editor or a consumer's `renderRule`. Centralising
-  // it here (rather than in each editor) means custom renderers get post-commit
-  // focus management for free, and `contents` keeps the wrapper out of layout so
-  // the row's own flex/grid is unaffected.
   return (
     <div className="contents" data-rule-path={encodePath(path)}>
       {renderRule ? renderRule(ctx) : <DefaultRuleEditor {...ctx} />}

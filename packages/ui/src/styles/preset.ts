@@ -74,7 +74,7 @@ export const darkTokens: ForgeThemeTokens = {
     'accent-foreground': 'oklch(0.96 0.01 286)',
     muted: 'oklch(0.27 0.01 286)',
     'muted-foreground': 'oklch(0.7 0.01 286)',
-    destructive: 'oklch(0.65 0.2 27)',
+    destructive: 'oklch(0.55 0.22 27)',
     'destructive-foreground': 'oklch(0.98 0.01 27)',
     success: 'oklch(0.68 0.15 150)',
     'success-foreground': 'oklch(0.18 0.02 150)',

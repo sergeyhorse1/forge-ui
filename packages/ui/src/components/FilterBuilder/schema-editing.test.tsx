@@ -446,8 +446,8 @@ describe('FilterBuilder — compact summary mode', () => {
 })
 
 describe('FilterBuilder — controlled invariant preserved with fields', () => {
-  // Disproof mirror of the 9b test: with a schema editor wired in, an ignored
-  // onChange must still not optimistically mutate the rendered tree.
+  // Disproof mirror of the default-editor controlled test: with a schema editor
+  // wired in, an ignored onChange must still not optimistically mutate the tree.
   it('does not change the field selection when onChange is dropped', () => {
     const tree: FilterTree = {
       combinator: 'and',
