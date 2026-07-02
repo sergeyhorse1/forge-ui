@@ -18,6 +18,15 @@ import {
 import { useFilterMode, type FilterMode } from './useFilterMode'
 import type { FilterPath, FilterRule, FilterSchema, FilterTree } from './types'
 
+// The root group lives at the empty path. This must be a single stable
+// reference, not a fresh `[]` literal per render: the root `FilterGroup`
+// derives its children's `path` arrays from this prop and memoises them on
+// `[path, rules.length]`. A new array each render would invalidate that memo,
+// hand every direct child a new `path`, and cascade a re-render through the
+// whole tree — defeating the per-row memoisation. Frozen so it cannot be
+// mutated into a non-empty path by accident.
+const ROOT_PATH: FilterPath = Object.freeze([])
+
 export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
   /** The whole filter tree. The component is fully controlled — it holds no
    * tree state of its own; every edit is reported through {@link onChange}. */
@@ -135,7 +144,7 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
       ) : (
         <FilterGroup
           group={value}
-          path={[]}
+          path={ROOT_PATH}
           actions={actions}
           renderRule={effectiveRenderRule}
           isRoot

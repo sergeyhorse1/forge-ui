@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { expect, userEvent, within } from 'storybook/test'
 
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import { FilterBuilder } from './FilterBuilder'
+import { FilterBuilderPerfHarness } from './demo/FilterBuilderPerfHarness'
+import { makeFilterTree } from './demo/fixtures'
 import type { FilterFieldSchema } from './schema'
 import type { FilterTree } from './types'
 
@@ -248,4 +250,21 @@ export const CompactSummary: Story = {
     await expect(canvas.getByText('Price')).toBeInTheDocument()
     await expect(canvas.getByText('between')).toBeInTheDocument()
   },
+}
+
+/** Lazily builds the heavy tree in render, never at module scope. */
+function PerfStory() {
+  const initial = useMemo(() => makeFilterTree(200, 10), [])
+  return <FilterBuilderPerfHarness initial={initial} />
+}
+
+/**
+ * Manual perf harness over a 200-rule tree spread across ~20 nested groups. It
+ * is deliberately **not** tagged `test`: it is a measurement tool (like the
+ * DataGrid `Perf100k` story), and the isolation and serialize budgets are already
+ * proven by the jsdom perf test. Use the buttons to record numbers into
+ * `window.__filterbuilderPerf`.
+ */
+export const Perf: Story = {
+  render: () => <PerfStory />,
 }
