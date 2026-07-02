@@ -304,6 +304,109 @@ export const CompactSummary: Story = {
   },
 }
 
+/** Splits a computed `box-shadow` into its individual shadow layers, ignoring the
+ * commas that sit inside `rgb(...)` / `rgba(...)` colour tuples. */
+function shadowLayers(boxShadow: string): string[] {
+  return boxShadow.split(/,(?![^(]*\))/).map((layer) => layer.trim())
+}
+
+function firstColor(layer: string): string | undefined {
+  return layer.match(
+    /(?:rgba?|hsla?|oklch|oklab|lab|lch|color)\([^)]*\)|#[0-9a-fA-F]+/,
+  )?.[0]
+}
+
+const COMPACT_LONG_VALUE: FilterTree = {
+  combinator: 'and',
+  rules: [
+    {
+      field: 'name',
+      operator: 'contains',
+      value:
+        'https://example.com/very/long/unbreakable/token-abcdefghijklmnopqrstuvwxyz0123456789',
+    },
+  ],
+}
+
+/**
+ * The active combinator segment must show a visible keyboard focus ring. Its fill
+ * is `bg-primary`, and the shared `--color-ring` equals `--color-primary`, so the
+ * ring is overridden to `primary-foreground` on the active segment — otherwise it
+ * would paint the same colour as its own fill and vanish.
+ */
+export const ActiveSegmentFocusRing: Story = {
+  tags: ['test'],
+  render: () => <ControlledFilterBuilder initial={SINGLE_RULE} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const view = canvasElement.ownerDocument.defaultView!
+
+    const toggle = canvas.getAllByRole('group', { name: 'Match type' })[0]!
+    const and = within(toggle).getByRole('button', { name: 'AND' })
+    // The active segment is the one the ring override applies to.
+    await expect(and).toHaveAttribute('aria-pressed', 'true')
+
+    // A real Tab press lands on the first control (the active AND segment). Unlike
+    // a programmatic focus(), it satisfies :focus-visible in Chromium, so the ring
+    // actually paints.
+    await userEvent.tab()
+    await expect(and).toHaveFocus()
+
+    const style = view.getComputedStyle(and)
+    // The ring is painted as a box-shadow, so it must be present at all.
+    await expect(style.boxShadow).not.toBe('none')
+
+    // The ring is inset (kept inside the button so the toggle's overflow-hidden
+    // does not clip it). Isolate that inset layer and read its colour.
+    const insetLayer = shadowLayers(style.boxShadow).find((layer) =>
+      layer.includes('inset'),
+    )
+    await expect(insetLayer).toBeDefined()
+    const ringColor = firstColor(insetLayer!)
+    await expect(ringColor).toBeDefined()
+
+    // The ring colour must differ from the segment's own bg-primary fill, or the
+    // keyboard focus indicator would be invisible on the active segment.
+    await expect(ringColor).not.toBe(style.backgroundColor)
+  },
+}
+
+/**
+ * A long unbreakable value (a URL with no spaces) in a narrow compact summary must
+ * wrap inside its chip rather than push the container into a horizontal scroll.
+ */
+export const CompactChipOverflow: Story = {
+  tags: ['test'],
+  render: () => {
+    const [value, setValue] = useState<FilterTree>(COMPACT_LONG_VALUE)
+    return (
+      <div data-testid="compact-shell" style={{ width: 360 }}>
+        <FilterBuilder
+          value={value}
+          onChange={setValue}
+          fields={FIELDS}
+          mode="compact"
+        />
+      </div>
+    )
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // Sanity: the long token really is on screen as chip text.
+    await expect(
+      canvas.getByText(/token-abcdefghijklmnopqrstuvwxyz0123456789/),
+    ).toBeInTheDocument()
+
+    const shell = canvasElement.querySelector<HTMLElement>(
+      '[data-testid="compact-shell"]',
+    )!
+    // No horizontal overflow: the content wraps within the 360px shell instead of
+    // widening it.
+    await expect(shell.scrollWidth).toBe(shell.clientWidth)
+  },
+}
+
 /** Lazily builds the heavy tree in render, never at module scope. */
 function PerfStory() {
   const initial = useMemo(() => makeFilterTree(200, 10), [])
