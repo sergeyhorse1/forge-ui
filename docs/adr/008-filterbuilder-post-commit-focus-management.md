@@ -45,18 +45,32 @@ Each mutating action records *what* should be focused as a small, path-addressed
   the new node's path.
 - `removeNode(path)` records an `afterRemove` intent carrying the parent path and
   the removed index.
-- `updateRule` / `setCombinator` record nothing — a value edit must not move
-  focus.
+- `updateRule` / `setCombinator` clear any pending intent — a value edit must not
+  move focus, and a stale add/remove intent must not survive into this commit.
 
 The intent lives in a `ref`, not in state: recording one neither triggers a
 render nor reintroduces tree state, and the ref's stable identity is what lets the
 `actions` object stay memoised with an empty dependency list (preserving the
 render-isolation guarantees from ADR-007).
 
-A single effect with **no dependency array** runs after every commit. It
-short-circuits immediately unless an intent was queued, so an unrelated re-render
-never moves focus. When an intent is present it resolves it against the
-freshly-committed DOM and clears it.
+### Correlate the intent with the commit it belongs to
+
+Each recorded intent is paired with the exact tree the action computed
+(`{ intent, expected }`, where `expected` is the very object passed to `onChange`).
+An effect depending on `[value]` runs only when the tree actually changes, and it
+fires the intent **only when `value === expected`** — i.e. when the consumer
+echoed back precisely the tree this action produced. This closes a subtle
+focus-theft class: if `onChange` is rejected (a no-op, or a min-rule guard
+returning the same tree) the commit never happens, and any later unrelated commit
+finds `value !== expected` and refuses to move focus, so a stale `afterRemove`
+intent can never yank focus out of a field the user is now editing. Depending on
+`[value]` (not running on every render) additionally means an unrelated re-render
+with an unchanged tree never touches focus.
+
+The trade-off is deliberate: a consumer that clones or normalises the tree instead
+of echoing it by reference (the `onChange={setValue}` pattern used throughout does
+echo by reference) simply gets no focus movement — graceful degradation, never a
+misdirected focus.
 
 ### Address the DOM by encoded path, resolve against the new tree
 
@@ -92,10 +106,14 @@ post-edit focus *movement* is orchestrated.
 - **The `data-*` path attributes are an internal addressing seam.** They let the
   resolver find a node by path via a CSS selector without threading refs through
   the recursive tree. They are not public API.
-- **`RenderRuleContext` gains `path`.** Custom `renderRule` implementations
-  receive the rule's path so the built-in editors (and any custom one that opts
-  in) can stamp `data-rule-path`. This is an additive, non-breaking extension of
-  the existing context.
+- **The path stamp lives on a `display:contents` wrapper, so every renderer gets
+  focus management for free.** `FilterRule` wraps whatever it renders — the
+  built-in editor *or* a consumer's `renderRule` — in one
+  `<div class="contents" data-rule-path=…>`. `display:contents` keeps the wrapper
+  out of layout (the row's own flex is untouched), so a custom renderer does not
+  have to know about or stamp the attribute itself; add/remove focus works for it
+  uniformly. `RenderRuleContext` still exposes `path` (an additive, non-breaking
+  extension) for renderers that want to address their own controls.
 - **Behaviour is bounded to consumers that honour `onChange`.** Focus movement
   depends on the edit committing. A consumer that drops `onChange` gets no focus
   movement, which is correct: nothing changed on screen to move focus to.
