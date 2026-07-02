@@ -2,6 +2,7 @@ import { memo, useMemo, type ReactNode } from 'react'
 
 import { cn } from '../../utils/cn'
 import type { FilterActions } from './actions'
+import { encodePath } from './focus'
 import { FilterRule, type RenderRuleContext } from './FilterRule'
 import {
   addButton,
@@ -47,12 +48,17 @@ function FilterGroupInner<S extends FilterSchema>({
   )
 
   return (
-    <div className={cn(groupPanel({ root: isRoot }))}>
+    <div
+      className={cn(groupPanel({ root: isRoot }))}
+      role="group"
+      aria-label={isRoot ? 'Filter rules' : 'Rule group'}
+      data-group-path={encodePath(path)}
+    >
       <div className={cn(groupHeader())}>
         <div
           className={cn(combinatorToggle())}
           role="group"
-          aria-label="Combinator"
+          aria-label="Match type"
         >
           {COMBINATORS.map((combinator) => {
             const active = group.combinator === combinator
@@ -116,6 +122,7 @@ function FilterGroupInner<S extends FilterSchema>({
         <button
           type="button"
           className={cn(addButton())}
+          data-add-rule-path={encodePath(path)}
           onClick={() => actions.addRule(path)}
         >
           Add rule

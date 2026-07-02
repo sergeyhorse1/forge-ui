@@ -1,7 +1,8 @@
-import { useMemo, useRef, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 
 import { cn } from '../../utils/cn'
 import type { FilterActions } from './actions'
+import { focusIntent, type FocusIntent } from './focus'
 import { FilterGroup } from './FilterGroup'
 import type { RenderRuleContext } from './FilterRule'
 import { FilterSummary } from './FilterSummary'
@@ -11,11 +12,13 @@ import { builderRoot } from './styles'
 import {
   addGroup,
   addRule,
+  getNodeAt,
   removeNode,
   setCombinator,
   updateRule,
 } from './tree'
 import { useFilterMode, type FilterMode } from './useFilterMode'
+import { isGroup } from './types'
 import type { FilterPath, FilterRule, FilterSchema, FilterTree } from './types'
 
 // The root group lives at the empty path. This must be a single stable
@@ -109,20 +112,64 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
   const rootRef = useRef<HTMLDivElement>(null)
   const resolvedMode = useFilterMode(mode, rootRef, compactBreakpoint)
 
+  // Records where focus should land after the next commit. A ref (not state) so
+  // recording an intent neither triggers a render nor reintroduces tree state —
+  // it is stable across renders, which is why the `actions` memo below can close
+  // over it with an empty dependency list.
+  const pendingFocusRef = useRef<FocusIntent | null>(null)
+
   const actions = useMemo<FilterActions<S>>(() => {
     const emit = (next: FilterTree<S>) => onChangeRef.current(next)
     const make = () => (createRuleRef.current ?? defaultCreateRule<S>)()
+    // Where a newly appended node lands: after `addRule`/`addGroup` the new node
+    // sits at the current child count of the target group (0 if it is a leaf,
+    // which cannot happen for these paths but keeps the read total).
+    const appendIndex = (path: FilterPath) => {
+      const group = getNodeAt(treeRef.current, path)
+      return isGroup(group) ? group.rules.length : 0
+    }
     return {
-      addRule: (path: FilterPath) =>
-        emit(addRule(treeRef.current, path, make())),
-      addGroup: (path: FilterPath) => emit(addGroup(treeRef.current, path)),
-      removeNode: (path: FilterPath) => emit(removeNode(treeRef.current, path)),
+      addRule: (path: FilterPath) => {
+        pendingFocusRef.current = {
+          kind: 'ruleFirstControl',
+          path: [...path, appendIndex(path)],
+        }
+        emit(addRule(treeRef.current, path, make()))
+      },
+      addGroup: (path: FilterPath) => {
+        pendingFocusRef.current = {
+          kind: 'groupFirstControl',
+          path: [...path, appendIndex(path)],
+        }
+        emit(addGroup(treeRef.current, path))
+      },
+      removeNode: (path: FilterPath) => {
+        pendingFocusRef.current = {
+          kind: 'afterRemove',
+          parentPath: path.slice(0, -1),
+          index: path[path.length - 1]!,
+        }
+        emit(removeNode(treeRef.current, path))
+      },
       updateRule: (path, patch) =>
         emit(updateRule(treeRef.current, path, patch)),
       setCombinator: (path, combinator) =>
         emit(setCombinator(treeRef.current, path, combinator)),
     }
   }, [])
+
+  // Resolve any pending focus intent after the edited tree has committed and the
+  // new/removed row exists in the DOM. No dependency array: it runs after every
+  // commit but short-circuits immediately unless an action queued an intent, so
+  // an unrelated re-render never moves focus.
+  useEffect(() => {
+    const intent = pendingFocusRef.current
+    if (intent === null) return
+    pendingFocusRef.current = null
+    const root = rootRef.current
+    if (root === null) return
+    focusIntent(root, intent, value)
+  })
 
   // Precedence: an explicit `renderRule` always wins; otherwise, given `fields`,
   // build the schema-driven editor; otherwise fall back to the default editor.

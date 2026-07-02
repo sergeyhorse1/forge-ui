@@ -2,21 +2,25 @@ import { memo, useId, type ReactNode } from 'react'
 
 import { cn } from '../../utils/cn'
 import type { FilterActions } from './actions'
+import { encodePath } from './focus'
 import { removeButton, ruleControl, ruleRow } from './styles'
 import type { RulePatch } from './tree'
 import type { FilterPath, FilterRule as FilterRuleModel, FilterSchema } from './types'
 
 /**
  * Context handed to a custom {@link FilterRuleProps.renderRule}. It exposes the
- * current rule plus pre-bound `update`/`remove` callbacks and an `idBase` for
- * deriving stable, unique control ids — the seam slice 9c uses to swap in a
- * schema-driven editor without re-implementing the tree wiring.
+ * current rule plus pre-bound `update`/`remove` callbacks, an `idBase` for
+ * deriving stable, unique control ids — the seam the schema-driven editor uses to
+ * swap itself in without re-implementing the tree wiring — and the rule's `path`,
+ * which the built-in editors stamp as `data-rule-path` so post-commit focus
+ * management can address a specific row.
  */
 export interface RenderRuleContext<S extends FilterSchema> {
   rule: FilterRuleModel<S>
   update: (patch: RulePatch<S>) => void
   remove: () => void
   idBase: string
+  path: FilterPath
 }
 
 interface FilterRuleProps<S extends FilterSchema> {
@@ -32,9 +36,10 @@ function DefaultRuleEditor<S extends FilterSchema>({
   update,
   remove,
   idBase,
+  path,
 }: RenderRuleContext<S>) {
   return (
-    <div className={cn(ruleRow())}>
+    <div className={cn(ruleRow())} data-rule-path={encodePath(path)}>
       <label className="sr-only" htmlFor={`${idBase}-field`}>
         Field
       </label>
@@ -96,6 +101,7 @@ function FilterRuleInner<S extends FilterSchema>({
   const ctx: RenderRuleContext<S> = {
     rule,
     idBase,
+    path,
     update: (patch) => actions.updateRule(path, patch),
     remove: () => actions.removeNode(path),
   }

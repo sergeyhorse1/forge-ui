@@ -2,12 +2,13 @@ import '@testing-library/jest-dom/vitest'
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import { useState, type ReactNode } from 'react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { FilterBuilder } from './FilterBuilder'
 import type { RenderRuleContext } from './FilterRule'
 import { makeFilterTree } from './demo/fixtures'
 import { deserialize, serialize } from './serialization'
+import * as styles from './styles'
 import type { FilterSchema, FilterTree } from './types'
 
 /**
@@ -202,6 +203,63 @@ describe('FilterBuilder sibling-group isolation', () => {
     expect(renders.get('groupB-second')).toBe(before.get('groupB-second'))
     // Group A's own untouched rule is likewise skipped.
     expect(renders.get('groupA-second')).toBe(before.get('groupA-second'))
+  })
+})
+
+/**
+ * Direct group-level render count. `groupPanel` (a `cva` block) is invoked
+ * exactly once per `FilterGroup` render and nowhere else — the summary view uses
+ * `summaryGroup`, not `groupPanel` — so spying on it counts FilterGroup renders
+ * precisely. Unlike the per-leaf counter above (which the `FilterRule` memo keeps
+ * flat even when an ancestor group re-renders, so dropping the *group* memo does
+ * not turn it red), this makes the `React.memo` on `FilterGroup` load-bearing:
+ * removing it lets a sibling group re-render, which shows up here as an extra
+ * `groupPanel` call.
+ */
+describe('FilterBuilder group-level render isolation', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('re-renders only the root and the edited group, not a sibling group', () => {
+    const groupPanelSpy = vi.spyOn(styles, 'groupPanel')
+
+    // root (AND) with two nested OR groups: A and B, two rules each. Three
+    // groups total, so a leaked sibling render is observable as a third call.
+    const tree: FilterTree = {
+      combinator: 'and',
+      rules: [
+        {
+          combinator: 'or',
+          rules: [
+            { field: 'A-first', operator: 'eq', value: '' },
+            { field: 'A-second', operator: 'eq', value: '' },
+          ],
+        },
+        {
+          combinator: 'or',
+          rules: [
+            { field: 'B-first', operator: 'eq', value: '' },
+            { field: 'B-second', operator: 'eq', value: '' },
+          ],
+        },
+      ],
+    }
+    render(<Host initial={tree} />)
+
+    // Ignore the mount-time renders; measure only the edit.
+    groupPanelSpy.mockClear()
+
+    // Edit a rule inside group A. Structural sharing rewrites only the root and
+    // group A; group B keeps its identity, so its memoised subtree is skipped.
+    fireEvent.change(screen.getByLabelText('A-first'), {
+      target: { value: 'x' },
+    })
+
+    // Exactly two group renders: root + group A. Group B is isolated by memo.
+    // Disproof: removing `memo()` from FilterGroup lets B re-render too, turning
+    // this into 3 and failing `expected 3 to be 2`.
+    expect(groupPanelSpy).toHaveBeenCalledTimes(2)
   })
 })
 

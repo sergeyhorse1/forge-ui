@@ -118,8 +118,8 @@ export const Default: Story = {
     const addRule = canvas.getByRole('button', { name: 'Add rule' })
     await expect(addRule.tagName).toBe('BUTTON')
 
-    // Combinator toggle reflects state and flips on click.
-    const toggle = canvas.getAllByRole('group', { name: 'Combinator' })[0]!
+    // Match-type toggle reflects state and flips on click.
+    const toggle = canvas.getAllByRole('group', { name: 'Match type' })[0]!
     const and = within(toggle).getByRole('button', { name: 'AND' })
     const or = within(toggle).getByRole('button', { name: 'OR' })
     await expect(and).toHaveAttribute('aria-pressed', 'true')
@@ -144,7 +144,7 @@ export const NestedGroups: Story = {
 
     // At least two combinator toggles means a nested group is rendered: the
     // root plus the inner OR group (>= 2 levels deep).
-    const toggles = canvas.getAllByRole('group', { name: 'Combinator' })
+    const toggles = canvas.getAllByRole('group', { name: 'Match type' })
     await expect(toggles.length).toBeGreaterThanOrEqual(2)
 
     // The nested group is removable; the root group is not.
@@ -165,6 +165,58 @@ export const NestedGroups: Story = {
     )
     const after = within(nestedPanel).getAllByLabelText('Field').length
     await expect(after).toBe(before + 1)
+  },
+}
+
+/**
+ * Keyboard and focus management: adding a rule moves focus into the new row's
+ * first control, removing a rule moves focus to a surviving neighbour (never the
+ * document body), and every group panel is an accessible `role="group"`. Because
+ * the builder is fully controlled and holds no tree state, focus is moved by a
+ * post-commit effect once the consumer echoes the next `value` back.
+ */
+export const KeyboardAndFocus: Story = {
+  tags: ['test'],
+  render: () => (
+    <ControlledFilterBuilder
+      initial={{
+        combinator: 'and',
+        rules: [
+          { field: 'status', operator: 'eq', value: 'active' },
+          { field: 'plan', operator: 'eq', value: 'pro' },
+        ],
+      }}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = canvasElement.ownerDocument
+
+    // (3) Every group panel is an accessible group. The root is labelled and,
+    // with a single flat group, is the only panel-level group present.
+    await expect(
+      canvas.getByRole('group', { name: 'Filter rules' }),
+    ).toBeInTheDocument()
+
+    // (1) Adding a rule moves focus into the new (third) row's first control.
+    await userEvent.click(canvas.getByRole('button', { name: 'Add rule' }))
+    const newRow = canvasElement.querySelector<HTMLElement>(
+      '[data-rule-path="2"]',
+    )
+    await expect(newRow).not.toBeNull()
+    await expect(newRow!.contains(doc.activeElement)).toBe(true)
+
+    // (2) Removing a rule moves focus to a surviving neighbour, not the body.
+    // Remove the middle rule (index 1); its previous sibling (index 0) takes
+    // focus.
+    const removeButtons = canvas.getAllByRole('button', { name: 'Remove rule' })
+    await userEvent.click(removeButtons[1]!)
+    const survivor = canvasElement.querySelector<HTMLElement>(
+      '[data-rule-path="0"]',
+    )
+    await expect(survivor).not.toBeNull()
+    await expect(survivor!.contains(doc.activeElement)).toBe(true)
+    await expect(doc.activeElement).not.toBe(doc.body)
   },
 }
 

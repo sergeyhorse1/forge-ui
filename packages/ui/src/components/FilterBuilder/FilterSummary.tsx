@@ -48,23 +48,38 @@ interface SummaryGroupProps<S extends FilterSchema> {
   group: FilterGroupModel<S>
   schema: FilterFieldSchema
   isRoot?: boolean
+  /**
+   * When this group is itself an item of a parent group's list, it carries
+   * `role="listitem"`; the root group carries no list role of its own.
+   */
+  listRole?: 'listitem'
 }
 
 function SummaryGroup<S extends FilterSchema>({
   group,
   schema,
   isRoot = false,
+  listRole,
 }: SummaryGroupProps<S>) {
   return (
-    <div className={cn(summaryGroup({ root: isRoot }))}>
+    <div className={cn(summaryGroup({ root: isRoot }))} role={listRole}>
       <span className={cn(summaryCombinator())}>{summarizeGroup(group)}</span>
       {group.rules.length > 0 && (
-        <div className={cn(summaryChildren())}>
+        // `role="list"` on the flex-wrap container plus `role="listitem"` on each
+        // chip/nested-group (applied in place, not via a wrapper div, so the
+        // layout is untouched) give the summary a semantic structure screen
+        // readers announce as a list of conditions rather than a run of spans.
+        <div className={cn(summaryChildren())} role="list">
           {group.rules.map((child, index) => {
             const node: FilterNode<S> = child
             if (isGroup(node)) {
               return (
-                <SummaryGroup key={index} group={node} schema={schema} />
+                <SummaryGroup
+                  key={index}
+                  group={node}
+                  schema={schema}
+                  listRole="listitem"
+                />
               )
             }
             return <RuleChip key={index} rule={node} schema={schema} />
@@ -83,7 +98,7 @@ interface RuleChipProps<S extends FilterSchema> {
 function RuleChip<S extends FilterSchema>({ rule, schema }: RuleChipProps<S>) {
   const parts = summarizeRule(rule, schema)
   return (
-    <span className={cn(summaryChip())}>
+    <span className={cn(summaryChip())} role="listitem">
       <span className={cn(summaryChipField())}>{parts.field}</span>
       <span className={cn(summaryChipOperator())}>{parts.operator}</span>
       <span className={cn(summaryChipValue())}>{parts.value}</span>

@@ -122,7 +122,7 @@ describe('FilterBuilder — recursion path correctness', () => {
 
     // The nested group is the only one with an active "OR" toggle; use its
     // combinator role-group as an anchor to reach its own "Add rule".
-    const allGroups = screen.getAllByRole('group', { name: 'Combinator' })
+    const allGroups = screen.getAllByRole('group', { name: 'Match type' })
     const nestedToggle = allGroups.find(
       (g) =>
         within(g).getByRole('button', { name: 'OR' }).getAttribute('aria-pressed') ===
@@ -154,7 +154,7 @@ describe('FilterBuilder — recursion path correctness', () => {
     const onChange = vi.fn()
     render(<FilterBuilder value={value} onChange={onChange} />)
 
-    const allGroups = screen.getAllByRole('group', { name: 'Combinator' })
+    const allGroups = screen.getAllByRole('group', { name: 'Match type' })
     const nestedToggle = allGroups.find(
       (g) =>
         within(g).getByRole('button', { name: 'OR' }).getAttribute('aria-pressed') ===
@@ -206,7 +206,7 @@ describe('FilterBuilder — combinator toggle', () => {
     const onChange = vi.fn()
     render(<FilterBuilder value={value} onChange={onChange} />)
 
-    const rootToggle = screen.getAllByRole('group', { name: 'Combinator' })[0]!
+    const rootToggle = screen.getAllByRole('group', { name: 'Match type' })[0]!
     expect(combinatorButton(rootToggle, 'AND')).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -445,7 +445,7 @@ describe('FilterBuilder — deep recursion path threading', () => {
     render(<FilterBuilder value={value} onChange={onChange} />)
 
     const panel = deepestGroupPanel()
-    const toggle = within(panel).getByRole('group', { name: 'Combinator' })
+    const toggle = within(panel).getByRole('group', { name: 'Match type' })
     expect(combinatorButton(toggle, 'AND')).toHaveAttribute(
       'aria-pressed',
       'true',
