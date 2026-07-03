@@ -14,7 +14,7 @@ const FIRST = ['Ada', 'Alan', 'Grace', 'Linus', 'Margaret', 'Edsger', 'Barbara']
 const LAST = ['Lovelace', 'Turing', 'Hopper', 'Torvalds', 'Hamilton', 'Liskov']
 const TEAMS = ['Platform', 'Growth', 'Infra', 'Design', 'Data', 'Security']
 
-/** Deterministic pseudo-random generator so stories render identically. */
+// Детерминированный псевдослучайный генератор — стори рендерятся одинаково.
 function mulberry32(seed: number): () => number {
   let state = seed
   return () => {
@@ -26,7 +26,7 @@ function mulberry32(seed: number): () => number {
   }
 }
 
-/** Build `rowCount` rows; the first 6 fields are typed, the rest are `metric_N`. */
+// Строит rowCount строк; первые 6 полей типизированы, остальные — metric_N.
 export function makeRows(rowCount: number, extraColumns = 0): DemoRow[] {
   const random = mulberry32(rowCount)
   const rows: DemoRow[] = []
@@ -49,7 +49,7 @@ export function makeRows(rowCount: number, extraColumns = 0): DemoRow[] {
   return rows
 }
 
-/** Columns for the small functional demos. */
+// Столбцы для маленьких функциональных демок.
 export const demoColumns: ColumnDef<DemoRow>[] = [
   { id: 'id', header: 'ID', width: 80, align: 'right', frozen: true },
   { id: 'name', header: 'Name', width: 200, frozen: true },
@@ -64,7 +64,7 @@ export const demoColumns: ColumnDef<DemoRow>[] = [
   },
 ]
 
-/** A 30-column set (2 frozen + 28 scroll) used by the perf stories. */
+// 30 столбцов (2 frozen + 28 scroll) для perf-стори.
 export function makePerfColumns(): ColumnDef<DemoRow>[] {
   const base: ColumnDef<DemoRow>[] = [
     { id: 'id', header: 'ID', width: 80, align: 'right', frozen: true },

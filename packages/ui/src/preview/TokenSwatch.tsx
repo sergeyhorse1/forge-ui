@@ -7,11 +7,7 @@ interface TokenSwatchProps {
   swatchClassName: string
 }
 
-/**
- * Demo-only building block that renders a single design-token color chip. Used
- * by the token gallery story to prove that Tailwind utilities resolve to the
- * library's tokens and react to the active theme. Not part of the public API.
- */
+// Демо-строительный блок для галереи токенов; в публичный API не входит.
 export function TokenSwatch({ name, swatchClassName }: TokenSwatchProps) {
   return (
     <figure className="flex flex-col gap-2">

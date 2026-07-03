@@ -51,12 +51,6 @@ interface ScrollOffset {
 /**
  * Virtualized, headless-backed data grid with frozen columns, a sticky header,
  * multi-sort, selection and column resize.
- *
- * Layout is split into four quadrants that share virtualizer-derived geometry:
- * a static frozen corner/body and a scroll header/body. The frozen quadrants
- * are plain overlays kept in sync with the viewport's scroll offset rather than
- * `position: sticky` cells, which fail inside virtualized positioned content
- * (ADR-003). The single scroll viewport drives both row and column virtualizers.
  */
 export function DataGrid<TRow>({
   rows,
@@ -80,9 +74,9 @@ export function DataGrid<TRow>({
   const [hasFocus, setHasFocus] = useState(false)
   const keyboardModality = useFocusVisible()
 
-  // An explicit body height (rather than `flex: 1` / `height: 100%`) guarantees
-  // the scroll viewport has a definite px height when the virtualizer measures
-  // it; a percentage that fails to resolve makes it render most of the dataset.
+  // Явная px-высота тела (а не flex:1 / height:100%): виртуализатор при замере
+  // должен видеть определённую высоту, иначе неразрешившийся процент заставит его
+  // отрендерить почти весь датасет.
   const bodyHeight = Math.max(0, height - headerHeight)
 
   const model = useDataGrid({
@@ -105,21 +99,18 @@ export function DataGrid<TRow>({
     [model.scrollColumns],
   )
 
-  // The active (keyboard-focused) cell is owned here so the virtualizers can pin
-  // it mounted and the frozen overlay can mirror its ring. It defaults to the
-  // first canonical column of the first row.
-  //
-  // The lazy initialiser runs only on mount, so it does not re-derive if the
-  // columns change later. That is intentional: keyboard navigation clamps the
-  // active cell to the live column/row bounds on every move, so a stale default
-  // is corrected on first interaction rather than needing an effect to reset it.
+  // Активную (сфокусированную) ячейку держим здесь, чтобы виртуализаторы пинили
+  // её смонтированной, а frozen-оверлей зеркалил её ring. Ленивый инициализатор
+  // отрабатывает лишь на маунте и не переучитывается при смене столбцов — это ок:
+  // навигация зажимает активную ячейку в живые границы на каждом ходе, так что
+  // устаревший дефолт чинится первым взаимодействием, а не эффектом-сбросом.
   const [active, setActive] = useState<ActiveCell>(() => ({
     rowIndex: 0,
     colIndex: frozenColIndices[0] ?? scrollColIndices[0] ?? 1,
   }))
 
-  // Pin the active row/column so a mouse-wheel scroll never virtualizes the
-  // focused cell out of the DOM (which would drop focus and kill arrow keys).
+  // Пиним активную строку/столбец, чтобы скролл колёсиком не выкинул
+  // сфокусированную ячейку из DOM (слетел бы фокус и стрелки).
   const pinnedColumnPos = scrollColIndices.indexOf(active.colIndex)
 
   const { rowVirtualizer, columnVirtualizer } = useGridVirtualizers({
@@ -133,8 +124,8 @@ export function DataGrid<TRow>({
     pinnedColumnPos: pinnedColumnPos >= 0 ? pinnedColumnPos : null,
   })
 
-  // Re-measure the column virtualizer when widths change (resize) so the
-  // horizontal offsets and total size track the new layout.
+  // Перезамеряем колоночный виртуализатор при смене ширин (resize), чтобы
+  // горизонтальные офсеты и общий размер шли за новой раскладкой.
   const widthSignature = useMemo(
     () => model.scrollColumns.map((column) => column.width).join(','),
     [model.scrollColumns],
@@ -174,8 +165,8 @@ export function DataGrid<TRow>({
     selectable,
   })
 
-  // Keep the frozen body vertically aligned even when the scroll element resets
-  // (e.g. after a sort that shortens content) without waiting for a scroll event.
+  // Держим frozen-тело выровненным по вертикали, даже когда скролл сбрасывается
+  // (напр. после сортировки, укоротившей контент), не дожидаясь scroll-события.
   useEffect(() => {
     const node = scrollRef.current
     if (node && node.scrollTop === 0 && offset.top !== 0) {
@@ -183,10 +174,9 @@ export function DataGrid<TRow>({
     }
   }, [model.rows, offset.top])
 
-  // The real frozen gridcell that owns keyboard focus is clipped off-screen, so
-  // its focus ring is invisible. When a frozen cell is the active (focused) cell
-  // and the grid actually holds keyboard focus, surface a mirrored ring on the
-  // matching visible overlay cell instead.
+  // Настоящая frozen-ячейка с фокусом обрезана за кадром, её ring не виден. Когда
+  // активна frozen-ячейка и сетка реально держит клавиатурный фокус — рисуем
+  // зеркальный ring на соответствующей видимой ячейке оверлея.
   const focusedFrozenCell = useMemo(() => {
     if (!hasFocus || !keyboardModality) return null
     if (!frozenColIndices.includes(active.colIndex)) return null
@@ -200,15 +190,15 @@ export function DataGrid<TRow>({
       aria-rowcount={model.rows.length + 1}
       aria-colcount={model.columns.length}
       aria-multiselectable={model.selection.mode === 'multi' || undefined}
-      // `-1` keeps the single roving cell as the only Tab stop while still letting
-      // the root hold focus as a recovery target if the active cell is ever lost.
+      // -1: единственный таб-стоп — roving-ячейка, но корень может принять фокус
+      // как recovery-цель, если активная ячейка потеряется.
       tabIndex={-1}
       className={cn(gridRoot(), className)}
       style={{ height, display: 'flex', flexDirection: 'column' }}
       onKeyDown={navigation.onKeyDown}
       onFocus={() => setHasFocus(true)}
-      // `focusout` bubbles; a relatedTarget still inside the grid means focus
-      // only moved between cells, so the grid keeps its focused state.
+      // focusout всплывает; relatedTarget всё ещё внутри сетки — значит фокус
+      // лишь перешёл между ячейками, состояние focused сохраняем.
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
           setHasFocus(false)
@@ -254,12 +244,10 @@ export function DataGrid<TRow>({
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          // The class is kept as a stable hook for selectors, but `overflow` is
-          // also set inline because it is load-bearing: it clips the
-          // virtualizer's overscan rows to the body box. The utility class can
-          // fail to emit in some Tailwind build contexts, which silently leaves
-          // `overflow: visible` and lets off-window rows paint past the grid's
-          // bottom edge.
+          // Класс — стабильный хук для селекторов, но overflow ещё и инлайном, т.к.
+          // он load-bearing: обрезает overscan-строки виртуализатора по боксу тела.
+          // Утилити-класс в некоторых Tailwind-сборках может не выпуститься, и тогда
+          // overflow:visible молча даст строкам вне окна вылезти за нижний край.
           className="overflow-auto"
           style={{
             height: bodyHeight,

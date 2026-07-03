@@ -62,7 +62,7 @@ describe('useDataGrid – sorting', () => {
   it('keeps the sort stable for tied rows', () => {
     const { result } = setup()
     act(() => result.current.sort.toggle('age', false))
-    // Carol (id1) and Bob (id3) both 30 -> input order preserved before Alice.
+    // Carol (id1) и Bob (id3) оба 30 → исходный порядок до Alice.
     expect(result.current.rows.map((r) => r.id)).toEqual([1, 3, 2])
   })
 
@@ -75,7 +75,7 @@ describe('useDataGrid – sorting', () => {
     expect(result.current.sort.state).toHaveLength(2)
     expect(result.current.sort.infoFor('age').priority).toBe(1)
     expect(result.current.sort.infoFor('name').priority).toBe(2)
-    // age asc, then name asc: 30/Bob, 30/Carol, 42/Alice
+    // age asc, затем name asc: 30/Bob, 30/Carol, 42/Alice
     expect(result.current.rows.map((r) => r.id)).toEqual([3, 1, 2])
   })
 
@@ -148,7 +148,7 @@ describe('useDataGrid – column layout & resize', () => {
     act(() => result.current.resize.nudge('name', -40))
     expect(result.current.columns.find((c) => c.id === 'name')!.width).toBe(160)
 
-    // minWidth is 80; large negative nudge must not go below it.
+    // minWidth = 80; большой отрицательный nudge не должен уйти ниже.
     act(() => result.current.resize.nudge('name', -1000))
     expect(result.current.columns.find((c) => c.id === 'name')!.width).toBe(80)
   })

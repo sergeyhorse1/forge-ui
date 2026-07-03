@@ -6,10 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DataGrid } from './DataGrid'
 import type { ColumnDef } from './types'
 
-// jsdom reports every element as 0×0 and ships no ResizeObserver, so the
-// virtualizer would measure an empty viewport and mount no rows. Give the scroll
-// viewport real `offset*` dimensions and a no-op observer for the test run; with
-// a definite height the virtualizer mounts the visible window.
+// jsdom рапортует все элементы как 0×0 и не даёт ResizeObserver — виртуализатор
+// замерил бы пустой вьюпорт и не смонтировал ни строки. Даём скролл-вьюпорту
+// реальные offset* и no-op observer: с определённой высотой он монтирует видимое окно.
 const VIEWPORT = { width: 600, height: 440 }
 const offsetSpies: ReturnType<typeof vi.spyOn>[] = []
 
@@ -31,7 +30,7 @@ beforeEach(() => {
       vi
         .spyOn(HTMLElement.prototype, prop, 'get')
         .mockImplementation(function (this: HTMLElement) {
-          // Only the scroll viewport drives the virtualizer's measurement.
+          // Замер виртуализатора ведёт только скролл-вьюпорт.
           return this.classList.contains('overflow-auto') ? size : 0
         }),
     )
@@ -69,7 +68,6 @@ function renderGrid(props: Partial<Parameters<typeof DataGrid<Row>>[0]> = {}) {
   )
 }
 
-/** Read a sorted list of the `aria-colindex` values present on the given role. */
 function colIndices(container: HTMLElement, role: string): number[] {
   return [...container.querySelectorAll(`[role="${role}"]`)]
     .map((el) => Number(el.getAttribute('aria-colindex')))
@@ -92,7 +90,7 @@ describe('DataGrid – structural roles', () => {
 describe('DataGrid – aria indices under (horizontal) virtualization', () => {
   it('numbers headers canonically, frozen column first', () => {
     const { container } = renderGrid()
-    // Three columns, frozen `id` counted first → colindex 1, 2, 3 with no gaps.
+    // Три столбца, frozen id идёт первым → colindex 1, 2, 3 без пропусков.
     expect(colIndices(container, 'columnheader')).toEqual([1, 2, 3])
   })
 
@@ -104,15 +102,15 @@ describe('DataGrid – aria indices under (horizontal) virtualization', () => {
       const rowIndex = Number(cell.getAttribute('aria-rowindex'))
       expect(colIndex).toBeGreaterThanOrEqual(1)
       expect(colIndex).toBeLessThanOrEqual(COLUMNS.length)
-      // Header is row 1, so the first data row is aria-rowindex 2.
+      // Шапка — строка 1, поэтому первая строка данных — aria-rowindex 2.
       expect(rowIndex).toBeGreaterThanOrEqual(2)
     }
   })
 
   it('exposes the frozen column inside the semantic grid tree', () => {
     renderGrid()
-    // The frozen `id` column (colindex 1) must own real gridcells, not only the
-    // aria-hidden visual overlay.
+    // Frozen-столбец id (colindex 1) должен владеть настоящими gridcell'ами, а не
+    // только aria-hidden визуальным оверлеем.
     const frozenCells = screen
       .getAllByRole('gridcell')
       .filter((cell) => cell.getAttribute('aria-colindex') === '1')
@@ -129,7 +127,7 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
       .find((cell) => cell.getAttribute('aria-rowindex') === '2')
     expect(firstCell).toBeDefined()
 
-    // Roving tabindex: the active cell is the only tab stop.
+    // Roving tabindex: активная ячейка — единственный таб-стоп.
     firstCell!.focus()
     expect(firstCell).toHaveAttribute('tabindex', '0')
 
@@ -152,7 +150,7 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
 
     fireEvent.keyDown(firstCell, { key: 'ArrowDown' })
 
-    // Focus rolled to the matching cell one row down; that becomes the tab stop.
+    // Фокус перекатился на ячейку строкой ниже — она становится таб-стопом.
     const secondRowCell = cellsInRow(3).find(
       (cell) => cell.getAttribute('aria-colindex') === '1',
     )
@@ -164,7 +162,7 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
       'aria-selected',
       'true',
     )
-    // The first row stays unselected — only the active row toggled.
+    // Первая строка остаётся невыделенной — тогглится только активная.
     expect(firstCell.closest('[role="row"]')).toHaveAttribute(
       'aria-selected',
       'false',
@@ -172,18 +170,18 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
   })
 
   it('does not preventDefault Space when selection is disabled', () => {
-    renderGrid() // default selection mode is 'none'
+    renderGrid() // режим выделения по умолчанию — 'none'
 
     const firstCell = screen
       .getAllByRole('gridcell')
       .find((cell) => cell.getAttribute('aria-rowindex') === '2')!
     firstCell.focus()
 
-    // With no selection action, Space should fall through so the viewport can
-    // scroll, i.e. the handler must not call preventDefault.
+    // Без действия выделения Space должен проходить сквозь, чтобы вьюпорт мог
+    // скроллиться — обработчик не должен звать preventDefault.
     const defaultPrevented = !fireEvent.keyDown(firstCell, { key: ' ' })
     expect(defaultPrevented).toBe(false)
-    // No row gains a selected state either.
+    // И ни одна строка не выделяется.
     expect(firstCell.closest('[role="row"]')).not.toHaveAttribute(
       'aria-selected',
     )
@@ -198,9 +196,9 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
       .find((cell) => cell.getAttribute('aria-rowindex') === '2')!
     firstCell.focus()
 
-    // Simulate the active cell being lost: focus the grid root directly (as the
-    // browser would after virtualization unmounts the focused cell) and fire an
-    // arrow from there. The recovery path must still move the active cell.
+    // Имитируем потерю активной ячейки: фокусим корень сетки напрямую (как сделал
+    // бы браузер после того, как виртуализация размонтировала ячейку) и жмём
+    // стрелку оттуда. Recovery-путь всё равно должен сдвинуть активную ячейку.
     grid.focus()
     fireEvent.keyDown(grid, { key: 'ArrowDown' })
 

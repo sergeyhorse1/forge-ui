@@ -96,9 +96,8 @@ export function DataGridHeaderCell<TRow>({
           role="separator"
           aria-orientation="vertical"
           aria-label={`Resize column ${id}`}
-          // A focusable separator behaves as a slider: expose the current width
-          // within a finite [min, max] range so assistive tech can announce and
-          // step it.
+          // Фокусируемый separator ведёт себя как slider: отдаём текущую ширину в
+          // конечном диапазоне [min, max], чтобы AT могла её озвучить и шагать.
           aria-valuenow={column.width}
           aria-valuemin={column.minWidth}
           aria-valuemax={MAX_COLUMN_WIDTH}

@@ -9,11 +9,9 @@ import { makeFilterTree } from './demo/fixtures'
 import type { FilterFieldSchema } from './schema'
 import type { FilterTree } from './types'
 
-/**
- * Story host: holds the tree in real state and feeds it back through `onChange`.
- * This proves the end-to-end controlled flow — the panel only ever updates
- * because the consumer hands it a new `value`, never from internal state.
- */
+// Хост стори: держит дерево в реальном state и возвращает через onChange —
+// доказывает сквозной controlled-поток: панель обновляется только потому, что
+// консьюмер даёт ей новый value, а не из внутреннего состояния.
 function ControlledFilterBuilder({ initial }: { initial: FilterTree }) {
   const [value, setValue] = useState<FilterTree>(initial)
   return (
@@ -73,7 +71,7 @@ const SCHEMA_TREE: FilterTree = {
   ],
 }
 
-/** Stateful host that also threads a field schema and a forced mode. */
+// Stateful-хост, дополнительно протягивающий схему полей и форсированный mode.
 function SchemaFilterBuilder({
   initial,
   mode,
@@ -98,9 +96,9 @@ const meta = {
   title: 'Data/FilterBuilder',
   component: FilterBuilder,
   parameters: { layout: 'padded' },
-  // Every story below uses a stateful `render` host that supplies its own
-  // value/onChange, so these args are placeholders only there to satisfy the
-  // required props on the typed meta; they are overridden by `render`.
+  // Каждая стори ниже использует stateful render-хост со своими value/onChange,
+  // так что эти args — заглушки, лишь удовлетворяющие обязательные пропы
+  // типизированного meta; render их перекрывает.
   args: { value: SINGLE_RULE, onChange: () => {} },
 } satisfies Meta<typeof FilterBuilder>
 
@@ -114,11 +112,11 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Real <button>s, not divs.
+    // Настоящие <button>, не div.
     const addRule = canvas.getByRole('button', { name: 'Add rule' })
     await expect(addRule.tagName).toBe('BUTTON')
 
-    // Match-type toggle reflects state and flips on click.
+    // Match-type тоггл отражает состояние и переключается по клику.
     const toggle = canvas.getAllByRole('group', { name: 'Match type' })[0]!
     const and = within(toggle).getByRole('button', { name: 'AND' })
     const or = within(toggle).getByRole('button', { name: 'OR' })
@@ -128,7 +126,7 @@ export const Default: Story = {
     await expect(or).toHaveAttribute('aria-pressed', 'true')
     await expect(and).toHaveAttribute('aria-pressed', 'false')
 
-    // Adding a rule increases the rule count (end-to-end controlled flow).
+    // Добавление правила увеличивает счётчик правил (сквозной controlled-поток).
     const before = canvas.getAllByLabelText('Field').length
     await userEvent.click(addRule)
     const after = canvas.getAllByLabelText('Field').length
@@ -142,16 +140,16 @@ export const NestedGroups: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // At least two combinator toggles means a nested group is rendered: the
-    // root plus the inner OR group (>= 2 levels deep).
+    // Минимум два тоггла комбинатора значат, что вложенная группа отрисована:
+    // корень плюс внутренняя OR-группа (≥2 уровня вглубь).
     const toggles = canvas.getAllByRole('group', { name: 'Match type' })
     await expect(toggles.length).toBeGreaterThanOrEqual(2)
 
-    // The nested group is removable; the root group is not.
+    // Вложенная группа удаляема; корневая — нет.
     const removeGroup = canvas.getAllByRole('button', { name: 'Remove group' })
     await expect(removeGroup.length).toBe(1)
 
-    // Add a rule into the nested group, then assert its rule count grew.
+    // Добавляем правило во вложенную группу и проверяем рост её счётчика правил.
     const nestedToggle = toggles.find(
       (group) =>
         within(group)
@@ -168,13 +166,11 @@ export const NestedGroups: Story = {
   },
 }
 
-/**
- * Keyboard and focus management: adding a rule moves focus into the new row's
- * first control, removing a rule moves focus to a surviving neighbour (never the
- * document body), and every group panel is an accessible `role="group"`. Because
- * the builder is fully controlled and holds no tree state, focus is moved by a
- * post-commit effect once the consumer echoes the next `value` back.
- */
+// Клавиатура и управление фокусом: добавление правила сажает фокус на первый
+// контрол новой строки, удаление — на уцелевшего соседа (никогда на document.body),
+// каждая панель группы — доступный role="group". Билдер полностью controlled без
+// состояния дерева, поэтому фокус двигает пост-коммит эффект, когда консьюмер
+// вернёт следующий value.
 export const KeyboardAndFocus: Story = {
   tags: ['test'],
   render: () => (
@@ -192,13 +188,13 @@ export const KeyboardAndFocus: Story = {
     const canvas = within(canvasElement)
     const doc = canvasElement.ownerDocument
 
-    // (3) Every group panel is an accessible group. The root is labelled and,
-    // with a single flat group, is the only panel-level group present.
+    // (3) Каждая панель группы — доступная group. Корень помечен и при единственной
+    // плоской группе — единственная панель-группа.
     await expect(
       canvas.getByRole('group', { name: 'Filter rules' }),
     ).toBeInTheDocument()
 
-    // (1) Adding a rule moves focus into the new (third) row's first control.
+    // (1) Добавление правила сажает фокус на первый контрол новой (третьей) строки.
     await userEvent.click(canvas.getByRole('button', { name: 'Add rule' }))
     const newRow = canvasElement.querySelector<HTMLElement>(
       '[data-rule-path="2"]',
@@ -206,9 +202,8 @@ export const KeyboardAndFocus: Story = {
     await expect(newRow).not.toBeNull()
     await expect(newRow!.contains(doc.activeElement)).toBe(true)
 
-    // (2) Removing a rule moves focus to a surviving neighbour, not the body.
-    // Remove the middle rule (index 1); its previous sibling (index 0) takes
-    // focus.
+    // (2) Удаление правила сажает фокус на уцелевшего соседа, не на body. Удаляем
+    // среднее правило (индекс 1); фокус берёт его предыдущий сиблинг (индекс 0).
     const removeButtons = canvas.getAllByRole('button', { name: 'Remove rule' })
     await userEvent.click(removeButtons[1]!)
     const survivor = canvasElement.querySelector<HTMLElement>(
@@ -260,19 +255,19 @@ export const SchemaDriven: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // The field selector is a real <select> populated from the schema labels.
+    // Селектор поля — настоящий <select>, наполненный из лейблов схемы.
     const fields = canvas.getAllByLabelText('Field') as HTMLSelectElement[]
     await expect(fields[0]!.tagName).toBe('SELECT')
 
-    // The first rule is a string field on "contains"; its operator <select>
-    // must offer string operators and not, say, a numeric "between".
+    // Первое правило — строковое поле на contains; его <select> оператора должен
+    // предлагать строковые операторы, а не числовой between.
     const operators = canvas.getAllByLabelText('Operator') as HTMLSelectElement[]
     const firstOptions = Array.from(operators[0]!.options, (o) => o.value)
     await expect(firstOptions).toContain('contains')
     await expect(firstOptions).not.toContain('between')
 
-    // Switching the first rule to the number field reconciles the operator to a
-    // valid numeric one (string "contains" is invalid for numbers).
+    // Переключение первого правила на числовое поле реконсилит оператор в валидный
+    // числовой (строковый contains невалиден для чисел).
     await userEvent.selectOptions(fields[0]!, 'price')
     const afterOperators = canvas.getAllByLabelText(
       'Operator',
@@ -290,22 +285,22 @@ export const CompactSummary: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Compact mode is read-only: no editable field controls are present.
+    // Compact-режим read-only: редактируемых контролов поля нет.
     await expect(canvas.queryByLabelText('Field')).toBeNull()
 
-    // Group captions describe the combinator and its direct child count.
+    // Подписи групп описывают комбинатор и число прямых детей.
     await expect(canvas.getByText('AND of 2 conditions')).toBeInTheDocument()
     await expect(canvas.getByText('OR of 2 conditions')).toBeInTheDocument()
 
-    // Field labels and operator verbs surface as chip text.
+    // Лейблы полей и глаголы операторов проступают как текст чипов.
     await expect(canvas.getByText('Name')).toBeInTheDocument()
     await expect(canvas.getByText('Price')).toBeInTheDocument()
     await expect(canvas.getByText('between')).toBeInTheDocument()
   },
 }
 
-/** Splits a computed `box-shadow` into its individual shadow layers, ignoring the
- * commas that sit inside `rgb(...)` / `rgba(...)` colour tuples. */
+// Режет computed box-shadow на отдельные слои теней, игнорируя запятые внутри
+// rgb(...)/rgba(...) кортежей цвета.
 function shadowLayers(boxShadow: string): string[] {
   return boxShadow.split(/,(?![^(]*\))/).map((layer) => layer.trim())
 }
@@ -328,12 +323,10 @@ const COMPACT_LONG_VALUE: FilterTree = {
   ],
 }
 
-/**
- * The active combinator segment must show a visible keyboard focus ring. Its fill
- * is `bg-primary`, and the shared `--color-ring` equals `--color-primary`, so the
- * ring is overridden to `primary-foreground` on the active segment — otherwise it
- * would paint the same colour as its own fill and vanish.
- */
+// Активный сегмент комбинатора должен показывать видимый клавиатурный фокус-ринг.
+// Его заливка — bg-primary, а общий --color-ring == --color-primary, поэтому на
+// активном сегменте ринг override'ится на primary-foreground — иначе он покрасился
+// бы в цвет собственной заливки и исчез.
 export const ActiveSegmentFocusRing: Story = {
   tags: ['test'],
   render: () => <ControlledFilterBuilder initial={SINGLE_RULE} />,
@@ -343,21 +336,20 @@ export const ActiveSegmentFocusRing: Story = {
 
     const toggle = canvas.getAllByRole('group', { name: 'Match type' })[0]!
     const and = within(toggle).getByRole('button', { name: 'AND' })
-    // The active segment is the one the ring override applies to.
+    // Override ринга применяется именно к активному сегменту.
     await expect(and).toHaveAttribute('aria-pressed', 'true')
 
-    // A real Tab press lands on the first control (the active AND segment). Unlike
-    // a programmatic focus(), it satisfies :focus-visible in Chromium, so the ring
-    // actually paints.
+    // Настоящий Tab садится на первый контрол (активный AND-сегмент). В отличие от
+    // программного focus(), он удовлетворяет :focus-visible в Chromium, и ринг реально рисуется.
     await userEvent.tab()
     await expect(and).toHaveFocus()
 
     const style = view.getComputedStyle(and)
-    // The ring is painted as a box-shadow, so it must be present at all.
+    // Ринг рисуется как box-shadow, так что он должен вообще присутствовать.
     await expect(style.boxShadow).not.toBe('none')
 
-    // The ring is inset (kept inside the button so the toggle's overflow-hidden
-    // does not clip it). Isolate that inset layer and read its colour.
+    // Ринг инсетный (внутри кнопки, чтобы overflow-hidden тоггла его не резал).
+    // Вычленяем инсетный слой и читаем его цвет.
     const insetLayer = shadowLayers(style.boxShadow).find((layer) =>
       layer.includes('inset'),
     )
@@ -365,16 +357,14 @@ export const ActiveSegmentFocusRing: Story = {
     const ringColor = firstColor(insetLayer!)
     await expect(ringColor).toBeDefined()
 
-    // The ring colour must differ from the segment's own bg-primary fill, or the
-    // keyboard focus indicator would be invisible on the active segment.
+    // Цвет ринга должен отличаться от собственной bg-primary заливки сегмента, иначе
+    // клавиатурный индикатор фокуса был бы невидим на активном сегменте.
     await expect(ringColor).not.toBe(style.backgroundColor)
   },
 }
 
-/**
- * A long unbreakable value (a URL with no spaces) in a narrow compact summary must
- * wrap inside its chip rather than push the container into a horizontal scroll.
- */
+// Длинное неразрывное значение (URL без пробелов) в узком compact-summary должно
+// переноситься внутри чипа, а не толкать контейнер в горизонтальный скролл.
 export const CompactChipOverflow: Story = {
   tags: ['test'],
   render: () => {
@@ -393,7 +383,7 @@ export const CompactChipOverflow: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // Sanity: the long token really is on screen as chip text.
+    // Проверка: длинный токен реально на экране как текст чипа.
     await expect(
       canvas.getByText(/token-abcdefghijklmnopqrstuvwxyz0123456789/),
     ).toBeInTheDocument()
@@ -401,25 +391,21 @@ export const CompactChipOverflow: Story = {
     const shell = canvasElement.querySelector<HTMLElement>(
       '[data-testid="compact-shell"]',
     )!
-    // No horizontal overflow: the content wraps within the 360px shell instead of
-    // widening it.
+    // Горизонтального переполнения нет: контент переносится внутри 360px shell, а не расширяет его.
     await expect(shell.scrollWidth).toBe(shell.clientWidth)
   },
 }
 
-/** Lazily builds the heavy tree in render, never at module scope. */
+// Строит тяжёлое дерево лениво в рендере, не на уровне модуля.
 function PerfStory() {
   const initial = useMemo(() => makeFilterTree(200, 10), [])
   return <FilterBuilderPerfHarness initial={initial} />
 }
 
-/**
- * Manual perf harness over a 200-rule tree spread across ~20 nested groups. It
- * is deliberately **not** tagged `test`: it is a measurement tool (like the
- * DataGrid `Perf100k` story), and the isolation and serialize budgets are already
- * proven by the jsdom perf test. Use the buttons to record numbers into
- * `window.__filterbuilderPerf`.
- */
+// Ручной perf-стенд над деревом из 200 правил в ~20 вложенных группах. Намеренно НЕ
+// помечен test: это измерительный инструмент (как стори DataGrid Perf100k), а бюджеты
+// изоляции и сериализации уже доказаны jsdom perf-тестом. Кнопками пишем числа в
+// window.__filterbuilderPerf.
 export const Perf: Story = {
   render: () => <PerfStory />,
 }

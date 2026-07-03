@@ -13,22 +13,14 @@ interface RuleValueControlProps {
   operator: OperatorDef
   value: FilterValue
   onChange: (value: FilterValue) => void
-  /** Stable id prefix for label/control association. */
   idBase: string
-  /** Visually-hidden label text describing this control. */
   label: string
 }
 
-/**
- * The schema-driven value editor for one rule. It picks the right native
- * control(s) from the field's `type` and the operator's `inputKind`:
- * - `single` → one control matching the type (text / number / date / boolean
- *   select / enum select),
- * - `range` → two type-matched controls laid out with flex, value `[a, b]`,
- * - `multi` (enum `in`) → a `<select multiple>`, value an array.
- *
- * Every control carries an associated `<label htmlFor>` derived from `idBase`.
- */
+// Schema-driven редактор значения одного правила: подбирает нативные контролы из
+// type поля и inputKind оператора — single (один по типу), range (два, значение
+// [a,b]), multi/enum in (select multiple, массив). У каждого свой <label htmlFor>
+// от idBase.
 export function RuleValueControl(props: RuleValueControlProps) {
   const { operator } = props
   if (operator.inputKind === 'range') return <RangeValue {...props} />
@@ -135,7 +127,6 @@ interface ScalarControlProps {
   onChange: (value: FilterValue) => void
 }
 
-/** One scalar control whose widget matches the field's `type`. */
 function ScalarControl({ id, config, value, onChange }: ScalarControlProps) {
   if (config.type === 'boolean') {
     return (
@@ -195,28 +186,23 @@ function ScalarControl({ id, config, value, onChange }: ScalarControlProps) {
   )
 }
 
-/** Coerce an arbitrary value into the `[from, to]` pair a range control reads. */
 function asPair(value: FilterValue): [FilterValue, FilterValue] {
   if (Array.isArray(value)) return [value[0] ?? '', value[1] ?? '']
   return ['', '']
 }
 
-/** Coerce an arbitrary value into the array a multi control reads. */
 function asArray(value: FilterValue): FilterValue[] {
   return Array.isArray(value) ? value : []
 }
 
-/** Render a scalar as the string a native input/select `value` expects. */
 function scalarString(value: FilterValue): string {
   if (value === null || value === undefined) return ''
   if (Array.isArray(value) || typeof value === 'object') return ''
   return String(value)
 }
 
-/**
- * Map a selected option's string `value` back to the option's original typed
- * value (number options stay numbers), falling back to the raw string.
- */
+// Возвращает исходное типизированное значение опции по её строковому value
+// (числовые опции остаются числами), иначе — сырую строку.
 function decodeOption(
   raw: string,
   options: readonly { value: string | number }[],

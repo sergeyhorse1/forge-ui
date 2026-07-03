@@ -11,22 +11,16 @@ import { deserialize, serialize } from './serialization'
 import * as styles from './styles'
 import type { FilterSchema, FilterTree } from './types'
 
-/**
- * Per-rule render counter, keyed by `rule.field`. The instrumented `renderRule`
- * below is called synchronously inside each `FilterRule`'s render, so its
- * invocation count is exactly that row's render count. A rule that is not
- * re-rendered never re-invokes `renderRule`, which is also how case C (stable
- * `update`/`remove` callbacks) is observed: an untouched row's counter stays
- * flat.
- */
+// Счётчик рендеров по правилу (ключ — rule.field). Инструментированный renderRule
+// ниже зовётся синхронно внутри рендера каждого FilterRule, так что число вызовов —
+// ровно число рендеров этой строки. Не перерисованное правило не перезовёт
+// renderRule — так же наблюдается стабильность update/remove: счётчик нетронутой
+// строки не растёт.
 const renders = new Map<string, number>()
 
-/**
- * Stable, module-level `renderRule`. It must not be recreated per render:
- * `FilterBuilder` memoises `effectiveRenderRule` on `[renderRule, fields]`, so a
- * fresh function each render would invalidate that memo and defeat the isolation
- * the test is measuring.
- */
+// Стабильный renderRule уровня модуля. Его нельзя пересоздавать каждый рендер:
+// FilterBuilder мемоизирует effectiveRenderRule на [renderRule, fields], и свежая
+// функция инвалидировала бы memo, убив измеряемую тестом изоляцию.
 function countingRenderRule(ctx: RenderRuleContext<FilterSchema>): ReactNode {
   const field = ctx.rule.field
   renders.set(field, (renders.get(field) ?? 0) + 1)
@@ -39,7 +33,7 @@ function countingRenderRule(ctx: RenderRuleContext<FilterSchema>): ReactNode {
   )
 }
 
-/** Stateful host that owns the tree and threads the stable `renderRule`. */
+// Stateful-хост, владеющий деревом и протягивающий стабильный renderRule.
 function Host({ initial }: { initial: FilterTree }) {
   const [value, setValue] = useState<FilterTree>(initial)
   return (
@@ -70,10 +64,10 @@ describe('FilterBuilder re-render isolation', () => {
 
     fireEvent.change(screen.getByLabelText('r3'), { target: { value: 'x' } })
 
-    // The edited row re-rendered exactly once more…
+    // Правленая строка перерисовалась ровно на один раз больше…
     expect(renders.get('r3')).toBe((before.get('r3') ?? 0) + 1)
-    // …and every sibling row's render count is unchanged (structural sharing +
-    // memo + stable ROOT_PATH keep their `path`/`rule`/`actions` props `===`).
+    // …а у каждого сиблинга счётчик тот же (структурный шаринг + memo + стабильный
+    // ROOT_PATH держат их path/rule/actions ===).
     for (const field of ['r0', 'r1', 'r2', 'r4', 'r5']) {
       expect(renders.get(field)).toBe(before.get(field))
     }
@@ -98,17 +92,16 @@ describe('FilterBuilder re-render isolation', () => {
 
     fireEvent.change(screen.getByLabelText('b0'), { target: { value: 'y' } })
 
-    // Only the edited leaf re-renders; the sibling rule in the same group and the
-    // rule in the sibling branch both stay put.
+    // Перерисовывается только правленый лист; сиблинг в той же группе и правило в
+    // соседней ветке остаются на месте.
     expect(renders.get('b0')).toBe((before.get('b0') ?? 0) + 1)
     expect(renders.get('b1')).toBe(before.get('b1'))
     expect(renders.get('a0')).toBe(before.get('a0'))
   })
 
   it('keeps a deep edit from cascading sideways across the tree', () => {
-    // A rule three groups deep, with sibling rules and sibling sub-trees planted
-    // at every level above it, so any width-wise cascade would show up as an
-    // extra render on one of them.
+    // Правило на три группы вглубь, с сиблинг-правилами и сиблинг-поддеревьями на
+    // каждом уровне выше, чтобы любой каскад вширь всплыл лишним рендером на одном из них.
     const deep: FilterTree = {
       combinator: 'and',
       rules: [
@@ -141,12 +134,12 @@ describe('FilterBuilder re-render isolation', () => {
       target: { value: 'z' },
     })
 
-    // The edited leaf re-renders once…
+    // Правленый лист перерисовывается один раз…
     expect(renders.get('deep-target')).toBe(
       (before.get('deep-target') ?? 0) + 1,
     )
-    // …and nothing beside it — neither its own neighbour nor any sibling rule
-    // parked at a shallower level — re-renders.
+    // …и ничего рядом — ни его сосед, ни сиблинг-правило на более мелком уровне —
+    // не перерисовывается.
     for (const field of [
       'deep-neighbour',
       'inner-sibling',
@@ -158,13 +151,11 @@ describe('FilterBuilder re-render isolation', () => {
   })
 })
 
-/**
- * Group-level render counter. `FilterGroup` accepts no custom renderer, so we
- * observe its renders indirectly: a group re-render re-runs its children's
- * renderers, and a group whose sub-tree is untouched must not re-render any of
- * the leaves it owns. Tagging each group's rules with a distinct prefix lets one
- * group's edit be told apart from a sibling group's activity.
- */
+// Счётчик рендеров на уровне групп. FilterGroup не принимает кастомный рендерер,
+// поэтому его рендеры наблюдаем косвенно: рендер группы перезапускает рендереры
+// детей, а группа с нетронутым поддеревом не должна перерисовать ни один свой лист.
+// Разные префиксы у правил каждой группы позволяют отличить правку одной группы от
+// активности соседней.
 describe('FilterBuilder sibling-group isolation', () => {
   it('leaves a sibling group untouched when a rule in another group changes', () => {
     const twoGroups: FilterTree = {
@@ -193,29 +184,26 @@ describe('FilterBuilder sibling-group isolation', () => {
       target: { value: 'q' },
     })
 
-    // The edited rule in group A re-renders once.
+    // Правленое правило в группе A перерисовывается один раз.
     expect(renders.get('groupA-first')).toBe(
       (before.get('groupA-first') ?? 0) + 1,
     )
-    // Every rule owned by the sibling group B keeps its render count flat —
-    // group B never re-renders, so its whole sub-tree is skipped.
+    // У всех правил соседней группы B счётчик не растёт — B не перерисовывается,
+    // так что всё её поддерево пропущено.
     expect(renders.get('groupB-first')).toBe(before.get('groupB-first'))
     expect(renders.get('groupB-second')).toBe(before.get('groupB-second'))
-    // Group A's own untouched rule is likewise skipped.
+    // Нетронутое правило самой группы A тоже пропущено.
     expect(renders.get('groupA-second')).toBe(before.get('groupA-second'))
   })
 })
 
-/**
- * Direct group-level render count. `groupPanel` (a `cva` block) is invoked
- * exactly once per `FilterGroup` render and nowhere else — the summary view uses
- * `summaryGroup`, not `groupPanel` — so spying on it counts FilterGroup renders
- * precisely. Unlike the per-leaf counter above (which the `FilterRule` memo keeps
- * flat even when an ancestor group re-renders, so dropping the *group* memo does
- * not turn it red), this makes the `React.memo` on `FilterGroup` load-bearing:
- * removing it lets a sibling group re-render, which shows up here as an extra
- * `groupPanel` call.
- */
+// Прямой счётчик рендеров группы. groupPanel (cva-блок) зовётся ровно раз на рендер
+// FilterGroup и больше нигде — summary использует summaryGroup, не groupPanel —
+// поэтому шпион по нему точно считает рендеры FilterGroup. В отличие от пер-лист
+// счётчика выше (который memo FilterRule держит плоским даже при рендере
+// группы-предка, так что снятие memo С ГРУППЫ его не краснит), этот делает
+// React.memo на FilterGroup load-bearing: без него соседняя группа перерисуется, и
+// тут всплывёт лишний вызов groupPanel.
 describe('FilterBuilder group-level render isolation', () => {
   afterEach(() => {
     vi.restoreAllMocks()
@@ -224,8 +212,8 @@ describe('FilterBuilder group-level render isolation', () => {
   it('re-renders only the root and the edited group, not a sibling group', () => {
     const groupPanelSpy = vi.spyOn(styles, 'groupPanel')
 
-    // root (AND) with two nested OR groups: A and B, two rules each. Three
-    // groups total, so a leaked sibling render is observable as a third call.
+    // Корень (AND) с двумя вложенными OR-группами A и B, по два правила. Всего три
+    // группы, поэтому протёкший рендер соседа виден третьим вызовом.
     const tree: FilterTree = {
       combinator: 'and',
       rules: [
@@ -247,37 +235,34 @@ describe('FilterBuilder group-level render isolation', () => {
     }
     render(<Host initial={tree} />)
 
-    // Ignore the mount-time renders; measure only the edit.
+    // Игнорируем рендеры при маунте; меряем только правку.
     groupPanelSpy.mockClear()
 
-    // Edit a rule inside group A. Structural sharing rewrites only the root and
-    // group A; group B keeps its identity, so its memoised subtree is skipped.
+    // Правим правило в группе A. Структурный шаринг перезаписывает только корень и
+    // группу A; B хранит identity, её мемоизированное поддерево пропущено.
     fireEvent.change(screen.getByLabelText('A-first'), {
       target: { value: 'x' },
     })
 
-    // Exactly two group renders: root + group A. Group B is isolated by memo.
-    // Disproof: removing `memo()` from FilterGroup lets B re-render too, turning
-    // this into 3 and failing `expected 3 to be 2`.
+    // Ровно два рендера групп: корень + группа A. B изолирована memo. Disproof:
+    // снять memo() с FilterGroup — B тоже перерисуется, станет 3 и упадёт «expected 3 to be 2».
     expect(groupPanelSpy).toHaveBeenCalledTimes(2)
   })
 })
 
-/**
- * Records how many times each group at a labelled path renders. The instrumented
- * `renderRule` can only see leaf rows, so to observe an *ancestor group*
- * re-rendering we thread a per-group `combinator` toggle: flipping a group's
- * combinator forces that group (and only the groups along its path) to produce a
- * new `rules`/`combinator` object. Ancestors re-render; sibling groups do not.
- */
+// Считает, сколько раз рендерится группа на помеченном пути. Инструментированный
+// renderRule видит только листья, поэтому чтобы наблюдать рендер ГРУППЫ-ПРЕДКА,
+// протягиваем пер-групповой тоггл combinator: смена комбинатора заставляет группу
+// (и только группы вдоль её пути) выдать новый rules/combinator. Предки
+// перерисовываются; соседние группы — нет.
 describe('FilterBuilder ancestor re-render along the edited path', () => {
   it('re-renders the edited rule while its stable siblings stay flat', () => {
-    // Isolation is about *siblings*, not ancestors. The chain of groups from the
-    // root down to the edited rule legitimately re-renders — those groups own the
-    // changed `rules` array. But a memoised leaf *within* a re-rendered ancestor
-    // group still short-circuits when its own props are unchanged, so the sibling
-    // rows do not re-render. We assert exactly that boundary here so the test
-    // neither forbids the ancestor re-render nor tolerates a sibling leak.
+    // Изоляция про СИБЛИНГОВ, не про предков. Цепочка групп от корня до правленого
+    // правила законно перерисовывается — они владеют изменившимся массивом rules. Но
+    // мемоизированный лист ВНУТРИ перерисованной группы-предка всё равно
+    // short-circuit'ит при неизменных пропах, так что сиблинг-строки не
+    // перерисовываются. Утверждаем ровно эту границу: тест не запрещает рендер
+    // предка и не терпит протечку в сиблинг.
     const tree: FilterTree = {
       combinator: 'and',
       rules: [
@@ -299,27 +284,25 @@ describe('FilterBuilder ancestor re-render along the edited path', () => {
 
     fireEvent.change(screen.getByLabelText('edited'), { target: { value: 'v' } })
 
-    // The edited rule re-renders exactly once more.
+    // Правленое правило перерисовывается ровно на один раз больше.
     expect(renders.get('edited')).toBe((before.get('edited') ?? 0) + 1)
-    // The sibling in the *same* ancestor group is still skipped: its rule object,
-    // path and callbacks are all `===`, so `React.memo` bails out even though the
-    // parent group re-rendered. This is the tighter guarantee — ancestor
-    // re-render does not force its memoised children.
+    // Сиблинг в ТОЙ ЖЕ группе-предке всё равно пропущен: его rule-объект, path и
+    // колбэки — ===, поэтому React.memo отскакивает, хоть родительская группа и
+    // перерисовалась. Это более жёсткая гарантия — рендер предка не форсит его
+    // мемоизированных детей.
     expect(renders.get('same-group-sibling')).toBe(
       before.get('same-group-sibling'),
     )
-    // The off-path branch, rooted at a sibling group, is fully skipped.
+    // Ветка вне пути, с корнем в соседней группе, пропущена целиком.
     expect(renders.get('off-path')).toBe(before.get('off-path'))
   })
 
   it('re-renders the whole path when a group along it structurally changes', () => {
-    // Flipping a nested group's combinator replaces that group and every group
-    // above it (structural sharing rewrites the path). React then re-renders
-    // those groups; because each rule inside a rewritten group is reached through
-    // a freshly-mapped `childPaths` entry only when `rules.length` changes, the
-    // combinator flip alone keeps child paths stable — so the rules themselves
-    // still don't re-render. What re-renders is bounded to the groups on the path,
-    // which we observe by confirming the off-path branch's rule stays flat.
+    // Смена комбинатора вложенной группы заменяет её и все группы выше (структурный
+    // шаринг переписывает путь). React перерисовывает эти группы; но childPaths
+    // ремапится, только когда меняется rules.length, а смена комбинатора держит
+    // пути детей стабильными — так что сами правила не перерисовываются. Рендер
+    // ограничен группами на пути, что подтверждаем плоским счётчиком ветки вне пути.
     const tree: FilterTree = {
       combinator: 'and',
       rules: [
@@ -336,28 +319,26 @@ describe('FilterBuilder ancestor re-render along the edited path', () => {
     render(<Host initial={tree} />)
     const before = snapshot()
 
-    // Toggle the first nested group's combinator from AND to OR. There are two
-    // combinator toggles (root + nested); target the nested group's OR button.
+    // Переключаем комбинатор первой вложенной группы с AND на OR. Тогглов два
+    // (корень + вложенный); целимся в OR-кнопку вложенной группы.
     const orButtons = screen.getAllByRole('button', { name: 'OR' })
-    // Root OR is first; the nested group's OR button is the second one.
+    // Корневой OR — первый; OR-кнопка вложенной группы — вторая.
     fireEvent.click(orButtons[orButtons.length - 1]!)
 
-    // The rule inside the flipped group keeps stable props (its object, path and
-    // callbacks are untouched), so even its own group re-rendering does not force
-    // it to re-render.
+    // Правило внутри перевёрнутой группы держит стабильные пропы (его объект, path и
+    // колбэки не тронуты), так что даже рендер его группы не форсит его перерисовку.
     expect(renders.get('nested-rule')).toBe(before.get('nested-rule'))
-    // The sibling branch is entirely off the path and never re-renders.
+    // Соседняя ветка целиком вне пути и не перерисовывается.
     expect(renders.get('other-branch')).toBe(before.get('other-branch'))
   })
 })
 
 describe('FilterBuilder callback stability', () => {
   it('does not re-invoke an untouched rule renderer when a distant rule changes', () => {
-    // `renderRule` is invoked once per row render and closes over `ctx.update`/
-    // `ctx.remove`. If those callbacks were rebuilt on every tree change, the
-    // untouched row's memo would break and its renderer would fire again. A flat
-    // render count on the untouched row is the observable proof the callbacks
-    // stay `===` across an unrelated edit.
+    // renderRule зовётся раз на рендер строки и замыкается на ctx.update/ctx.remove.
+    // Если бы эти колбэки пересобирались на каждое изменение дерева, memo нетронутой
+    // строки сломалось бы и её рендерер сработал снова. Плоский счётчик нетронутой
+    // строки — наблюдаемое доказательство, что колбэки остаются === сквозь чужую правку.
     const tree: FilterTree = {
       combinator: 'and',
       rules: [
@@ -368,23 +349,20 @@ describe('FilterBuilder callback stability', () => {
     render(<Host initial={tree} />)
     const untouchedRendersBefore = renders.get('untouched')
 
-    // Two independent edits to a different row; the untouched row must not
-    // re-render for either.
+    // Две независимые правки другой строки; нетронутая не должна перерисоваться ни на одну.
     fireEvent.change(screen.getByLabelText('target'), { target: { value: '1' } })
     fireEvent.change(screen.getByLabelText('target'), { target: { value: '2' } })
 
     expect(renders.get('untouched')).toBe(untouchedRendersBefore)
-    // Sanity: the row we did edit really did re-render, so the test is not
-    // passing because nothing happened.
+    // Проверка: правленая строка реально перерисовалась — тест зелёный не потому,
+    // что ничего не произошло.
     expect(renders.get('target')).toBeGreaterThan(1)
   })
 })
 
-/**
- * Percentile helper: warm up the JIT, then take the median of repeated measures
- * so a single GC/JIT spike cannot fail the budget. `JSON.stringify`/`parse` are
- * O(n), so the median lands far under budget with room to spare.
- */
+// Перцентильный хелпер: прогреваем JIT, затем берём медиану повторных замеров, чтобы
+// одиночный GC/JIT-спайк не завалил бюджет. JSON.stringify/parse — O(n), так что
+// медиана ложится сильно под бюджет.
 function medianMs(run: () => void, { warmup = 5, measure = 10 } = {}): number {
   for (let i = 0; i < warmup; i += 1) run()
   const samples: number[] = []
@@ -408,8 +386,8 @@ describe('FilterBuilder serialize budget (200 rules / 20 groups)', () => {
       serialize(tree)
     })
     console.log(`serialize(200) median: ${median.toFixed(4)} ms`)
-    // Under budget, but strictly above zero: a no-op `serialize` would measure ~0
-    // and slip a broken implementation past a one-sided budget check.
+    // Под бюджетом, но строго выше нуля: no-op serialize замерил бы ~0 и протащил бы
+    // сломанную реализацию сквозь односторонний бюджет-чек.
     expect(median).toBeGreaterThan(0)
     expect(median).toBeLessThanOrEqual(SERIALIZE_BUDGET_MS)
   })

@@ -12,17 +12,15 @@ function makeRule(field: string): FilterRule {
   return { field, operator: 'eq', value: field }
 }
 
-/**
- * Stateful host mirroring the real usage: it owns the tree and echoes each edit
- * back through `value`, so the builder's post-commit focus effect sees the new
- * DOM. Focus management only works when the consumer honours `onChange`.
- */
+// Stateful-хост как в реальном использовании: владеет деревом и эхо-возвращает
+// каждую правку через value, чтобы пост-коммит фокус-эффект видел новый DOM.
+// Управление фокусом работает, только когда консьюмер уважает onChange.
 function Host({ initial }: { initial: FilterTree }) {
   const [value, setValue] = useState<FilterTree>(initial)
   return <FilterBuilder value={value} onChange={setValue} />
 }
 
-/** The rule row (outer div carrying `data-rule-path`) for a given path. */
+// Строка правила (внешний div с data-rule-path) для заданного пути.
 function ruleRowAt(path: FilterPath): HTMLElement {
   const row = document.querySelector<HTMLElement>(
     `[data-rule-path="${encodePath(path)}"]`,
@@ -37,7 +35,7 @@ describe('FilterBuilder — focus management on add', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
 
-    // The appended rule sits at index 1; focus must land on its first control.
+    // Добавленное правило на индексе 1; фокус должен сесть на его первый контрол.
     const newRow = ruleRowAt([1])
     const firstControl = within(newRow).getAllByRole('textbox')[0]!
     expect(document.activeElement).toBe(firstControl)
@@ -53,8 +51,8 @@ describe('FilterBuilder — focus management on add', () => {
     }
     render(<Host initial={tree} />)
 
-    // Reach the nested group's own "Add rule" by anchoring on its match-type
-    // toggle (the only group whose OR segment is pressed).
+    // Доходим до «Add rule» вложенной группы через её match-type тоггл
+    // (единственная группа с нажатым OR-сегментом).
     const toggles = screen.getAllByRole('group', { name: 'Match type' })
     const nestedToggle = toggles.find(
       (group) =>
@@ -67,7 +65,7 @@ describe('FilterBuilder — focus management on add', () => {
       within(nestedPanel).getAllByRole('button', { name: 'Add rule' })[0]!,
     )
 
-    // New rule is at [1, 1]; its first control receives focus.
+    // Новое правило на [1, 1]; фокус получает его первый контрол.
     const newRow = ruleRowAt([1, 1])
     const firstControl = within(newRow).getAllByRole('textbox')[0]!
     expect(document.activeElement).toBe(firstControl)
@@ -78,8 +76,8 @@ describe('FilterBuilder — focus management on add', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Add group' }))
 
-    // The new empty group is at index 1; its first focusable is the AND segment
-    // of its match-type toggle.
+    // Новая пустая группа на индексе 1; её первый фокусируемый — AND-сегмент
+    // match-type тоггла.
     const newGroup = document.querySelector<HTMLElement>(
       `[data-group-path="${encodePath([1])}"]`,
     )!
@@ -99,15 +97,15 @@ describe('FilterBuilder — focus management on remove', () => {
       />,
     )
 
-    // Remove the middle rule (index 1). Its previous sibling (index 0, "alpha")
-    // must take focus so the keyboard user is not dropped onto the body.
+    // Удаляем среднее правило (индекс 1). Фокус должен взять его предыдущий сиблинг
+    // (индекс 0, «alpha»), чтобы клавиатурного юзера не уронило на body.
     const removeButtons = screen.getAllByRole('button', { name: 'Remove rule' })
     fireEvent.click(removeButtons[1]!)
 
     const survivor = ruleRowAt([0])
     const firstControl = within(survivor).getAllByRole('textbox')[0]!
     expect(document.activeElement).toBe(firstControl)
-    // Sanity: the field input still shows the surviving first rule.
+    // Проверка: field-инпут всё ещё показывает уцелевшее первое правило.
     expect((firstControl as HTMLInputElement).value).toBe('alpha')
   })
 
@@ -124,7 +122,7 @@ describe('FilterBuilder — focus management on remove', () => {
     const removeButtons = screen.getAllByRole('button', { name: 'Remove rule' })
     fireEvent.click(removeButtons[0]!)
 
-    // "beta" slides into index 0; focus follows it there.
+    // «beta» съезжает на индекс 0; фокус следует за ней туда.
     const survivor = ruleRowAt([0])
     const firstControl = within(survivor).getAllByRole('textbox')[0]!
     expect(document.activeElement).toBe(firstControl)
@@ -136,16 +134,15 @@ describe('FilterBuilder — focus management on remove', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove rule' }))
 
-    // The root group is now empty: focus falls back to its Add rule button.
+    // Корневая группа опустела: фокус откатывается на её кнопку Add rule.
     const addRule = screen.getByRole('button', { name: 'Add rule' })
     expect(document.activeElement).toBe(addRule)
   })
 
   it('leaves focus where the user left it when onChange is ignored', () => {
-    // A read-only consumer drops onChange, so no re-render happens and the
-    // post-commit resolver never runs. Focus must stay on the control the user
-    // was interacting with — the resolver must not reach across an unchanged
-    // tree and yank it elsewhere.
+    // Read-only консьюмер глотает onChange — ре-рендера нет, пост-коммит резолвер не
+    // запускается. Фокус должен остаться на контроле, с которым работал юзер:
+    // резолвер не должен тянуться сквозь неизменившееся дерево и уводить его.
     render(
       <FilterBuilder
         value={{ combinator: 'and', rules: [makeRule('a'), makeRule('b')] }}
@@ -159,7 +156,7 @@ describe('FilterBuilder — focus management on remove', () => {
     removeButton.focus()
     fireEvent.click(removeButton)
 
-    // Edit dropped: both rows remain, and focus is still on the button.
+    // Правка проглочена: обе строки на месте, фокус всё ещё на кнопке.
     expect(screen.getAllByLabelText('Field')).toHaveLength(2)
     expect(document.activeElement).toBe(removeButton)
   })
@@ -180,7 +177,7 @@ describe('FilterBuilder — group and toggle semantics', () => {
       />,
     )
 
-    // Root group is labelled "Filter rules"; the nested one "Rule group".
+    // Корневая группа помечена «Filter rules», вложенная — «Rule group».
     expect(
       screen.getByRole('group', { name: 'Filter rules' }),
     ).toBeInTheDocument()
@@ -200,16 +197,14 @@ describe('FilterBuilder — group and toggle semantics', () => {
       'aria-pressed',
       'true',
     )
-    // The old jargon label is gone.
+    // Старой жаргонной метки больше нет.
     expect(screen.queryByRole('group', { name: 'Combinator' })).toBeNull()
   })
 })
 
-/**
- * A consumer's custom `renderRule` that deliberately stamps no focus attribute.
- * `FilterRule` wraps every row in a `data-rule-path` element itself, so focus
- * management works without the renderer's cooperation.
- */
+// Кастомный renderRule консьюмера, намеренно не штампующий focus-атрибут.
+// FilterRule сам оборачивает каждую строку в элемент с data-rule-path, поэтому
+// управление фокусом работает без содействия рендерера.
 function CustomHost({ initial }: { initial: FilterTree }) {
   const [value, setValue] = useState<FilterTree>(initial)
   return (
@@ -238,22 +233,19 @@ describe('FilterBuilder — focus works for custom renderRule', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
 
-    // The centralised wrapper stamps data-rule-path even though the custom
-    // renderer does not; focus lands on the custom input inside the new row.
-    // Disproof: dropping the `contents` wrapper leaves no addressable row, so
-    // focus would be stranded on the Add rule button instead.
+    // Централизованная обёртка штампует data-rule-path, хотя кастомный рендерер —
+    // нет; фокус садится на кастомный инпут внутри новой строки. Disproof: убрать
+    // contents-обёртку — адресуемой строки не останется, и фокус завис бы на кнопке Add rule.
     const newRow = ruleRowAt([1])
     const control = within(newRow).getByRole('textbox')
     expect(document.activeElement).toBe(control)
   })
 })
 
-/**
- * Host that rejects removals (a min-rules guard) but accepts every other edit,
- * plus a button that swaps in an unrelated tree from outside the builder. This
- * reproduces a stale `afterRemove` intent: the remove is recorded but never
- * commits, so a later unrelated commit must not resolve it.
- */
+// Хост, отвергающий удаления (гард min-rules), но принимающий любую другую правку,
+// плюс кнопка, подменяющая дерево извне билдера. Воспроизводит устаревшее
+// afterRemove-намерение: удаление записано, но не закоммичено, так что позднейший
+// посторонний коммит не должен его разрешить.
 function RejectRemoveHost({ initial }: { initial: FilterTree }) {
   const [value, setValue] = useState<FilterTree>(initial)
   return (
@@ -290,15 +282,15 @@ describe('FilterBuilder — stale focus intent does not steal focus', () => {
       />,
     )
 
-    // Attempt to remove the middle rule; the host rejects it (no commit), so the
-    // afterRemove intent is left pending, expecting a tree that never arrives.
+    // Пробуем удалить среднее правило; хост его отвергает (коммита нет), поэтому
+    // afterRemove-намерение остаётся pending, ожидая дерево, которое не придёт.
     fireEvent.click(screen.getAllByRole('button', { name: 'Remove rule' })[1]!)
     expect(screen.getAllByLabelText('Field')).toHaveLength(3)
 
-    // An unrelated external commit changes `value` to a different tree. The gate
-    // (`value === expected`) must reject the stale intent so focus is not yanked
-    // onto a rule row. Disproof: removing the gate lets the stale intent resolve
-    // against this new tree and steal focus to its first rule's field.
+    // Посторонний внешний коммит меняет value на другое дерево. Гейт
+    // (value === expected) должен отвергнуть устаревшее намерение, чтобы фокус не
+    // выдернуло на строку. Disproof: убрать гейт — устаревшее намерение разрешится
+    // против нового дерева и украдёт фокус на field первого правила.
     const external = screen.getByTestId('external')
     external.focus()
     fireEvent.click(external)
@@ -316,12 +308,12 @@ describe('FilterBuilder — stale focus intent does not steal focus', () => {
       />,
     )
 
-    // Reject a remove, then edit a different row's field. Editing clears the
-    // stale intent and the gate backs it up, so focus stays where the user types.
+    // Отвергаем удаление, затем правим field другой строки. Правка сбрасывает
+    // устаревшее намерение, а гейт это подстраховывает, так что фокус остаётся где печатают.
     fireEvent.click(screen.getAllByRole('button', { name: 'Remove rule' })[1]!)
 
-    // The third row's field input (rows keep their order; the remove was
-    // rejected, so all three survive).
+    // Field-инпут третьей строки (порядок строк сохранён; удаление отвергнуто, все
+    // три уцелели).
     const gammaField = screen.getAllByLabelText('Field')[2] as HTMLInputElement
     expect(gammaField.value).toBe('gamma')
     gammaField.focus()

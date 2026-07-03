@@ -164,10 +164,9 @@ describe('Rule value control — widget matches the field type', () => {
 })
 
 describe('Filter summary — two-item enum is not read as a range', () => {
-  // The chip text disambiguates an array value by the operator's input kind: a
-  // two-item enum `in` joins option labels with commas, while a `between` range
-  // of the same arity reads "a – b". A two-item `in` must never collapse to the
-  // dashed range form.
+  // Текст чипа разводит массив по inputKind оператора: двухэлементный enum in
+  // склеивает лейблы запятыми, а between той же арности читается «a – b».
+  // Двухэлементный in не должен схлопнуться в форму с тире.
   it('joins a two-item enum membership rather than dashing it', () => {
     const rule: FilterRule = { field: 'plan', operator: 'in', value: ['pro', 'team'] }
     const text = summarizeRule(rule, SCHEMA).value
@@ -239,9 +238,9 @@ describe('Filter summary — nested groups', () => {
 })
 
 describe('Filter rule editor — changing the operator reshapes the value', () => {
-  // Switching a number rule from a scalar comparison to `between` must turn the
-  // single control into a two-handle range that carries the old scalar forward,
-  // and switching back must collapse it to a single control again.
+  // Переключение number-правила со скалярного сравнения на between должно
+  // превратить один контрол в двуручьевой range, перенеся старый скаляр, а обратно
+  // — снова схлопнуть в один контрол.
   it('grows a single control into a range when choosing between', () => {
     function Host() {
       const [value, setValue] = useState<FilterTree>(
@@ -282,9 +281,9 @@ describe('Filter rule editor — changing the operator reshapes the value', () =
 })
 
 describe('Filter rule editor — changing the field discards an invalid combination', () => {
-  // Load-bearing: a string rule carrying `contains "abc"` switched to a numeric
-  // field must not survive with the text operator or the text value. This is the
-  // exact trap the disproof exercise mutates `reconcileField` to break.
+  // Load-bearing: string-правило с contains "abc", переключённое на числовое поле,
+  // не должно уцелеть с текстовым оператором или текстовым значением. Ровно эту
+  // ловушку ломает мутация reconcileField.
   function StringToNumberHost() {
     const [value, setValue] = useState<FilterTree>(
       treeOf({ field: 'name', operator: 'contains', value: 'abc' }),
@@ -301,11 +300,11 @@ describe('Filter rule editor — changing the field discards an invalid combinat
 
     const operator = screen.getByLabelText('Operator') as HTMLSelectElement
     const numericIds = operatorsForField('price', SCHEMA).map((op) => op.value)
-    // The carried-over text operator is gone; the rule shows a valid numeric one.
+    // Перенесённый текстовый оператор исчез; правило показывает валидный числовой.
     expect(operator.value).not.toBe('contains')
     expect(numericIds).toContain(operator.value)
 
-    // The numeric control is present and the stale text value did not leak in.
+    // Числовой контрол на месте, и устаревшее текстовое значение не просочилось.
     const numberControl = screen.getByLabelText('Price value') as HTMLInputElement
     expect(numberControl.type).toBe('number')
     expect(numberControl.value).not.toBe('abc')
@@ -326,8 +325,8 @@ describe('Filter rule editor — changing the field discards an invalid combinat
 })
 
 describe('Filter rule editor — controlled with a schema, no mirrored tree', () => {
-  // A schema-driven host that drops every change must not optimistically update
-  // the visible value control: there is no internal tree mirror.
+  // Schema-driven хост, глотающий все изменения, не должен оптимистично обновлять
+  // видимый контрол значения: внутреннего зеркала дерева нет.
   it('keeps the operator unchanged when the host ignores onChange', () => {
     const value: FilterTree = treeOf({ field: 'price', operator: 'eq', value: 1 })
     render(<FilterBuilder value={value} onChange={() => {}} fields={SCHEMA} />)
@@ -335,7 +334,7 @@ describe('Filter rule editor — controlled with a schema, no mirrored tree', ()
     const operator = screen.getByLabelText('Operator') as HTMLSelectElement
     expect(operator.value).toBe('eq')
     fireEvent.change(operator, { target: { value: 'between' } })
-    // No range controls appear because the dropped change never re-rendered it.
+    // Range-контролов нет: проглоченное изменение так и не перерисовало компонент.
     expect(screen.queryByLabelText('Price value from')).not.toBeInTheDocument()
     const after = screen.getByLabelText('Operator') as HTMLSelectElement
     expect(after.value).toBe('eq')
@@ -420,7 +419,7 @@ describe('useFilterMode — resolving the display mode', () => {
   })
 
   it('switches auto from expanded to compact as the container shrinks', () => {
-    // A stable ref so a re-render does not re-run the effect and re-measure.
+    // Стабильный ref, чтобы ре-рендер не перезапустил эффект и не перемерил.
     const ref = refToWidth(900)
     const { result } = renderHook(() => useFilterMode('auto', ref, 480))
     expect(result.current).toBe('expanded')

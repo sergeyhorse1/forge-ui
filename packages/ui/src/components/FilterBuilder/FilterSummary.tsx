@@ -25,14 +25,11 @@ interface FilterSummaryProps<S extends FilterSchema> {
   schema: FilterFieldSchema
 }
 
-/**
- * Compact, read-only projection of the same controlled `value` tree the
- * expanded editor renders. It shows each rule as a chip and each group as a
- * captioned block, recursing into nested groups. Switching between compact and
- * expanded is purely presentational — the data lives in `value`, so nothing is
- * lost. Chips wrap (`flex-wrap` + `break-words`) so a narrow container never
- * scrolls horizontally.
- */
+// Компактная read-only проекция того же controlled value-дерева, что рисует
+// расширенный редактор: правило — чип, группа — блок с подписью, рекурсивно.
+// Переключение compact/expanded чисто презентационное — данные в value, ничего не
+// теряется. Чипы переносятся (flex-wrap + break-words), узкий контейнер не скроллит
+// горизонтально.
 export function FilterSummary<S extends FilterSchema>({
   tree,
   schema,
@@ -48,10 +45,8 @@ interface SummaryGroupProps<S extends FilterSchema> {
   group: FilterGroupModel<S>
   schema: FilterFieldSchema
   isRoot?: boolean
-  /**
-   * When this group is itself an item of a parent group's list, it carries
-   * `role="listitem"`; the root group carries no list role of its own.
-   */
+  // Когда группа сама — элемент списка родителя, несёт role="listitem"; у корневой
+  // своей list-роли нет.
   listRole?: 'listitem'
 }
 
@@ -65,10 +60,9 @@ function SummaryGroup<S extends FilterSchema>({
     <div className={cn(summaryGroup({ root: isRoot }))} role={listRole}>
       <span className={cn(summaryCombinator())}>{summarizeGroup(group)}</span>
       {group.rules.length > 0 && (
-        // `role="list"` on the flex-wrap container plus `role="listitem"` on each
-        // chip/nested-group (applied in place, not via a wrapper div, so the
-        // layout is untouched) give the summary a semantic structure screen
-        // readers announce as a list of conditions rather than a run of spans.
+        // role="list" на flex-wrap контейнере плюс role="listitem" на каждом
+        // чипе/вложенной группе (на месте, без обёртки, чтобы не трогать layout)
+        // дают summary семантику списка условий, а не набора спанов.
         <div className={cn(summaryChildren())} role="list">
           {group.rules.map((child, index) => {
             const node: FilterNode<S> = child

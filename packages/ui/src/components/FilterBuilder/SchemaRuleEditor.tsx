@@ -19,18 +19,12 @@ interface SchemaRuleEditorProps<S extends FilterSchema> {
   schema: FilterFieldSchema
 }
 
-/**
- * Schema-driven editor swapped into the `renderRule` seam. It renders a field
- * `<select>`, an operator `<select>` scoped to that field's valid operators, and
- * the type-appropriate value control(s). Changing the field or operator runs the
- * pure reconciliation so the rule written back is always a valid
- * field/operator/value triple — never a broken combination.
- *
- * It edits the permissive rule form (`field`/`operator`/`value` as strings/JSON),
- * which is why the patches are cast to `RulePatch<S>`: like the default editor,
- * this layer does not try to satisfy a concrete schema's discriminated union at
- * the type level (see `schema.ts`).
- */
+// Schema-driven редактор в шов renderRule: рисует <select> поля, <select> оператора
+// (только валидные для поля) и подходящие по типу контролы значения. Смена
+// поля/оператора гоняет чистую реконсиляцию, так что записанное правило всегда
+// валидный триплет. Работает с пермиссивной формой (строки/JSON), поэтому патчи
+// кастятся в RulePatch<S> — как и дефолтный редактор, не пытается удовлетворить
+// discriminated union конкретной схемы на уровне типов (см. schema.ts).
 export function SchemaRuleEditor<S extends FilterSchema>({
   ctx,
   schema,
@@ -110,10 +104,7 @@ export function SchemaRuleEditor<S extends FilterSchema>({
   )
 }
 
-/**
- * Thin wrapper so the editor body stays readable; the actual control matrix
- * lives in `RuleValueControl`.
- */
+// Тонкая обёртка, чтобы тело редактора читалось; матрица контролов — в RuleValueControl.
 interface RuleValueSlotProps {
   config: FilterFieldConfig
   operator: OperatorDef
@@ -141,7 +132,7 @@ function RuleValueSlot({
   )
 }
 
-/** Read a rule as the permissive triple the reconciler operates on. */
+// Читает правило как пермиссивный триплет, с которым работает реконсайлер.
 function toPermissive<S extends FilterSchema>(
   rule: RenderRuleContext<S>['rule'],
 ): { field: string; operator: string; value: FilterValue } {

@@ -1,13 +1,8 @@
-/**
- * Runtime field schema and the per-type operator registry that drives the
- * schema-aware rule editor (and the compact summary). This layer is deliberately
- * separate from the type-level {@link FilterSchema} in `types.ts`: it is a plain
- * runtime config a consumer passes as the `fields` prop, not a type the tree is
- * parameterised by. The editor works against the permissive rule form
- * (`field: string`, `operator: string`, `value: FilterValue`), so there is no
- * attempt to infer the type-level `S` from this array — only the config itself
- * and the registry are strongly typed.
- */
+// Рантайм-схема полей и пер-типовый реестр операторов для schema-aware редактора
+// (и компактного summary). Намеренно отдельно от type-level FilterSchema из
+// types.ts: это plain-конфиг, что консьюмер передаёт пропом fields, а не тип,
+// которым параметризуется дерево. Редактор работает с пермиссивной формой правила,
+// так что type-level S из массива не выводится — типизированы лишь сам конфиг и реестр.
 
 /** The five value kinds a field can hold; each maps to its own operator set. */
 export type FieldType = 'string' | 'number' | 'boolean' | 'date' | 'enum'
@@ -25,10 +20,9 @@ interface FieldConfigBase {
   /** Human label shown in the field selector and the summary chips. */
   label: string
   /**
-   * Optional narrowing of the operators offered for this field. When omitted the
-   * full per-type default set from {@link OPERATORS_BY_TYPE} is used; when given,
-   * the offered set is the intersection of these ids with that default set, in
-   * the order listed here.
+   * Optional narrowing of the operators offered for this field: omitted uses the
+   * full per-type set from {@link OPERATORS_BY_TYPE}; given, it intersects with
+   * that set in the order listed here.
    */
   operators?: readonly string[]
 }

@@ -14,14 +14,14 @@ import {
 } from './tree'
 import type { FilterRule, FilterTree } from './types'
 
-/** The blank rule FilterBuilder appends when no `createRule` is supplied. */
+// Пустое правило, добавляемое FilterBuilder без createRule.
 const DEFAULT_RULE: FilterRule = { field: '', operator: '', value: '' }
 
 function makeRule(field: string): FilterRule {
   return { field, operator: 'eq', value: field }
 }
 
-/** Root with one rule, one nested group (holding one rule), one trailing rule. */
+// Корень: одно правило, вложенная группа (с одним правилом), замыкающее правило.
 function makeNestedTree(): FilterTree {
   const nestedRule: FilterRule = {
     field: 'nestedField',
@@ -38,7 +38,7 @@ function makeNestedTree(): FilterTree {
   }
 }
 
-/** The combinator `<button>` whose visible label is AND/OR. */
+// Кнопка комбинатора, видимая метка AND/OR.
 function combinatorButton(scope: HTMLElement, label: 'AND' | 'OR') {
   return within(scope).getByRole('button', { name: label })
 }
@@ -96,13 +96,13 @@ describe('FilterBuilder — controlled onChange correctness', () => {
 })
 
 describe('FilterBuilder — fully controlled, no internal tree state', () => {
-  // Load-bearing disproof: onChange ignores the update so `value` never changes.
-  // If anyone mirrors the tree in `useState`/`useReducer`, the click would
-  // optimistically add a row and this assertion would go red. It MUST stay green
-  // only while the component is a pure projection of the `value` prop.
+  // Load-bearing disproof: onChange глотает апдейт, поэтому value не меняется. Если
+  // кто-то зеркалит дерево в useState/useReducer, клик оптимистично добавит строку и
+  // ассерт покраснеет. Зелёным он остаётся, только пока компонент — чистая проекция
+  // пропа value.
   it('does not optimistically add a rule when onChange is ignored', () => {
     const value: FilterTree = { combinator: 'and', rules: [makeRule('a')] }
-    const onChange = vi.fn() // intentionally drops the next tree
+    const onChange = vi.fn() // намеренно глотает следующее дерево
     render(<FilterBuilder value={value} onChange={onChange} />)
 
     const before = screen.getAllByLabelText('Field').length
@@ -120,15 +120,15 @@ describe('FilterBuilder — recursion path correctness', () => {
     const onChange = vi.fn()
     render(<FilterBuilder value={value} onChange={onChange} />)
 
-    // The nested group is the only one with an active "OR" toggle; use its
-    // combinator role-group as an anchor to reach its own "Add rule".
+    // Вложенная группа — единственная с активным OR-тогглом; берём её role-group
+    // комбинатора как якорь, чтобы дойти до её же «Add rule».
     const allGroups = screen.getAllByRole('group', { name: 'Match type' })
     const nestedToggle = allGroups.find(
       (g) =>
         within(g).getByRole('button', { name: 'OR' }).getAttribute('aria-pressed') ===
         'true',
     )!
-    // toggle (role=group) -> groupHeader -> groupPanel
+    // toggle (role=group) → groupHeader → groupPanel
     const nestedPanel = nestedToggle.parentElement!.parentElement!
     fireEvent.click(
       within(nestedPanel).getAllByRole('button', { name: 'Add rule' })[0]!,
@@ -160,7 +160,7 @@ describe('FilterBuilder — recursion path correctness', () => {
         within(g).getByRole('button', { name: 'OR' }).getAttribute('aria-pressed') ===
         'true',
     )!
-    // toggle (role=group) -> groupHeader -> groupPanel
+    // toggle (role=group) → groupHeader → groupPanel
     const nestedPanel = nestedToggle.parentElement!.parentElement!
     fireEvent.click(
       within(nestedPanel).getAllByRole('button', { name: 'Add group' })[0]!,
@@ -241,7 +241,7 @@ describe('FilterBuilder — renderRule seam', () => {
     )
 
     expect(screen.getByText('custom:a')).toBeInTheDocument()
-    // The default native editor must be absent when renderRule is provided.
+    // При заданном renderRule дефолтного нативного редактора быть не должно.
     expect(screen.queryByLabelText('Field')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'patch' }))
@@ -275,11 +275,8 @@ describe('FilterBuilder — renderRule seam', () => {
   })
 })
 
-/**
- * A flat group of three distinct rules. Distinct field labels let a test target
- * one specific row's controls so removing the middle one can be told apart from
- * removing the first or last.
- */
+// Плоская группа из трёх разных правил. Разные field-метки дают тесту нацелиться на
+// конкретную строку, чтобы удаление среднего отличалось от первого/последнего.
 function makeSiblingTree(): FilterTree {
   return {
     combinator: 'and',
@@ -287,10 +284,8 @@ function makeSiblingTree(): FilterTree {
   }
 }
 
-/**
- * Render every rule with a labelled remove button so a test can name an exact
- * row. The buttons carry the rule's field, so `drop <field>` is unambiguous.
- */
+// Рендерит каждое правило с помеченной кнопкой удаления, чтобы тест мог назвать
+// конкретную строку: кнопки несут field правила, так что `drop <field>` однозначен.
 function withNamedRemovers(
   value: FilterTree,
   onChange: (next: FilterTree) => void,
@@ -334,7 +329,7 @@ describe('FilterBuilder — sibling index correctness', () => {
 
     const emitted = removeNode(value, [1])
     expect(onChange).toHaveBeenCalledWith(emitted)
-    // Removing the middle must keep the outer siblings, in order.
+    // Удаление среднего должно сохранить крайних сиблингов, по порядку.
     expect(emitted.rules.map((r) => (r as FilterRule).field)).toEqual([
       'alpha',
       'gamma',
@@ -361,17 +356,15 @@ describe('FilterBuilder — sibling index correctness', () => {
     const emitted = updateRule(value, [1], { value: 'edited' })
     expect(onChange).toHaveBeenCalledWith(emitted)
     expect((emitted.rules[1] as FilterRule).value).toBe('edited')
-    // The untouched siblings keep their object identity.
+    // Нетронутые сиблинги сохраняют object identity.
     expect(emitted.rules[0]).toBe(value.rules[0])
     expect(emitted.rules[2]).toBe(value.rules[2])
   })
 })
 
-/**
- * Root with a leading rule and a nested group that itself contains a deeper
- * group. The deepest group lives at path [1, 1]; its inner rule at [1, 1, 0].
- * This lets a test prove the path threads three levels down, not just one.
- */
+// Корень с ведущим правилом и вложенной группой, содержащей ещё более глубокую.
+// Самая глубокая группа — на пути [1, 1], её правило — на [1, 1, 0]. Позволяет
+// тесту доказать, что путь протягивается на три уровня, а не на один.
 function makeDeeplyNestedTree(): FilterTree {
   return {
     combinator: 'and',
@@ -392,11 +385,11 @@ function makeDeeplyNestedTree(): FilterTree {
 }
 
 describe('FilterBuilder — deep recursion path threading', () => {
-  // The deepest group renders the only "Remove group" button nested two panels
-  // in; find it by walking up from the field input of the rule it alone holds.
+  // Самая глубокая группа даёт единственную кнопку «Remove group» на два уровня
+  // внутрь; находим её, поднимаясь от field-инпута правила, которое только она держит.
   function deepestGroupPanel(): HTMLElement {
     const deepField = screen.getByDisplayValue('deepField')
-    // input -> ruleRow -> data-rule-path wrapper -> groupChildren -> groupPanel
+    // input → ruleRow → обёртка data-rule-path → groupChildren → groupPanel
     return deepField.parentElement!.parentElement!.parentElement!.parentElement!
   }
 
@@ -457,9 +450,9 @@ describe('FilterBuilder — deep recursion path threading', () => {
 })
 
 describe('FilterBuilder — sequential edits through a stateful host', () => {
-  // The component reads `value`/`onChange` from refs refreshed each render. A
-  // real stateful host re-renders with the new tree after each edit, so two
-  // adds in a row must accumulate rather than the second overwriting the first.
+  // Компонент читает value/onChange из ref'ов, обновляемых каждый рендер. Реальный
+  // stateful-хост перерендеривается с новым деревом после каждой правки, поэтому два
+  // add подряд должны накапливаться, а не второй перетирать первый.
   function Host({ initial }: { initial: FilterTree }) {
     const [value, setValue] = useState<FilterTree>(initial)
     return <FilterBuilder value={value} onChange={setValue} />

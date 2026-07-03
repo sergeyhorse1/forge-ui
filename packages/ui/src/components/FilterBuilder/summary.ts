@@ -1,8 +1,6 @@
-/**
- * Pure text formatters for the compact, read-only summary. Kept framework-free
- * so the chip text is unit-testable without rendering: `FilterSummary` only maps
- * these strings onto styled elements.
- */
+// Чистые текстовые форматтеры для компактного read-only summary. Без фреймворка —
+// текст чипов юнит-тестируется без рендера; FilterSummary лишь раскладывает эти
+// строки по стилизованным элементам.
 import {
   fieldConfig,
   operatorDefForField,
@@ -73,13 +71,10 @@ export function summarizeGroup<S extends FilterSchema>(
   return describeCombinator(group.combinator, group.rules.length)
 }
 
-/**
- * Render a rule value as display text. The operator's `inputKind` disambiguates
- * an array value: a `range` reads "a – b" while a `multi` joins its option
- * labels with commas (a two-item multi must not be mistaken for a range).
- * Booleans read true/false and an empty value reads as an em dash so the chip
- * never ends on a dangling verb.
- */
+// Рендерит значение правила в текст. inputKind разводит массив: range читается
+// «a – b», multi склеивает лейблы опций запятыми (двухэлементный multi нельзя
+// спутать с range). Boolean — true/false, пустое — em-dash, чтобы чип не
+// заканчивался повисшим глаголом.
 function formatValue(
   value: FilterValue,
   field: string,
@@ -93,8 +88,7 @@ function formatValue(
     if (inputKind === 'range' && value.length >= 2) {
       const fromValue = value[0] ?? ''
       const toValue = value[1] ?? ''
-      // An untouched range (`['', '']`) should read like any other empty value,
-      // not as a dangling " – ".
+      // Нетронутый range (['','']) читается как любое пустое, а не как повисшее « – ».
       if (fromValue === '' && toValue === '') return '—'
       const from = labelFor(fromValue, field, schema)
       const to = labelFor(toValue, field, schema)
@@ -110,7 +104,7 @@ function formatValue(
   return labelFor(value, field, schema)
 }
 
-/** Map one scalar to its enum option label when the field is an enum. */
+// Мапит скаляр в лейбл enum-опции, если поле enum.
 function labelFor(
   value: FilterValue,
   field: string,

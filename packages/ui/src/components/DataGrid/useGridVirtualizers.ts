@@ -15,29 +15,25 @@ interface UseGridVirtualizersParams<TRow> {
   overscanRows: number
   scrollColumns: ResolvedColumn<TRow>[]
   overscanColumns: number
-  /**
-   * Row index that must stay mounted even when scrolled out of the window, so
-   * the keyboard-focused cell never unmounts (which would drop focus and break
-   * arrow navigation). `null` pins nothing.
-   */
+  // Индекс строки, что остаётся смонтированной даже за окном, чтобы сфокусированная
+  // с клавиатуры ячейка не размонтировалась (иначе фокус слетит и стрелки сломаются).
+  // null — ничего не пинним.
   pinnedRowIndex: number | null
-  /** Scroll-column position (0-based within `scrollColumns`) to keep mounted. */
+  // Позиция scroll-столбца (0-based внутри scrollColumns), которую держим смонтированной.
   pinnedColumnPos: number | null
 }
 
-/**
- * Build a range extractor that always includes `pinned` in the mounted range.
- * Keeping the focused cell mounted preserves focus through mouse-wheel scrolling
- * that would otherwise virtualize it away.
- */
+// Range-extractor, всегда включающий pinned в смонтированный диапазон: держит
+// сфокусированную ячейку живой при скролле колёсиком, который иначе её
+// виртуализировал бы.
 function pinnedRangeExtractor(
   pinned: number | null,
 ): (range: Range) => number[] {
   return (range) => {
     const base = defaultRangeExtractor(range)
     if (pinned === null || pinned < 0 || base.includes(pinned)) return base
-    // Re-sort ascending after appending: the virtualizer relies on the index
-    // list being ordered.
+    // После добавления пересортируем по возрастанию: виртуализатор ждёт
+    // упорядоченный список индексов.
     const next = [...base, pinned].sort((a, b) => a - b)
     return next
   }
@@ -48,14 +44,9 @@ interface GridVirtualizers {
   columnVirtualizer: Virtualizer<HTMLDivElement, Element>
 }
 
-/**
- * Wire up both axes of {@link useVirtualizer} against a single scroll element.
- *
- * Both run in `'position'` mode (top/left), NOT `'transform'`. A transform on
- * the inner container establishes a containing block that breaks the frozen
- * layer's `position`-based vertical sync, so we keep the scroll content
- * transform-free (see ADR-003).
- */
+// Оба виртуализатора в режиме 'position' (top/left), НЕ 'transform': transform на
+// внутреннем контейнере создаёт containing block и ломает position-синхронизацию
+// frozen-слоя по вертикали, поэтому контент скролла держим без transform (ADR-003).
 export function useGridVirtualizers<TRow>({
   scrollRef,
   rowCount,

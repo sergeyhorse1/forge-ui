@@ -205,8 +205,8 @@ describe('deserialize validation', () => {
   })
 
   it('rejects a non-finite number injected as a rule value', () => {
-    // JSON cannot literally carry Infinity; a hand-built object simulates a
-    // malformed payload reaching the validator.
+    // JSON не несёт Infinity буквально; собранный вручную payload имитирует
+    // битую нагрузку, дошедшую до валидатора.
     const payload = '{"v":1,"tree":{"combinator":"and","rules":[{"field":"a","operator":"eq","value":1e999}]}}'
     expect(() => deserialize(payload)).toThrow(/finite/)
   })
@@ -248,8 +248,8 @@ describe('deserialize validation', () => {
   })
 
   it('throws on a non-JSON value nested inside a rule array', () => {
-    // A non-finite number tucked inside an array value must still be rejected,
-    // with a path pointing at the offending array index.
+    // Не-конечное число внутри массива-значения тоже должно отвергаться, с путём
+    // до провинившегося индекса.
     const payload =
       '{"v":1,"tree":{"combinator":"and","rules":[{"field":"a","operator":"in","value":[1,1e999,3]}]}}'
     expect(() => deserialize(payload)).toThrow(/rules\[0\]\.value\[1\]/)
@@ -303,8 +303,7 @@ describe('deserialize strict node keys', () => {
   })
 
   it('rejects a group/rule hybrid node', () => {
-    // `combinator` routes it to the group validator, which then rejects the
-    // stray rule keys.
+    // combinator направляет узел в group-валидатор, который отвергает лишние rule-ключи.
     expect(() =>
       deserialize(
         JSON.stringify({
@@ -355,7 +354,7 @@ describe('deserialize strict node keys', () => {
   })
 
   it('does not constrain keys inside a rule value object', () => {
-    // Strictness is node-level only: arbitrary keys within `value` are allowed.
+    // Строгость только на уровне узла: произвольные ключи внутри value разрешены.
     const tree: FilterTree = {
       combinator: 'and',
       rules: [

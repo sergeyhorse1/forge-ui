@@ -37,7 +37,7 @@ export const Default: Story = {
     const grid = within(canvasElement).getByRole('grid')
     await expect(grid).toBeInTheDocument()
 
-    // Only the visible window (plus overscan) is mounted, never the full dataset.
+    // Монтируется только видимое окно (плюс overscan), не весь датасет.
     const renderedCells = canvasElement.querySelectorAll('[role="gridcell"]')
     const visibleRows = Math.ceil(420 / 40) + 8 /* overscanRows */ + 1
     const maxCells = visibleRows * demoColumns.length
@@ -55,17 +55,16 @@ export const FrozenColumns: Story = {
     height: 360,
   },
   play: async ({ canvasElement }) => {
-    // The first two columns are frozen, so two columnheaders sit in the static
-    // corner while the remaining headers live in the scroll layer.
+    // Первые два столбца frozen: два columnheader'а — в статичном углу, остальные
+    // в скролл-слое.
     const headers = canvasElement.querySelectorAll('[role="columnheader"]')
     await expect(headers.length).toBeGreaterThanOrEqual(demoColumns.length)
 
-    // Regression guard: the frozen-body cells of a single row must lay out
-    // left-to-right with no overlap. The frozen overlay paints its cells as
-    // aria-hidden `presentation` boxes; for the first data row their bounding
-    // boxes must have strictly increasing left edges and never intersect
-    // horizontally (the previous bug stacked them all at the same x). This only
-    // catches in a real browser, where layout is actually computed.
+    // Регрессия: frozen-ячейки одной строки должны лечь слева направо без нахлёста.
+    // Оверлей рисует их как aria-hidden presentation-боксы; у первой строки данных
+    // их bounding-боксы должны иметь строго растущие left и не пересекаться по
+    // горизонтали (прежний баг стекал их все на один x). Ловится только в реальном
+    // браузере, где layout действительно считается.
     const overlay = canvasElement.querySelector(
       '[aria-hidden="true"] [role="presentation"]',
     )?.parentElement as HTMLElement
@@ -78,33 +77,32 @@ export const FrozenColumns: Story = {
     for (let i = 1; i < rects.length; i += 1) {
       const previous = rects[i - 1]!
       const current = rects[i]!
-      // Each subsequent frozen cell starts at or after the previous one ends.
+      // Каждая следующая frozen-ячейка начинается на/после конца предыдущей.
       await expect(current.left).toBeGreaterThanOrEqual(previous.right)
-      // And it has real width, i.e. it is not collapsed onto its neighbour.
+      // И имеет реальную ширину, т.е. не схлопнута на соседа.
       await expect(current.width).toBeGreaterThan(0)
     }
 
-    // Vertical-clip guard: the scroll layer virtualizes a window plus overscan,
-    // so its rowgroup is far taller than the body. Those overscan rows must be
-    // clipped to the grid's box and never paint below its bottom edge. A
-    // bounding rect alone is not enough — a clipped cell still reports a rect
-    // outside its scroll ancestor — so we hit-test a point just below the grid:
-    // if anything inside the grid is painted there, clipping has regressed.
-    // (With the previous `overflow: visible` bug, a `gridcell` was hit here.)
+    // Вертикальная обрезка: скролл-слой виртуализирует окно плюс overscan, его
+    // rowgroup куда выше тела. Overscan-строки должны обрезаться по боксу сетки и
+    // не рисоваться ниже её края. Одного bounding rect мало — обрезанная ячейка всё
+    // равно рапортует rect вне скролл-предка — поэтому хит-тестим точку чуть ниже
+    // сетки: если там что-то из сетки нарисовано, обрезка сломалась. (При прежнем
+    // overflow:visible тут попадался gridcell.)
     const grid = canvasElement.querySelector('[role="grid"]') as HTMLElement
     const gridRect = grid.getBoundingClientRect()
     const belowGrid = document.elementFromPoint(
       gridRect.left + gridRect.width / 2,
       gridRect.bottom + 30,
     )
-    // Nothing belonging to the grid may be painted below its bottom edge. A null
-    // hit (the page background) is fine; a hit that the grid contains is a leak.
+    // Ниже нижнего края сетки не должно рисоваться ничего её. null (фон страницы) —
+    // ок; попадание, которое сетка содержит, — протечка.
     const leaked = belowGrid !== null && grid.contains(belowGrid)
     await expect(leaked).toBe(false)
   },
 }
 
-/** Parse an `rgb()/rgba()` string into its alpha channel (defaults to 1). */
+// Достаёт alpha из rgb()/rgba() (по умолчанию 1).
 function alphaOf(color: string): number {
   const match = color.match(/^rgba?\(([^)]+)\)$/)
   if (!match) return 1
@@ -120,42 +118,38 @@ export const HorizontalScrollOcclusion: Story = {
     columns: demoColumns,
     getRowKey,
     height: 360,
-    // A narrow grid forces the scroll columns to be wider than their viewport,
-    // so horizontal scrolling actually moves content under the frozen overlay.
+    // Узкая сетка делает scroll-столбцы шире вьюпорта, так что горизонтальный
+    // скролл реально уводит контент под frozen-оверлей.
     className: 'w-[420px]',
   },
   play: async ({ canvasElement }) => {
     const scroller = canvasElement.querySelector('.overflow-auto') as HTMLElement
 
-    // Drive a real horizontal scroll well past the frozen width so the Email
-    // column slides underneath the frozen Name/ID columns. (Frozen width is
-    // 80 + 200 = 280px; scrolling 400 moves content clearly behind it.)
+    // Реальный горизонтальный скролл заметно за frozen-ширину, чтобы Email уехал
+    // под frozen Name/ID. (Frozen — 80 + 200 = 280px; 400 уводит явно за него.)
     scroller.scrollLeft = 400
     scroller.dispatchEvent(new Event('scroll'))
     await new Promise((resolve) => requestAnimationFrame(resolve))
     await new Promise((resolve) => requestAnimationFrame(resolve))
     await expect(scroller.scrollLeft).toBeGreaterThan(0)
 
-    // Occlusion guard (paint). The frozen overlay floats above the scrolled
-    // body and its rows are transparent by default, so it can only hide the
-    // scrolled-under Email text if the overlay container's background is OPAQUE.
-    // This is the exact regression: the container's computed `background-color`
-    // used to be `rgba(0,0,0,0)` (fully transparent), which let the email cells
-    // bleed through. An alpha < 1 here means scrolled content shows through — so
-    // this assertion is load-bearing and would fail on the old behaviour.
+    // Окклюзия (paint). Оверлей висит над проскролленным телом, его строки по
+    // умолчанию прозрачны — он скроет уехавший под него текст Email только если фон
+    // контейнера НЕПРОЗРАЧЕН. Ровно эта регрессия: background-color контейнера был
+    // rgba(0,0,0,0), и email просвечивал. alpha < 1 здесь = контент просвечивает,
+    // так что ассерт load-bearing и падал бы на старом поведении.
     const presentationCell = canvasElement.querySelector(
       '[aria-hidden="true"] [role="presentation"]',
     ) as HTMLElement
-    // presentation cell -> row -> overlay container (the element we fill).
+    // presentation-ячейка -> строка -> контейнер оверлея (его и заливаем).
     const overlay = presentationCell.parentElement!.parentElement as HTMLElement
     const overlayBg = getComputedStyle(overlay).backgroundColor
     await expect(alphaOf(overlayBg)).toBe(1)
 
-    // Occlusion guard (stacking). The frozen overlay must also sit on top of the
-    // scroll body at the same point, so the opaque fill actually covers the
-    // scrolled cell rather than being painted behind it. Probe a point inside
-    // the frozen width over the first body row: the hit must be a frozen overlay
-    // presentation cell, never a scroll-body gridcell carrying the Email text.
+    // Окклюзия (stacking). Оверлей должен и лежать поверх скролл-тела в той же
+    // точке, чтобы непрозрачная заливка реально накрывала уехавшую ячейку, а не
+    // рисовалась за ней. Пробим точку внутри frozen-ширины над первой строкой:
+    // попасть должна presentation-ячейка оверлея, а не gridcell тела с текстом Email.
     const overlayRect = overlay.getBoundingClientRect()
     const cellRect = presentationCell.getBoundingClientRect()
     const hit = document.elementFromPoint(
@@ -169,8 +163,8 @@ export const HorizontalScrollOcclusion: Story = {
     await expect(overlayContainer.contains(hit)).toBe(true)
     await expect(hit!.closest('[role="gridcell"]')).toBeNull()
 
-    // Header-corner guard: the frozen header corner must likewise be opaque so
-    // the scrolled header cells beneath it do not bleed through.
+    // Угол шапки: frozen-угол тоже должен быть непрозрачным, чтобы уезжающие под
+    // него ячейки шапки не просвечивали.
     const corner = canvasElement.querySelector(
       '[role="row"][aria-rowindex="1"] > div',
     ) as HTMLElement
@@ -201,12 +195,12 @@ export const MultiSort: Story = {
     const headerFor = (label: string) =>
       canvas.getByText(label).closest('[role="columnheader"]') as HTMLElement
 
-    // Activating a sortable header via keyboard cycles it into ascending order.
+    // Активация сортируемой шапки с клавиатуры прокручивает её в ascending.
     headerFor('Team').focus()
     await userEvent.keyboard('{Enter}')
     await expect(headerFor('Team')).toHaveAttribute('aria-sort', 'ascending')
 
-    // Shift+Enter on a second header adds it to the multi-sort.
+    // Shift+Enter на второй шапке добавляет её в multi-sort.
     headerFor('Score').focus()
     await userEvent.keyboard('{Shift>}{Enter}{/Shift}')
     await expect(headerFor('Score')).toHaveAttribute('aria-sort', 'ascending')
@@ -246,9 +240,8 @@ export const KeyboardSelection: Story = {
     selection: { mode: 'multi' },
   },
   play: async ({ canvasElement }) => {
-    // Roving tabindex: focus the first body cell (the only tab stop), step down
-    // a row with the arrow keys, then toggle that row's selection with Enter —
-    // entirely from the keyboard, never the mouse.
+    // Roving tabindex: фокусим первую body-ячейку (единственный таб-стоп), шаг вниз
+    // стрелками, затем тоггл выделения строки через Enter — целиком с клавиатуры.
     const cellAt = (rowIndex: number, colIndex: number) =>
       canvasElement.querySelector<HTMLElement>(
         `.overflow-auto [role="gridcell"][aria-rowindex="${rowIndex}"][aria-colindex="${colIndex}"]`,
@@ -269,7 +262,7 @@ export const KeyboardSelection: Story = {
     const selectedRow = movedCell!.closest('[role="row"]') as HTMLElement
     await expect(selectedRow).toHaveAttribute('aria-selected', 'true')
 
-    // The untouched first row stays unselected.
+    // Нетронутая первая строка остаётся невыделенной.
     const firstRow = firstCell.closest('[role="row"]') as HTMLElement
     await expect(firstRow).toHaveAttribute('aria-selected', 'false')
   },
@@ -287,8 +280,8 @@ export const FocusIndicators: Story = {
   play: async ({ canvasElement }) => {
     const hasVisibleRing = (element: HTMLElement) => {
       const style = getComputedStyle(element)
-      // Tailwind's `ring-*` utilities render as a box-shadow; a real outline also
-      // counts. Either being non-`none` proves a visible focus indicator.
+      // ring-* Tailwind рендерятся как box-shadow; реальный outline тоже считается.
+      // Любой из них не-none доказывает видимый индикатор фокуса.
       return (
         (style.boxShadow !== '' && style.boxShadow !== 'none') ||
         (style.outlineStyle !== '' && style.outlineStyle !== 'none')
@@ -300,9 +293,8 @@ export const FocusIndicators: Story = {
         `.overflow-auto [role="gridcell"][aria-rowindex="${rowIndex}"][aria-colindex="${colIndex}"]`,
       )!
 
-    // Enter the grid at the first frozen cell, then arrow into the first scroll
-    // column (colindex 3). Driving the move from the keyboard activates
-    // `:focus-visible` so the designed ring actually paints.
+    // Входим в сетку на первой frozen-ячейке, затем стрелкой в первый scroll-столбец
+    // (colindex 3). Ход с клавиатуры включает :focus-visible, и ring реально рисуется.
     const firstCell = cellAt(2, 1)
     firstCell.focus()
     await userEvent.keyboard('{End}')
@@ -311,9 +303,9 @@ export const FocusIndicators: Story = {
     await expect(scrollCell).toHaveFocus()
     await expect(hasVisibleRing(scrollCell)).toBe(true)
 
-    // The frozen column's real gridcell is clipped off-screen, so its ring is
-    // mirrored onto the visible overlay cell. Arrow back onto the first frozen
-    // column (colindex 1) and assert the overlay cell shows a ring.
+    // Настоящая gridcell frozen-столбца обрезана за кадром, её ring зеркалится на
+    // видимую ячейку оверлея. Возвращаемся на первый frozen-столбец (colindex 1) и
+    // проверяем, что ячейка оверлея показывает ring.
     await userEvent.keyboard('{Home}')
     const frozenReal = cellAt(2, 1)
     await expect(frozenReal).toHaveFocus()
@@ -342,23 +334,23 @@ export const FocusSurvivesScroll: Story = {
         `.overflow-auto [role="gridcell"][aria-rowindex="${rowIndex}"][aria-colindex="${colIndex}"]`,
       )
 
-    // Focus the first body cell (first scroll column = colindex 3).
+    // Фокусим первую body-ячейку (первый scroll-столбец = colindex 3).
     const firstCell = cellAt(2, 3)!
     firstCell.focus()
     await expect(firstCell).toHaveFocus()
 
-    // Mouse-scroll far past the visible window. The focused cell would normally
-    // be virtualized away, dropping focus; pinning the active row keeps it
-    // mounted so focus and arrow navigation survive.
+    // Скроллим мышью далеко за видимое окно. Сфокусированную ячейку обычно
+    // виртуализировало бы, слетел бы фокус; пиннинг активной строки держит её
+    // смонтированной — фокус и стрелочная навигация переживают скролл.
     viewport.scrollTop = 4000
     viewport.dispatchEvent(new Event('scroll'))
     await new Promise((resolve) => requestAnimationFrame(resolve))
 
-    // The active cell is still mounted and still focused despite the scroll.
+    // Активная ячейка всё ещё смонтирована и в фокусе, несмотря на скролл.
     await expect(cellAt(2, 3)).toBeInTheDocument()
     await expect(cellAt(2, 3)).toHaveFocus()
 
-    // Arrow keys still navigate from the (recovered) active cell.
+    // Стрелки всё ещё водят от (восстановленной) активной ячейки.
     await userEvent.keyboard('{ArrowDown}')
     await expect(cellAt(3, 3)).toHaveFocus()
   },
@@ -379,18 +371,15 @@ export const ResizableColumns: Story = {
     await expect(handle).toBeInTheDocument()
     handle.focus()
     await userEvent.keyboard('{ArrowRight}{ArrowRight}')
-    // Keyboard resize is exercised; the handle keeps focus for the next nudge.
+    // Клавиатурный ресайз отработал; ручка держит фокус для следующего nudge.
     await expect(handle).toHaveFocus()
   },
 }
 
 const PERF_COLUMNS = makePerfColumns()
 
-/**
- * Generate the (large) dataset lazily inside the rendered component instead of
- * at module load, so merely importing this file for indexing/testing does not
- * allocate millions of objects.
- */
+// Большой датасет генерим лениво внутри компонента, а не при загрузке модуля, —
+// чтобы простой импорт файла для индексации/тестов не аллоцировал миллионы объектов.
 function PerfGrid({
   rowCount,
   ...args
@@ -403,8 +392,8 @@ function PerfGrid({
   )
 }
 
-// `render` supplies its own data; these args satisfy the required prop types
-// without allocating a dataset at module load.
+// render поставляет свои данные; эти args лишь удовлетворяют обязательные типы
+// пропсов, не аллоцируя датасет при загрузке модуля.
 const placeholderArgs = {
   rows: [] as DemoRow[],
   columns: PERF_COLUMNS,
@@ -417,7 +406,7 @@ export const Perf10k: Story = {
   args: placeholderArgs,
   render: () => <PerfGrid rowCount={10_000} height={600} />,
   play: async ({ canvasElement }) => {
-    // The DOM-node count must stay bounded by the visible window even at 10k rows.
+    // Число DOM-узлов остаётся в рамках видимого окна даже на 10k строк.
     const cells = canvasElement.querySelectorAll('[role="gridcell"]')
     const visibleRows = Math.ceil(600 / 40) + 8 + 1
     const maxCells = visibleRows * PERF_COLUMNS.length

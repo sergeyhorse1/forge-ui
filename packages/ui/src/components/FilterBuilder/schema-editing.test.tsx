@@ -129,12 +129,12 @@ describe('reconcileField — no broken combination after a field change', () => 
     const rule: FilterRule = { field: 'name', operator: 'contains', value: 'x' }
     const next = reconcileField(rule, 'price', SCHEMA)
     expect(next.field).toBe('price')
-    // contains is invalid for numbers → reset to the number default operator.
+    // contains невалиден для чисел → сброс на дефолтный оператор числа.
     expect(next.operator).toBe(defaultOperatorForField('price', SCHEMA))
     expect(operatorsForField('price', SCHEMA).map((o) => o.value)).toContain(
       next.operator,
     )
-    // The string value must not survive as a numeric rule's value.
+    // Строковое значение не должно уцелеть как значение числового правила.
     expect(next.value).toBe('')
   })
 
@@ -154,8 +154,8 @@ describe('reconcileField — no broken combination after a field change', () => 
 })
 
 describe('reconcileField — value reset when the field TYPE changes (shared op id)', () => {
-  // Operator ids overlap across types: `between` is number AND date, `is` is
-  // boolean AND enum. Keeping the id must NOT keep a value of the old type.
+  // Id операторов пересекаются между типами: between — число И дата, is — boolean
+  // И enum. Сохранение id НЕ должно сохранять значение старого типа.
   it('drops a numeric range when moving to a date field that also has between', () => {
     const rule: FilterRule = {
       field: 'price',
@@ -164,9 +164,9 @@ describe('reconcileField — value reset when the field TYPE changes (shared op 
     }
     const next = reconcileField(rule, 'createdAt', SCHEMA)
     expect(next.field).toBe('createdAt')
-    // The shared operator id stays valid for the date field…
+    // Общий id оператора остаётся валиден для date-поля…
     expect(next.operator).toBe('between')
-    // …but the numeric pair must not survive into a date rule.
+    // …но числовая пара не должна уцелеть в date-правиле.
     expect(next.value).not.toEqual([100, 200])
     expect(next.value).toEqual(['', ''])
   })
@@ -176,7 +176,7 @@ describe('reconcileField — value reset when the field TYPE changes (shared op 
     const next = reconcileField(rule, 'plan', SCHEMA)
     expect(next.field).toBe('plan')
     expect(next.operator).toBe('is')
-    // `true` has no matching enum option; reset to the first option value.
+    // У true нет подходящей enum-опции; сброс на значение первой опции.
     expect(next.value).not.toBe(true)
     expect(next.value).toBe('free')
   })
@@ -186,7 +186,7 @@ describe('reconcileField — value reset when the field TYPE changes (shared op 
     const next = reconcileField(rule, 'region', SCHEMA)
     expect(next.field).toBe('region')
     expect(next.operator).toBe('is')
-    // 'pro' is not in Region's options (east/west) → reset to its first option.
+    // 'pro' нет в опциях Region (east/west) → сброс на первую опцию.
     expect(next.value).not.toBe('pro')
     expect(next.value).toBe('east')
   })
@@ -199,7 +199,7 @@ describe('reconcileField — value reset when the field TYPE changes (shared op 
     }
     const next = reconcileField(rule, 'region', SCHEMA)
     expect(next.operator).toBe('in')
-    // Neither 'pro' nor 'team' exists in Region → the array empties out.
+    // Ни 'pro', ни 'team' нет в Region → массив опустошается.
     expect(next.value).toEqual([])
   })
 })
@@ -446,8 +446,8 @@ describe('FilterBuilder — compact summary mode', () => {
 })
 
 describe('FilterBuilder — controlled invariant preserved with fields', () => {
-  // Disproof mirror of the default-editor controlled test: with a schema editor
-  // wired in, an ignored onChange must still not optimistically mutate the tree.
+  // Зеркало controlled-теста дефолтного редактора: со schema-редактором
+  // проигнорированный onChange всё равно не должен оптимистично менять дерево.
   it('does not change the field selection when onChange is dropped', () => {
     const tree: FilterTree = {
       combinator: 'and',
@@ -460,7 +460,7 @@ describe('FilterBuilder — controlled invariant preserved with fields', () => {
     const field = screen.getByLabelText('Field') as HTMLSelectElement
     expect(field.value).toBe('name')
     fireEvent.change(field, { target: { value: 'price' } })
-    // value is still 'name' because the host dropped the next tree.
+    // value всё ещё 'name': хост проглотил следующее дерево.
     const after = screen.getByLabelText('Field') as HTMLSelectElement
     expect(after.value).toBe('name')
   })

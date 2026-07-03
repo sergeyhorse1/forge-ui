@@ -9,25 +9,20 @@ interface DataGridFrozenBodyProps<TRow> {
   model: DataGridModel<TRow>
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>
   rowHeight: number
-  /** Current vertical scroll offset of the main viewport, in px. */
+  // Текущий вертикальный офсет скролла главного вьюпорта, px.
   scrollTop: number
   selectable: boolean
   onRowActivate: (key: string | number) => void
-  /**
-   * Canonical address of the cell currently focused via the keyboard, or `null`.
-   * The matching overlay cell mirrors a focus ring because the real frozen
-   * gridcell that holds focus is clipped off-screen and cannot show its own.
-   */
+  // Канонический адрес ячейки с клавиатурным фокусом или null. Ячейка оверлея
+  // зеркалит фокус-ринг, т.к. настоящая frozen-ячейка с фокусом обрезана за
+  // кадром и своего показать не может.
   focusedCell: { rowIndex: number; colIndex: number } | null
 }
 
-/**
- * Frozen (left-pinned) body quadrant. Rendered as a separate, horizontally
- * static overlay rather than a `position: sticky` column, because sticky breaks
- * once virtualized cells live in a positioned/transformed container. It shares
- * the row virtualizer with the scroll body and is offset vertically by
- * `-scrollTop` to mirror the main viewport (ADR-003).
- */
+// Frozen (левый пин) квадрант тела. Отдельный горизонтально-статичный оверлей, а
+// не position:sticky столбец: sticky ломается, когда виртуализированные ячейки
+// живут в positioned/transformed контейнере. Делит row-виртуализатор со скролл-
+// телом и сдвинут по вертикали на -scrollTop, зеркаля главный вьюпорт (ADR-003).
 export function DataGridFrozenBody<TRow>({
   model,
   rowVirtualizer,
@@ -40,10 +35,9 @@ export function DataGridFrozenBody<TRow>({
   if (model.frozenColumns.length === 0) return null
   const virtualRows = rowVirtualizer.getVirtualItems()
 
-  // Precompute each frozen column's x-offset (sum of preceding widths) so cells
-  // are positioned absolutely left-to-right, just like the scroll body. Flex
-  // flow is intentionally avoided: a shrinking flex item would collapse onto its
-  // neighbour and stack columns at the same x.
+  // Заранее считаем x-офсет каждого frozen-столбца (сумма предыдущих ширин), чтобы
+  // ставить ячейки абсолютно слева направо, как в скролл-теле. Flex намеренно не
+  // берём: сжимающийся flex-элемент схлопнулся бы на соседа и столбцы легли бы на один x.
   const columnOffsets: number[] = []
   let runningLeft = 0
   for (const column of model.frozenColumns) {
@@ -54,11 +48,10 @@ export function DataGridFrozenBody<TRow>({
   return (
     <div
       aria-hidden
-      // An opaque background is load-bearing, not cosmetic: this overlay floats
-      // above the horizontally scrolling body, and the rows it paints are
-      // transparent by default. Without a solid fill the scroll body's cells
-      // (e.g. the Email column) bleed *through* the frozen columns once the user
-      // scrolls right. Selection tint and the mirrored focus ring stack on top.
+      // Непрозрачный фон здесь load-bearing, а не косметика: оверлей висит над
+      // горизонтально скроллящимся телом, а его строки по умолчанию прозрачны. Без
+      // сплошной заливки ячейки скролл-тела (напр. Email) просвечивают сквозь
+      // frozen-столбцы при скролле вправо. Тинт выделения и зеркальный ring — сверху.
       className={cn('bg-background')}
       style={{
         position: 'relative',

@@ -1,15 +1,8 @@
-/**
- * Pure reconciliation between a rule's `(field, operator, value)` triple and a
- * field schema. Changing the field or operator can invalidate the operator
- * and/or reshape the value (single ↔ range ↔ multi); these helpers always
- * return a *complete*, structurally-valid rule so the tree never holds a broken
- * field/operator/value combination after a change.
- *
- * Everything here is framework-free and side-effect-free, so it is unit-tested
- * directly without rendering. The editor calls {@link reconcileField} from the
- * field selector's `onChange` and {@link reconcileOperator} from the operator
- * selector's `onChange`, passing the result to the pre-bound `update`.
- */
+// Чистая реконсиляция триплета правила (field, operator, value) со схемой полей.
+// Смена field/operator может обнулить оператор и/или переформовать значение
+// (single ↔ range ↔ multi); хелперы всегда возвращают ПОЛНОЕ структурно-валидное
+// правило, чтобы дерево не держало битую комбинацию. Всё framework-free и без
+// сайд-эффектов — юнит-тестируется без рендера.
 import {
   defaultOperatorForField,
   fieldConfig,
@@ -41,7 +34,6 @@ export function defaultValueFor(
   return scalarDefault(type, config)
 }
 
-/** The single-control default for a type, used by both single and range. */
 function scalarDefault(type: FieldType, config?: FilterFieldConfig): FilterValue {
   if (type === 'boolean') return false
   if (type === 'enum') {
@@ -51,7 +43,7 @@ function scalarDefault(type: FieldType, config?: FilterFieldConfig): FilterValue
   return ''
 }
 
-/** Reduce any value to one scalar — used when collapsing range/multi to single. */
+// Сводит любое значение к одному скаляру — при схлопывании range/multi в single.
 function toScalar(value: FilterValue, type: FieldType, config?: FilterFieldConfig): FilterValue {
   if (Array.isArray(value)) {
     const head = value[0]
@@ -64,13 +56,9 @@ function toScalar(value: FilterValue, type: FieldType, config?: FilterFieldConfi
 }
 
 /**
- * Reshape a rule's `value` to match a new `inputKind`, preserving as much of the
- * existing value as makes sense:
- * - `single` — collapse to one scalar (first element of an array, else as-is).
- * - `range` — carry the current scalar into `[scalar, default]`; keep an
- *   existing 2-tuple; otherwise fall back to two defaults.
- * - `multi` — keep an existing array; wrap a meaningful scalar into a singleton;
- *   otherwise an empty array.
+ * Reshape a rule's `value` to a new `inputKind`, preserving what makes sense:
+ * `single` collapses to one scalar, `range` carries a scalar into `[scalar,
+ * default]` (or keeps a 2-tuple), `multi` keeps an array or wraps a scalar.
  */
 export function coerceValue(
   value: FilterValue,
@@ -94,7 +82,6 @@ export function coerceValue(
   return isEmptyScalar ? [] : [value]
 }
 
-/** The input kind for a rule's current operator, defaulting to `single`. */
 function inputKindFor(
   fieldName: string,
   operatorId: string,
@@ -106,11 +93,9 @@ function inputKindFor(
 }
 
 /**
- * Reconcile a rule after its **field** changes to `nextFieldName`:
- * 1. Keep the current operator if it is still valid for the new field;
- *    otherwise reset to the new field's default operator.
- * 2. Coerce the value to the (possibly new) operator's input kind for the new
- *    field's type, so no broken combination survives the change.
+ * Reconcile a rule after its **field** changes: keep the current operator if it
+ * is still valid for the new field (else its default), then coerce the value to
+ * that operator's input kind for the new type, so no broken combination survives.
  */
 export function reconcileField(
   rule: FilterRule,
@@ -128,12 +113,11 @@ export function reconcileField(
     ? rule.operator
     : defaultOperatorForField(nextFieldName, schema)
 
-  // Operator ids overlap across types (`between` is both number and date; `is`
-  // both boolean and enum), so keeping the id is not enough: a number value
-  // must not survive into a date field, nor a `true` into an enum. Carry the
-  // value only when the *type* is unchanged; otherwise reset to the new type's
-  // default. `rule` still names the OLD field here (reconciliation runs before
-  // the update), so its config gives the previous type.
+  // Id операторов пересекаются между типами (between — число и дата, is — boolean и
+  // enum), поэтому сохранить id мало: число не должно уехать в date-поле, а true —
+  // в enum. Значение переносим только при неизменном ТИПЕ, иначе — дефолт нового
+  // типа. rule здесь всё ещё называет СТАРОЕ поле (реконсиляция до апдейта), так что
+  // его config даёт прежний тип.
   const prevConfig = fieldConfig(rule.field, schema)
   const sameType = prevConfig?.type === config.type
 
@@ -142,20 +126,17 @@ export function reconcileField(
     keepsOperator && sameType
       ? coerceValue(rule.value, config.type, inputKind, config)
       : defaultValueFor(config.type, inputKind, config)
-  // Even within the same type, enum→enum with different options can leave a
-  // value outside the new option set; sanitize closes that last gap.
+  // Даже в одном типе enum→enum с другими опциями может оставить значение вне
+  // нового набора; sanitize закрывает этот зазор.
   const nextValue = sanitizeForField(carried, config, inputKind)
 
   return { field: nextFieldName, operator: nextOperator, value: nextValue }
 }
 
-/**
- * Drop enum values that are not in the target field's option set, so a
- * controlled `<select>` never holds a value with no matching option. For a
- * `multi` enum the array is filtered (empty when nothing survives); for a single
- * enum an out-of-set value falls back to the enum default. Non-enum fields pass
- * through unchanged.
- */
+// Выкидывает enum-значения вне набора опций целевого поля, чтобы controlled select
+// не держал значение без опции. Для multi enum массив фильтруется (пустой, если
+// ничего не уцелело); для single — значение вне набора падает в enum-дефолт.
+// Не-enum поля проходят без изменений.
 function sanitizeForField(
   value: FilterValue,
   config: FilterFieldConfig,

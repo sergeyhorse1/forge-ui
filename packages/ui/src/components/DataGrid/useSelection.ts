@@ -16,11 +16,8 @@ interface UseSelectionResult {
   someSelected: boolean
 }
 
-/**
- * Headless row-selection engine. Supports `none`, `single` and `multi` modes
- * with an (optionally controlled) `Set` of row keys. `toggleAll` is a no-op
- * outside `multi` mode.
- */
+// Headless-движок выделения строк: режимы none/single/multi поверх (опц.
+// controlled) Set ключей. toggleAll вне multi — no-op.
 export function useSelection<TRow>(
   rows: readonly TRow[],
   getRowKey: RowKey<TRow>,
@@ -78,10 +75,10 @@ export function useSelection<TRow>(
 
   const allSelected =
     allKeys.length > 0 && allKeys.every((key) => selectedKeys.has(key))
-  // Compute "some selected" against the *visible* rows, not the raw set size, so
-  // a header tristate checkbox is not stuck indeterminate when every still-
-  // selected key belongs to rows that are no longer present (e.g. after a filter
-  // or dataset change left stale keys in the controlled set).
+  // "some selected" считаем по видимым строкам, а не по размеру set: иначе
+  // tristate-чекбокс в шапке застрянет indeterminate, когда все ещё выбранные
+  // ключи принадлежат уже отсутствующим строкам (напр. фильтр оставил мусор в
+  // controlled set).
   const someSelected =
     !allSelected && allKeys.some((key) => selectedKeys.has(key))
 

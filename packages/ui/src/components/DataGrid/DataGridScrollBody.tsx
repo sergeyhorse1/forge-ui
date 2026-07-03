@@ -12,17 +12,14 @@ interface DataGridScrollBodyProps<TRow> {
   rowHeight: number
   selectable: boolean
   onRowActivate: (key: string | number) => void
-  /** Roving-tabindex value for the cell at `(dataRowIndex, colIndex)`. */
   tabIndexFor: (rowIndex: number, colIndex: number) => 0 | -1
-  /** Sync navigation's active cell when a body cell receives focus. */
+  // Синхронизирует активную ячейку навигации при фокусе body-ячейки.
   onCellFocus: (cell: { rowIndex: number; colIndex: number }) => void
 }
 
-/**
- * The scrollable (non-frozen) body quadrant: rows virtualized vertically,
- * columns virtualized horizontally. Both axes use absolute `top`/`left` (no
- * transform) so the frozen overlay can stay aligned via plain scroll sync.
- */
+// Скроллируемый (не-frozen) квадрант тела: строки виртуализированы по вертикали,
+// столбцы — по горизонтали. Обе оси на absolute top/left (без transform), чтобы
+// frozen-оверлей держался выровненным простым scroll-sync.
 export function DataGridScrollBody<TRow>({
   model,
   rowVirtualizer,
@@ -69,11 +66,10 @@ export function DataGridScrollBody<TRow>({
             }}
           >
             {/*
-             * The frozen columns are painted by a separate visual overlay, but
-             * they must still belong to this row in the accessibility tree.
-             * Render them here as off-screen gridcells so each semantic row owns
-             * all of its cells in column order; the visible overlay is
-             * aria-hidden.
+             * Frozen-столбцы рисует отдельный визуальный оверлей, но в дереве
+             * доступности они должны принадлежать этой строке. Рендерим их здесь
+             * как off-screen gridcell'ы, чтобы семантическая строка владела всеми
+             * ячейками по порядку; видимый оверлей — aria-hidden.
              */}
             {model.frozenColumns.map((column) => (
               <DataGridCell

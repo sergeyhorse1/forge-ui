@@ -10,7 +10,7 @@ interface FrameReport {
 }
 
 interface PerfHarnessProps {
-  /** Element id of the scroll viewport to auto-scroll, if any. */
+  // Селектор скролл-вьюпорта для авто-скролла.
   scrollSelector?: string
   durationMs?: number
   children: ReactNode
@@ -30,12 +30,10 @@ function summarise(deltas: number[]): FrameReport {
   }
 }
 
-/**
- * Wraps a grid with a frame-time logger. Pressing "Measure scroll" programmatically
- * scrolls the viewport for `durationMs` while sampling `requestAnimationFrame`
- * deltas, then reports p50/p95/max/dropped frames — the raw input for the perf
- * budget table. The report is also written to `window` for automated capture.
- */
+// Оборачивает сетку логгером времени кадра: «Measure scroll» программно скроллит
+// вьюпорт durationMs, семплируя дельты requestAnimationFrame, и выдаёт
+// p50/p95/max/dropped — сырьё для таблицы perf-бюджета. Отчёт также кладётся в
+// window для автоматического захвата.
 export function PerfHarness({
   scrollSelector = '[data-perf-scroll] .overflow-auto',
   durationMs = 3000,
@@ -77,8 +75,8 @@ export function PerfHarness({
         const summary = summarise(deltas.slice(1))
         setReport(summary)
         setRunning(false)
-        // Expose the report on `window` for an external (Playwright) capture run;
-        // the double cast adds the ad-hoc field without polluting the global type.
+        // Кладём отчёт в window для внешнего (Playwright) захвата; двойной каст
+        // добавляет ad-hoc поле, не засоряя глобальный тип.
         ;(window as unknown as Record<string, unknown>).__datagridPerf = summary
       }
     }

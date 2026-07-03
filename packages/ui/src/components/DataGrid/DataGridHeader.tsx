@@ -8,16 +8,14 @@ interface DataGridHeaderProps<TRow> {
   model: DataGridModel<TRow>
   columnVirtualizer: Virtualizer<HTMLDivElement, Element>
   headerHeight: number
-  /** Current horizontal scroll offset of the main viewport, in px. */
+  // Текущий горизонтальный офсет скролла главного вьюпорта, px.
   scrollLeft: number
 }
 
-/**
- * Two header quadrants sharing one virtualizer-derived layout:
- * - frozen header (top-left): static, never scrolls;
- * - scroll header (top-right): offset by `-scrollLeft` to track the body and
- *   itself column-virtualized so wide grids only mount visible header cells.
- */
+// Два квадранта шапки на одной раскладке от виртуализатора: frozen-шапка (слева
+// сверху) статична и не скроллится; scroll-шапка (справа сверху) сдвинута на
+// -scrollLeft за телом и сама виртуализирована по столбцам, так что широкие сетки
+// монтируют лишь видимые header-ячейки.
 export function DataGridHeader<TRow>({
   model,
   columnVirtualizer,
@@ -55,11 +53,10 @@ export function DataGridHeader<TRow>({
       >
         {model.frozenColumns.length > 0 ? (
           <div
-            // The frozen corner sits above the scroll header, whose cells slide
-            // underneath it horizontally. The per-cell `bg-muted/60` is
-            // translucent, so on its own the scrolled headers would bleed
-            // through. A solid `bg-background` under the corner makes it opaque
-            // while keeping the same muted composite as the scroll header band.
+            // Frozen-угол висит над scroll-шапкой, её ячейки уезжают под него по
+            // горизонтали. Поячеечный bg-muted/60 полупрозрачен — сам по себе
+            // скроллящиеся шапки просвечивали бы. Сплошной bg-background под углом
+            // делает его непрозрачным, сохраняя тот же muted-композит, что и полоса шапки.
             className={cn('bg-background')}
             style={{
               position: 'absolute',

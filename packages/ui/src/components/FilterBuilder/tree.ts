@@ -8,16 +8,12 @@ import {
   type FilterTree,
 } from './types'
 
-/**
- * Immutable, structurally-sharing operations over a {@link FilterTree}.
- *
- * Every function returns a **new** tree and never mutates its input. Crucially,
- * only the groups *along the edited path* are cloned; every untouched branch
- * keeps its object identity (`===`). That reference stability is what lets the
- * presentation layer memoise rule rows and skip re-rendering siblings when one
- * rule changes — see ADR-007. Do not reach for `structuredClone`: deep-cloning
- * the whole tree would defeat structural sharing and the perf budget.
- */
+// Иммутабельные операции над FilterTree со структурным шарингом: каждая функция
+// возвращает НОВОЕ дерево, клонируя только группы вдоль изменённого пути —
+// нетронутые ветки сохраняют identity (===). Эта стабильность ссылок и позволяет
+// презентационному слою мемоизировать строки и не перерисовывать сиблингов при
+// правке одного правила (ADR-007). structuredClone не брать: глубокий клон убил бы
+// шаринг и perf-бюджет.
 
 /** An empty group with the default `and` combinator. */
 export function emptyGroup<S extends FilterSchema = FilterSchema>(): FilterGroup<S> {
@@ -28,11 +24,8 @@ function describePath(path: FilterPath): string {
   return path.length === 0 ? '[] (root)' : `[${path.join(', ')}]`
 }
 
-/**
- * Read `path[depth]` as a definite number. `noUncheckedIndexedAccess` types the
- * lookup as `number | undefined`; this narrows it with a real check instead of a
- * bare `as` cast, so an out-of-bounds depth surfaces as a clear error.
- */
+// noUncheckedIndexedAccess типизирует path[depth] как number|undefined — сужаем
+// реальной проверкой, а не as-кастом, чтобы выход за границы дал понятную ошибку.
 function pathIndexAt(path: FilterPath, depth: number): number {
   const index = path[depth]
   if (index === undefined) {
@@ -66,12 +59,9 @@ export function getNodeAt<S extends FilterSchema>(
   return node
 }
 
-/**
- * Core recursive rewrite. Walks `path` from `group` and returns a new tree in
- * which the group addressed by `path` is replaced by `transform(group)`. Only
- * the groups visited on the way down are copied; sibling nodes are reused by
- * reference. The remaining `path` is consumed one index per level.
- */
+// Ядро рекурсивной перезаписи: идёт по path от group и возвращает новое дерево,
+// где адресуемая группа заменена на transform(group). Копируются только пройденные
+// группы, сиблинги переиспользуются по ссылке.
 function rewriteGroupAt<S extends FilterSchema>(
   group: FilterGroup<S>,
   path: FilterPath,
@@ -143,26 +133,19 @@ export function removeNode<S extends FilterSchema>(
 }
 
 /**
- * Patch object or updater function accepted by {@link updateRule}.
- *
- * Caveat: a `Partial<FilterRule<S>>` patch does not preserve the discriminated
- * union's internal consistency. Against a concrete schema, patching `field`
- * alone (without the matching `operator`/`value`) yields a structurally invalid
- * rule that the compiler cannot catch, because `Partial` over a union widens
- * each member independently. When changing the field, patch `field`, `operator`
- * and `value` together — or use the updater form to return a complete rule.
+ * Patch object or updater accepted by {@link updateRule}. Caveat: a partial patch
+ * does not preserve the discriminated union — against a concrete schema, patch
+ * `field`, `operator` and `value` together (or use the updater form), otherwise
+ * the rule goes structurally invalid without a compile error.
  */
 export type RulePatch<S extends FilterSchema> =
   | Partial<FilterRule<S>>
   | ((rule: FilterRule<S>) => FilterRule<S>)
 
 /**
- * Replace or patch the rule addressed by `path`. `patch` is either a partial
- * object merged onto the rule or an updater receiving the current rule.
- * Throws if `path` points at a group rather than a rule.
- *
- * See {@link RulePatch} for the partial-patch caveat around keeping the
- * field/operator/value discriminant in sync.
+ * Replace or patch the rule addressed by `path` — `patch` is a partial merged
+ * onto the rule or an updater receiving it. Throws if `path` points at a group;
+ * see {@link RulePatch} for the field/operator/value discriminant caveat.
  */
 export function updateRule<S extends FilterSchema>(
   tree: FilterTree<S>,

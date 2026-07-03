@@ -4,15 +4,10 @@
 export type Combinator = 'and' | 'or'
 
 /**
- * A JSON-serializable value carried by a filter rule.
- *
- * The contract is deliberately narrow: only values that survive a round trip
- * through `JSON.stringify`/`JSON.parse` are allowed. In particular `undefined`,
- * `Date`, `NaN`, `Infinity`, functions and symbols are **not** part of the
- * union — a consumer that needs to filter by a date (or any non-JSON value)
- * must pre-encode it (e.g. to an ISO string or epoch number) before putting it
- * into a rule, and decode it on the way out. This keeps {@link serialize} and
- * {@link deserialize} a lossless, structural round trip.
+ * A JSON-serializable value carried by a filter rule. The union is deliberately
+ * narrow — `undefined`, `Date`, `NaN`, `Infinity`, functions and symbols are
+ * excluded — so {@link serialize}/{@link deserialize} stay a lossless round trip;
+ * pre-encode non-JSON values (e.g. a date to an ISO string) before use.
  */
 export type FilterValue =
   | string
@@ -35,21 +30,16 @@ export interface FieldShape<TOperator extends string, TValue extends FilterValue
 }
 
 /**
- * A type-level map from field name to its {@link FieldShape}. This is a *type*
- * only — there is no runtime schema object in this layer. A consumer supplies
- * one to get per-field strongly-typed operators and values; omitting it falls
- * back to the permissive default where any string field carries any
- * {@link FilterValue}.
+ * Type-level map from field name to its {@link FieldShape} — a type only, no
+ * runtime object. Supply one for per-field typed operators/values; omit it for
+ * the permissive default where any string field carries any {@link FilterValue}.
  */
 export type FilterSchema = Record<string, FieldShape<string, FilterValue>>
 
 /**
- * A single leaf condition.
- *
- * When parameterised with a concrete {@link FilterSchema}, `FilterRule` becomes
- * a discriminated union keyed by `field`, so `operator` and `value` are tied to
- * the field's declared shape. Without a parameter it stays permissive: any
- * string field with any operator and any {@link FilterValue}.
+ * A single leaf condition. Parameterised with a concrete {@link FilterSchema} it
+ * becomes a discriminated union keyed by `field` (tying `operator`/`value` to
+ * that field's shape); unparameterised it stays permissive.
  */
 export type FilterRule<S extends FilterSchema = FilterSchema> = {
   [K in keyof S & string]: {

@@ -6,47 +6,34 @@ import {
   type FilterTree,
 } from './types'
 
-/**
- * A deferred focus request recorded by an action and resolved after the tree
- * commits.
- *
- * The builder is fully controlled and holds no tree state, so an edit's DOM does
- * not exist yet when the action fires — the new/removed row only appears once the
- * consumer echoes the next `value` back. Focus therefore cannot move
- * synchronously; instead each mutating action records *what* should be focused
- * as a path-addressed intent, and a post-commit effect resolves it against the
- * freshly-rendered DOM. Keeping intent in a ref (not state) means recording one
- * does not itself trigger a render and does not reintroduce tree state.
- */
+// Отложенный запрос фокуса, записанный экшеном и разрешаемый после коммита дерева.
+// Билдер полностью controlled и не держит состояние дерева, поэтому DOM правки ещё
+// нет, когда экшен срабатывает — новая/удалённая строка появится, лишь когда
+// консьюмер вернёт следующий value. Фокус не может двигаться синхронно: каждый
+// мутирующий экшен пишет намерение (адресованное path), а пост-коммит эффект
+// разрешает его против свежего DOM. Намерение в ref (не в state): запись не триггерит
+// рендер и не возвращает состояние дерева.
 export type FocusIntent =
   | { kind: 'ruleFirstControl'; path: FilterPath }
   | { kind: 'groupFirstControl'; path: FilterPath }
   | { kind: 'afterRemove'; parentPath: FilterPath; index: number }
 
-/**
- * Encode a {@link FilterPath} as a `data-*` attribute value. The root group is
- * the empty string; deeper nodes join their indices with `/`. This is the string
- * form the rows/groups stamp onto `data-rule-path` / `data-group-path` /
- * `data-add-rule-path` so a resolved intent can address a node by CSS selector.
- */
+// Кодирует FilterPath в значение data-*: корень — пустая строка, глубже индексы
+// через «/». В этой форме строки/группы штампуют data-rule-path/data-group-path/
+// data-add-rule-path, чтобы разрешённое намерение адресовало узел CSS-селектором.
 export function encodePath(path: FilterPath): string {
   return path.join('/')
 }
 
-/** Native controls in the order a keyboard user tabs into a row. */
+// Нативные контролы в порядке табуляции по строке.
 const FOCUSABLE_SELECTOR = 'input, select, textarea, button:not([tabindex="-1"])'
 
-/**
- * Resolve a recorded {@link FocusIntent} against the just-committed DOM, moving
- * focus to the first control of the affected row/group (or, after a removal, to
- * the surviving neighbour or the group's "Add rule" button). It reads the *new*
- * `tree` — not the pre-edit one — so an `afterRemove` intent knows whether the
- * parent still has children and what kind of node the neighbour is.
- *
- * Never steals focus: if the target element is absent (e.g. the consumer ignored
- * `onChange`, so no new row rendered) it leaves focus where it is rather than
- * defaulting it to `document.body`.
- */
+// Разрешает записанное намерение против только что закоммиченного DOM: двигает
+// фокус на первый контрол затронутой строки/группы (после удаления — на уцелевшего
+// соседа или кнопку «Add rule» группы). Читает НОВОЕ дерево, поэтому afterRemove
+// знает, остались ли у родителя дети и какого типа сосед. Фокус не крадёт: если
+// целевого элемента нет (консьюмер проигнорировал onChange), оставляет фокус на
+// месте, а не сбрасывает на document.body.
 export function focusIntent<S extends FilterSchema>(
   root: HTMLElement,
   intent: FocusIntent,
@@ -71,20 +58,20 @@ function focusAfterRemove<S extends FilterSchema>(
   const { parentPath, index } = intent
   const parent = safeNodeAt(tree, parentPath)
 
-  // The parent may no longer exist (e.g. it was the removed node's own parent
-  // and got pruned by a cascading edit) — nothing sensible to focus.
+  // Родителя может уже не быть (напр. его самого срезала каскадная правка) —
+  // фокусить нечего.
   if (parent === undefined || !isGroup(parent)) return
 
   if (parent.rules.length === 0) {
-    // The group is now empty: fall back to its "Add rule" button so keyboard
-    // users are not dropped onto the document body. The button *is* the target
-    // (the data attribute sits on it), so focus it directly.
+    // Группа опустела: откатываемся на её кнопку «Add rule», чтобы не уронить
+    // клавиатурного юзера на document.body. Кнопка и есть цель (data-атрибут на
+    // ней), фокусим напрямую.
     focusElement(root, addRuleSelector(parentPath))
     return
   }
 
-  // Focus the previous sibling when one exists, otherwise the item that slid
-  // into the removed slot (index 0).
+  // Фокусим предыдущего сиблинга, если он есть, иначе — элемент, съехавший в
+  // освободившийся слот (index 0).
   const targetIndex = index > 0 ? index - 1 : 0
   const neighbour = parent.rules[targetIndex]
   const neighbourPath: FilterPath = [...parentPath, targetIndex]
@@ -95,7 +82,6 @@ function focusAfterRemove<S extends FilterSchema>(
   focusFirstControlIn(root, selector)
 }
 
-/** Focus the first focusable control *inside* the element matched by selector. */
 function focusFirstControlIn(root: HTMLElement, selector: string): void {
   const container = root.querySelector<HTMLElement>(selector)
   if (container === null) return
@@ -104,14 +90,12 @@ function focusFirstControlIn(root: HTMLElement, selector: string): void {
   control.focus()
 }
 
-/** Focus the element matched by selector directly (it is itself focusable). */
 function focusElement(root: HTMLElement, selector: string): void {
   const target = root.querySelector<HTMLElement>(selector)
   if (target === null) return
   target.focus()
 }
 
-/** Read a node without throwing on an out-of-range path (returns undefined). */
 function safeNodeAt<S extends FilterSchema>(tree: FilterTree<S>, path: FilterPath) {
   try {
     return getNodeAt(tree, path)

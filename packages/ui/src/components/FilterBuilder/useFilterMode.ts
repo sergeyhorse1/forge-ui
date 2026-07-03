@@ -11,13 +11,9 @@ export const DEFAULT_COMPACT_BREAKPOINT = 480
 
 /**
  * Resolve the effective display mode. Explicit `'compact'`/`'expanded'` force
- * that mode (deterministic for tests). `'auto'` measures the container via a
- * `ResizeObserver` and switches to compact at/below `breakpoint`.
- *
- * Auto is robust where `ResizeObserver` is absent (jsdom, SSR): it starts and
- * stays `expanded` rather than throwing, and forced modes never read the ref.
- * Mode/width here are *presentational* state — the controlled invariant only
- * forbids mirroring the **tree**, not measuring the layout.
+ * that mode; `'auto'` measures the container via `ResizeObserver` and switches to
+ * compact at/below `breakpoint`, staying `expanded` where `ResizeObserver` is
+ * absent (jsdom, SSR).
  */
 export function useFilterMode(
   mode: FilterMode,

@@ -46,22 +46,22 @@ describe('DataGrid sorting – multi-key tie-breaks', () => {
   it('falls through to the secondary key only when the primary ties', () => {
     const { result } = setup({ sort: { multiSort: true } })
 
-    // Primary: team asc. Secondary: score desc.
+    // Первичный: team asc. Вторичный: score desc.
     act(() => result.current.sort.toggle('team', false))
     act(() => result.current.sort.toggle('score', true))
-    act(() => result.current.sort.toggle('score', true)) // asc -> desc
+    act(() => result.current.sort.toggle('score', true)) // asc → desc
 
     expect(result.current.sort.infoFor('team').priority).toBe(1)
     expect(result.current.sort.infoFor('score').priority).toBe(2)
     expect(result.current.sort.infoFor('score').direction).toBe('desc')
 
-    // Blue before Red (team asc); within each team, higher score first.
+    // Blue раньше Red (team asc); внутри команды — выше score первым.
     expect(result.current.rows.map((r) => r.id)).toEqual([2, 4, 1, 3])
   })
 
   it('keeps tied rows in input order when every active key is equal', () => {
-    // Only the team key is sorted; the two Red rows (ids 1, 3) tie and must
-    // retain their original relative order, likewise the two Blue rows.
+    // Сортируется только team; две Red-строки (id 1, 3) равны и должны сохранить
+    // исходный относительный порядок, как и две Blue.
     const { result } = setup({ sort: { multiSort: true } })
     act(() => result.current.sort.toggle('team', false))
 
@@ -73,7 +73,7 @@ describe('DataGrid sorting – multi-key tie-breaks', () => {
     act(() => result.current.sort.toggle('team', false))
     act(() => result.current.sort.toggle('score', true))
 
-    // Cycle score asc -> desc -> none; team must remain the lone criterion.
+    // Прокручиваем score asc → desc → none; team должен остаться единственным критерием.
     act(() => result.current.sort.toggle('score', true))
     act(() => result.current.sort.toggle('score', true))
 
@@ -90,14 +90,14 @@ describe('DataGrid sorting – multi-key tie-breaks', () => {
 
   it('keeps a column priority when its direction changes in place', () => {
     const { result } = setup({ sort: { multiSort: true } })
-    // team (priority 1), score (priority 2), joined (priority 3).
+    // team (приоритет 1), score (2), joined (3).
     act(() => result.current.sort.toggle('team', false))
     act(() => result.current.sort.toggle('score', true))
     act(() => result.current.sort.toggle('joined', true))
     expect(result.current.sort.infoFor('score').priority).toBe(2)
 
-    // Re-toggling the *middle* column (asc -> desc) must not demote it to last:
-    // the previous filter+append put it at the end and reshuffled priorities.
+    // Повторный тоггл среднего столбца (asc → desc) не должен ссылать его в конец:
+    // прежний filter+append ставил его последним и перетасовывал приоритеты.
     act(() => result.current.sort.toggle('score', true))
     expect(result.current.sort.infoFor('score').direction).toBe('desc')
     expect(result.current.sort.infoFor('team').priority).toBe(1)
@@ -109,7 +109,7 @@ describe('DataGrid sorting – multi-key tie-breaks', () => {
     const { result } = setup({ sort: { multiSort: true } })
     const before = result.current.rows
     act(() => result.current.sort.toggle('does-not-exist', false))
-    // No phantom entry, and the derived rows keep referential identity.
+    // Фантомной записи нет, выводимые строки сохраняют referential identity.
     expect(result.current.sort.state).toEqual([])
     expect(result.current.rows).toBe(before)
   })
@@ -120,10 +120,10 @@ describe('DataGrid sorting – mixed-type comparator is a total order', () => {
     id: number
     value: unknown
   }
-  // A single column whose values span number, string, Date and null. A
-  // comparator that only fast-paths same-typed pairs and otherwise localeCompares
-  // their String() forms is intransitive, so the resulting order depends on the
-  // input permutation. Ranking by type first makes the order deterministic.
+  // Один столбец со значениями number/string/Date/null. Компаратор, что
+  // фаст-пасит только однотипные пары, а иначе localeCompare'ит их String(),
+  // интранзитивен — порядок зависит от перестановки входа. Ранг по типу делает
+  // порядок детерминированным.
   const sortValues = (values: unknown[]) => {
     const rows: Mixed[] = values.map((value, id) => ({ id, value }))
     const columns: ColumnDef<Mixed>[] = [
@@ -146,10 +146,10 @@ describe('DataGrid sorting – mixed-type comparator is a total order', () => {
   })
 
   it('breaks the number/string comparison cycle that a typeless sort permits', () => {
-    // 2 and 10 compare numerically (2 < 10), but `String(2)` > `String(10)` and
-    // `String('15')` falls between them lexically, so a comparator that only
-    // fast-paths same-typed pairs forms the cycle 2 < 10 < '15' < 2. Under it the
-    // final order depends on the input permutation; a total order pins it down.
+    // 2 и 10 сравниваются численно (2 < 10), но String(2) > String(10), а
+    // String('15') лежит между ними лексически — компаратор, фаст-пасящий лишь
+    // однотипные пары, образует цикл 2 < 10 < '15' < 2. При нём итог зависит от
+    // перестановки; тотальный порядок его фиксирует.
     const orders = [
       [2, 10, '15'],
       ['15', 2, 10],
@@ -160,7 +160,7 @@ describe('DataGrid sorting – mixed-type comparator is a total order', () => {
     ].map((permutation) => sortValues(permutation))
 
     for (const order of orders) {
-      // Numbers always sort ahead of strings, and numerically among themselves.
+      // Числа всегда впереди строк и численно между собой.
       expect(order).toEqual([2, 10, '15'])
     }
   })
@@ -176,7 +176,7 @@ describe('DataGrid sorting – value comparison', () => {
     const { result } = setup()
     act(() => result.current.sort.toggle('joined', false))
 
-    // Ascending: null first, then earliest to latest by timestamp.
+    // Asc: сначала null, затем от ранних к поздним по timestamp.
     expect(result.current.rows.map((r) => r.id)).toEqual([3, 2, 1, 4])
   })
 
@@ -185,7 +185,7 @@ describe('DataGrid sorting – value comparison', () => {
       {
         id: 'team',
         header: 'Team',
-        // Sort by score descending regardless of the team label.
+        // Сортируем по score убыванием, игнорируя метку team.
         compare: (a, b) => b.score - a.score,
       },
     ]
@@ -216,7 +216,7 @@ describe('DataGrid sorting – controlled state', () => {
     expect(onChange).toHaveBeenCalledWith([
       { columnId: 'score', direction: 'asc' },
     ])
-    // The controlled prop stayed empty: the parent owns the state.
+    // Controlled-проп остался пустым: состоянием владеет родитель.
     expect(result.current.sort.state).toEqual([])
   })
 })
@@ -263,8 +263,8 @@ describe('DataGrid selection – clear and single-mode reset', () => {
   })
 
   it('is not indeterminate when only stale (non-visible) keys remain selected', () => {
-    // A controlled set holding a key for a row that is not in the data must not
-    // light up the tristate: no *visible* row is selected.
+    // Controlled-set с ключом строки, которой нет в данных, не должен зажигать
+    // tristate: ни одна видимая строка не выбрана.
     const value: SelectionOptions['value'] = new Set([999])
     const { result } = setup({ selection: { mode: 'multi', value } })
 
@@ -322,7 +322,7 @@ describe('DataGrid column resize – pointer drag', () => {
 
     act(() => result.current.resize.start('team', 200))
     act(() => {
-      // Drag far to the left, well past the minimum.
+      // Тащим далеко влево, заметно за минимум.
       window.dispatchEvent(new MouseEvent('pointermove', { clientX: 0 }))
     })
 
@@ -338,8 +338,8 @@ describe('DataGrid column resize – pointer drag', () => {
 
     act(() => result.current.resize.start('team', 0))
     act(() => {
-      // Drag far past the right edge — the resolved width must not overshoot the
-      // announced aria-valuemax even when the gesture asks for much more.
+      // Тащим далеко за правый край — итоговая ширина не должна перескочить
+      // объявленный aria-valuemax, даже если жест просит больше.
       window.dispatchEvent(new MouseEvent('pointermove', { clientX: 5000 }))
     })
 
@@ -403,8 +403,8 @@ describe('DataGrid column resize – widths and constraints', () => {
       result.current.resize.nudge('team', 16)
       result.current.resize.nudge('team', 16)
     })
-    // Three 16px steps from 200 land on 248, not 216 (which a stale-closure read
-    // of the width would produce).
+    // Три шага по 16px от 200 дают 248, а не 216 (что вышло бы при чтении ширины
+    // из устаревшего замыкания).
     expect(result.current.columns.find((c) => c.id === 'team')!.width).toBe(248)
   })
 })
@@ -421,7 +421,7 @@ describe('DataGrid – reacting to dataset changes', () => {
     ]
     rerender({ sort: { multiSort: false }, rows: moreRows })
 
-    // The new low-score row sorts to the front under the still-active asc sort.
+    // Новая строка с низким score встаёт вперёд под всё ещё активной asc-сортировкой.
     expect(result.current.rows[0]!.id).toBe(5)
   })
 })
@@ -442,7 +442,7 @@ describe('DataGrid – duplicate column ids', () => {
 
   it('stays silent when every column id is unique', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    setup() // COLUMNS has distinct ids
+    setup() // у COLUMNS уникальные id
 
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()

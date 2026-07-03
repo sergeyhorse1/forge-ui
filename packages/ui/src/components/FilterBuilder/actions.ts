@@ -1,15 +1,11 @@
 import type { Combinator, FilterPath, FilterSchema } from './types'
 import type { RulePatch } from './tree'
 
-/**
- * The single dispatch surface threaded from {@link FilterBuilder} down through
- * the recursive view. Each method names a node by its {@link FilterPath} and
- * applies the matching tree operation, then reports the result through the
- * consumer's `onChange`. The view never touches the tree directly and never
- * holds its own copy — these methods read the latest tree from a ref inside the
- * root, so the whole object can stay referentially stable across renders (which
- * keeps `React.memo` on the rows and groups effective).
- */
+// Единая точка диспатча, протянутая из FilterBuilder вниз по рекурсивному view.
+// Метод адресует узел по FilterPath, применяет операцию над деревом и репортит
+// результат через onChange консьюмера. View не трогает дерево напрямую и не держит
+// свою копию — методы читают свежее дерево из ref в корне, поэтому объект остаётся
+// референсно стабильным между рендерами (React.memo на строках/группах жив).
 export interface FilterActions<S extends FilterSchema = FilterSchema> {
   addRule: (path: FilterPath) => void
   addGroup: (path: FilterPath) => void

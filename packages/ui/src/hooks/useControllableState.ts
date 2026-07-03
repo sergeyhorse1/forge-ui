@@ -32,16 +32,10 @@ export function useControllableState<T>({
   const isControlled = value !== undefined
   const current = (isControlled ? value : uncontrolled) as T
 
-  // Keep the latest value in a ref so the setter stays referentially stable even
-  // when functional updaters need to read the controlled value. `pendingRef`
-  // additionally tracks the value across back-to-back synchronous updates in the
-  // same tick (before a re-render commits), so chained functional updaters
-  // accumulate the way they do with a plain `useState`.
-  //
-  // Caveat (controlled mode): `pendingRef` holds the value we *proposed* via
-  // `onChange`, which a controlled parent may not actually apply. The per-render
-  // reset below realigns it with the committed `value`, so any divergence lasts
-  // at most one tick.
+  // pendingRef аккумулирует значение между синхронными updater'ами в одном тике
+  // (до коммита), чтобы цепочка функциональных апдейтов вела себя как useState.
+  // В controlled-режиме тут лежит лишь предложенное через onChange значение —
+  // сброс ниже realign'ит его с закоммиченным value, расхождение живёт не дольше тика.
   const currentRef = useRef(current)
   currentRef.current = current
   const pendingRef = useRef(current)
@@ -51,8 +45,8 @@ export function useControllableState<T>({
 
   const setValue = useCallback(
     (next: SetStateAction<T>) => {
-      // Resolve against the most recent value: the pending one if a synchronous
-      // update is mid-flight this tick, otherwise the committed value.
+      // Резолвим от самого свежего значения: pending, если апдейт в этом же тике
+      // ещё не закоммичен, иначе committed.
       const base = isUpdater(next) ? pendingRef.current : currentRef.current
       const resolved = isUpdater(next) ? next(base) : next
       pendingRef.current = resolved
@@ -64,7 +58,7 @@ export function useControllableState<T>({
     [isControlled],
   )
 
-  // After each commit the pending value is the committed value again.
+  // После коммита pending снова равен закоммиченному значению.
   pendingRef.current = current
 
   return [current, setValue]

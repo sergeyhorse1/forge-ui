@@ -21,7 +21,7 @@ function rule(field: string, operator: string, value: FilterValue): FilterRule {
   return { field, operator, value }
 }
 
-/** A small two-level tree used across the path-operation tests. */
+// Небольшое двухуровневое дерево для тестов операций по пути.
 function sampleTree(): FilterTree {
   return {
     combinator: 'and',
@@ -35,7 +35,7 @@ function sampleTree(): FilterTree {
   }
 }
 
-/** A three-level tree used to exercise structural sharing along a path. */
+// Трёхуровневое дерево для проверки структурного шаринга вдоль пути.
 function deepTree(): FilterTree {
   return {
     combinator: 'and',
@@ -55,7 +55,7 @@ function deepTree(): FilterTree {
   }
 }
 
-/** Deep snapshot via JSON to compare structural equality before/after an op. */
+// Глубокий снапшот через JSON — сравнить структурное равенство до/после операции.
 function snapshot(tree: FilterTree): string {
   return JSON.stringify(tree)
 }
@@ -138,7 +138,7 @@ describe('immutability', () => {
     const nestedRulesRef = (tree.rules[1] as FilterTree).rules
     const nestedLengthBefore = nestedRulesRef.length
     addRule(tree, [1], rule('age', 'eq', 40))
-    // The original nested rules array object is left untouched.
+    // Оригинальный массив rules вложенной группы не тронут.
     expect((tree.rules[1] as FilterTree).rules).toBe(nestedRulesRef)
     expect(nestedRulesRef).toHaveLength(nestedLengthBefore)
   })
@@ -149,14 +149,14 @@ describe('structural sharing (reference identity)', () => {
     const tree = sampleTree()
     const next = updateRule(tree, [1, 0], { value: 21 })
 
-    // Root is a new object, and so is the edited group on the path.
+    // Корень — новый объект, как и правленая группа на пути.
     expect(next).not.toBe(tree)
     expect(next.rules[1]).not.toBe(tree.rules[1])
 
-    // The untouched sibling rule keeps its identity.
+    // Нетронутое правило-сиблинг сохраняет identity.
     expect(next.rules[0]).toBe(tree.rules[0])
 
-    // Within the edited group, only the edited rule changes; its sibling stays.
+    // В правленой группе меняется только правленое правило; сиблинг остаётся.
     const beforeGroup = tree.rules[1] as FilterTree
     const afterGroup = next.rules[1] as FilterTree
     expect(afterGroup.rules[0]).not.toBe(beforeGroup.rules[0])
@@ -181,17 +181,17 @@ describe('structural sharing (reference identity)', () => {
     const nextInner = next.rules[1] as FilterTree
     const nextDeepest = nextInner.rules[1] as FilterTree
 
-    // Every group on the path is a fresh object.
+    // Каждая группа на пути — свежий объект.
     expect(next).not.toBe(tree)
     expect(nextInner).not.toBe(inner)
     expect(nextDeepest).not.toBe(deepest)
 
-    // Siblings off the path keep their identity at every level.
+    // Сиблинги вне пути хранят identity на каждом уровне.
     expect(next.rules[0]).toBe(tree.rules[0])
     expect(nextInner.rules[0]).toBe(inner.rules[0])
     expect(nextDeepest.rules[1]).toBe(deepest.rules[1])
 
-    // The edited leaf is the only rule replaced.
+    // Правленый лист — единственное заменённое правило.
     expect(nextDeepest.rules[0]).not.toBe(deepest.rules[0])
     expect(nextDeepest.rules[0]).toEqual(rule('city', 'eq', 'LA'))
   })
@@ -205,7 +205,7 @@ describe('structural sharing (reference identity)', () => {
     expect(nextInner).not.toBe(inner)
     expect(nextInner.combinator).toBe('and')
     expect(next.rules[0]).toBe(tree.rules[0])
-    // Children of the re-combinated group are reused wholesale.
+    // Дети группы со сменённым комбинатором переиспользуются целиком.
     expect(nextInner.rules[0]).toBe(inner.rules[0])
     expect(nextInner.rules[1]).toBe(inner.rules[1])
   })
@@ -219,7 +219,7 @@ describe('structural sharing (reference identity)', () => {
     expect(next.rules[0]).toBe(tree.rules[0])
     expect(nextInner).not.toBe(inner)
     expect(nextInner.rules).toHaveLength(1)
-    // The surviving sibling keeps its identity after re-indexing.
+    // Уцелевший сиблинг сохраняет identity после переиндексации.
     expect(nextInner.rules[0]).toBe(inner.rules[1])
   })
 

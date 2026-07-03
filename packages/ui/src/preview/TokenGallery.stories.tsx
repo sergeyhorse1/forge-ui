@@ -7,7 +7,7 @@ import { TokenGallery } from './TokenGallery'
 const meta = {
   title: 'Foundations/Design Tokens',
   component: TokenGallery,
-  // Opt the story into the Vitest addon's component-test run.
+  // Включает стори в прогон компонентных тестов (Vitest addon).
   tags: ['test'],
   parameters: {
     layout: 'fullscreen',
@@ -25,8 +25,8 @@ export const Gallery: Story = {
 
     await expect(heading).toBeInTheDocument()
 
-    // The Primary swatch must paint with the token color, proving Tailwind
-    // utilities compiled against the library's CSS variables.
+    // Primary swatch должен покраситься токен-цветом — доказывает, что Tailwind
+    // скомпилирован против CSS-переменных библиотеки.
     const primarySwatch = canvasElement.querySelector('.bg-primary')
     await expect(primarySwatch).not.toBeNull()
     await expect(getComputedStyle(primarySwatch!).backgroundColor).not.toBe('')
@@ -38,8 +38,8 @@ export const DarkTheme: Story = {
   play: async ({ canvasElement }) => {
     await expect(document.documentElement.dataset.theme).toBe('dark')
 
-    // The same Primary swatch resolves to the dark-theme token override, so it
-    // still paints rather than falling back to a transparent default.
+    // Тот же swatch резолвится в dark-переопределение токена — красится, а не
+    // падает в прозрачный дефолт.
     const primarySwatch = canvasElement.querySelector('.bg-primary')
     await expect(primarySwatch).not.toBeNull()
     await expect(getComputedStyle(primarySwatch!).backgroundColor).not.toBe('')

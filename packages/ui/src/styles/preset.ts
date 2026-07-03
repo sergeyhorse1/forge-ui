@@ -1,20 +1,6 @@
-/**
- * Tailwind preset for consumers who compile Forge alongside their own Tailwind
- * setup (ADR-005, path "a"). Tailwind v4 is CSS-first, so the canonical way to
- * inherit the design tokens is to import the token CSS:
- *
- * ```css
- * @import 'tailwindcss';
- * @import '@sergeyhorse/forge/styles.css';
- * ```
- *
- * This module additionally exposes the same tokens as a typed object so they can
- * be consumed programmatically — for example to keep an Astro/MDX docs site or a
- * design-token pipeline in sync with the library without re-declaring values.
- *
- * The values mirror `globals.css`; that file remains the single source of truth
- * for the pre-built `styles.css`.
- */
+// Типизированные токены для тех, кто собирает Forge вместе со своим Tailwind
+// (см. ADR-005). Значения зеркалят globals.css — он остаётся единственным
+// источником правды для собранного styles.css.
 
 export interface ForgeThemeTokens {
   colors: Record<string, string>

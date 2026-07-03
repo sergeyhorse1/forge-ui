@@ -1,17 +1,7 @@
 import { useSyncExternalStore } from 'react'
 
-/**
- * Global keyboard-modality tracker.
- *
- * `:focus-visible` is the right tool in CSS, but components sometimes need the
- * same signal in JS (e.g. to decide whether to show a focus ring on a custom
- * widget). We watch the document for the last interaction type and expose it as
- * a boolean: `true` after keyboard input, `false` after pointer input.
- */
-
-// Start in pointer modality so the client's initial snapshot matches the SSR
-// snapshot (`false`), avoiding a hydration mismatch and a focus-ring flash on
-// the first paint before any interaction has happened.
+// Стартуем в pointer-модальности: клиентский снапшот совпадает с SSR (false),
+// без гидрационного рассинхрона и мигания фокус-ринга на первом paint.
 let hadKeyboardEvent = false
 let isListening = false
 const listeners = new Set<() => void>()
@@ -21,8 +11,7 @@ function notify(): void {
 }
 
 function onKeyDown(event: KeyboardEvent): void {
-  // Modifier-only presses (e.g. holding Ctrl while clicking) should not flip the
-  // modality to keyboard.
+  // Чистые модификаторы (Ctrl+клик) не переключают модальность на клавиатуру.
   if (event.metaKey || event.altKey || event.ctrlKey) return
   if (!hadKeyboardEvent) {
     hadKeyboardEvent = true

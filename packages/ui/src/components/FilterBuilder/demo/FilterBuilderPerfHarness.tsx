@@ -29,11 +29,10 @@ interface SerializeReport {
 
 interface PerfHarnessProps {
   initial: FilterTree
-  /** Repetitions per serialize/deserialize measurement. */
+  // Повторов на замер serialize/deserialize.
   serializeRuns?: number
 }
 
-/** Address of the first leaf rule in the tree (depth-first). */
 function firstRulePath(node: FilterNode, path: FilterPath = []): FilterPath | null {
   if (!isGroup(node)) return path
   for (let index = 0; index < node.rules.length; index += 1) {
@@ -58,21 +57,13 @@ function medianMs(run: () => void, runs: number): number {
 const perfWindow = (): Record<string, unknown> =>
   window as unknown as Record<string, unknown>
 
-/**
- * Manual measurement harness for the FilterBuilder. It renders a large tree and
- * instruments each rule row with a per-`field` render counter (a stable
- * `renderRule` writing into a ref map). Two buttons drive the two budgets:
- *
- * - **Measure isolation** snapshots the counters, programmatically edits a single
- *   leaf rule through the same immutable tree op the UI uses, then reports how
- *   many rule rows re-rendered by diffing against that snapshot — the render-count
- *   proof that an edit stays local.
- * - **Measure serialize** times `serialize`/`deserialize` over the whole tree and
- *   reports the medians.
- *
- * Both reports are also written to `window.__filterbuilderPerf` for an external
- * (Playwright) capture run, mirroring the DataGrid `PerfHarness`.
- */
+// Ручной измерительный стенд FilterBuilder: рендерит большое дерево и вешает на
+// каждую строку счётчик рендеров по field (стабильный renderRule, пишущий в ref-map).
+// «Measure isolation» снимает счётчики, программно правит одно листовое правило той
+// же иммутабельной операцией, что и UI, и по диффу считает, сколько строк
+// перерисовалось — доказательство, что правка локальна. «Measure serialize» меряет
+// медианы serialize/deserialize по всему дереву. Оба отчёта также кладутся в
+// window.__filterbuilderPerf для внешнего (Playwright) захвата, как в DataGrid PerfHarness.
 export function FilterBuilderPerfHarness({
   initial,
   serializeRuns = 20,
@@ -82,9 +73,8 @@ export function FilterBuilderPerfHarness({
   const [isolation, setIsolation] = useState<IsolationReport | null>(null)
   const [serializeReport, setSerializeReport] = useState<SerializeReport | null>(null)
 
-  // Stable across renders so `FilterBuilder`'s `effectiveRenderRule` memo (keyed
-  // on `[renderRule, fields]`) is not invalidated — otherwise every row would
-  // re-render and the isolation measurement would be meaningless.
+  // Стабилен между рендерами, чтобы memo effectiveRenderRule ([renderRule, fields])
+  // не инвалидировался — иначе перерисовались бы все строки и замер isolation стал бы бессмысленным.
   const renderRule = useCallback((ctx: RenderRuleContext<FilterSchema>) => {
     const field = ctx.rule.field
     const counts = renderCounts.current
@@ -108,9 +98,9 @@ export function FilterBuilderPerfHarness({
     const counts = renderCounts.current
     const before = new Map(counts)
 
-    // Edit exactly one leaf through the same immutable op the actions use, and
-    // force the re-render to commit synchronously so the counts reflect it before
-    // we read them (a microtask would run before React's commit).
+    // Правим ровно один лист той же иммутабельной операцией, что и actions, и
+    // форсим синхронный коммит рендера, чтобы счётчики отразили его до чтения
+    // (микротаск отработал бы раньше коммита React).
     flushSync(() => {
       setTree((current) => updateRule(current, path, { value: `edited-${Date.now()}` }))
     })

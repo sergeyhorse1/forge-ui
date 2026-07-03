@@ -4,9 +4,8 @@ import { useControllableState } from '../../hooks'
 import { MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH } from './types'
 
 interface ResizeConstraints {
-  /** Resolved minimum width per column id. */
   minWidthOf: (columnId: string) => number
-  /** Declared/base width per column id (used when no override exists yet). */
+  // Объявленная/базовая ширина — пока нет пользовательского override.
   baseWidthOf: (columnId: string) => number
 }
 
@@ -24,14 +23,9 @@ interface DragState {
   startWidth: number
 }
 
-/**
- * Headless column-resize engine.
- *
- * Pointer drags are tracked on `window` so the gesture survives the cursor
- * leaving the handle, and widths are applied through a single setter so the
- * grid stays a controlled-or-uncontrolled component. `nudge` powers keyboard
- * resizing (Arrow keys on a focused handle).
- */
+// Headless-движок ресайза столбцов: pointer-драг слушается на window, чтобы жест
+// пережил уход курсора с ручки; ширины идут через один сеттер (controlled/
+// uncontrolled). nudge — клавиатурный ресайз (стрелки на ручке).
 export function useColumnResize(
   constraints: ResizeConstraints,
   value: Record<string, number> | undefined,
@@ -57,9 +51,9 @@ export function useColumnResize(
 
   const clampWidth = useCallback((columnId: string, rawWidth: number) => {
     const min = constraintsRef.current.minWidthOf(columnId) || MIN_COLUMN_WIDTH
-    // Clamp both ends: the lower bound is the column's minWidth; the upper bound
-    // is MAX_COLUMN_WIDTH so the resolved width never exceeds the slider's
-    // announced aria-valuemax (an ARIA range contract the header cell relies on).
+    // Зажимаем с обеих сторон: снизу — minWidth столбца, сверху — MAX_COLUMN_WIDTH,
+    // чтобы ширина не превысила объявленный слайдеру aria-valuemax (ARIA-контракт,
+    // на который опирается header-ячейка).
     return Math.min(MAX_COLUMN_WIDTH, Math.max(min, Math.round(rawWidth)))
   }, [])
 
@@ -76,9 +70,9 @@ export function useColumnResize(
 
   const nudge = useCallback(
     (columnId: string, deltaPx: number) => {
-      // Resolve the delta against the latest committed width inside the updater so
-      // back-to-back synchronous nudges accumulate instead of all reading the
-      // same stale closure value.
+      // Резолвим дельту от последней закоммиченной ширины внутри updater'а, чтобы
+      // подряд идущие синхронные nudge аккумулировались, а не читали одно
+      // устаревшее значение из замыкания.
       setWidths((prev) => {
         const current =
           prev[columnId] ?? constraintsRef.current.baseWidthOf(columnId)

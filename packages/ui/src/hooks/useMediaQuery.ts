@@ -1,16 +1,14 @@
 import { useCallback, useSyncExternalStore } from 'react'
 
 function getServerSnapshot(): boolean {
-  // No `matchMedia` during SSR; default to "does not match" so the first client
-  // paint can hydrate without assuming a viewport.
+  // В SSR нет matchMedia — отдаём "не совпадает", чтобы первый клиентский paint
+  // гидрировался, не угадывая вьюпорт.
   return false
 }
 
 /**
- * Track whether a CSS media query currently matches.
- *
- * Built on `useSyncExternalStore` so it stays consistent under concurrent
- * rendering and tearing-free across multiple subscribers to the same query.
+ * Track whether a CSS media query currently matches, tearing-free under
+ * concurrent rendering and across multiple subscribers to the same query.
  */
 export function useMediaQuery(query: string): boolean {
   const subscribe = useCallback(

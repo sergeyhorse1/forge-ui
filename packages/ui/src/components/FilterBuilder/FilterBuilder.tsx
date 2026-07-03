@@ -21,13 +21,11 @@ import { useFilterMode, type FilterMode } from './useFilterMode'
 import { isGroup } from './types'
 import type { FilterPath, FilterRule, FilterSchema, FilterTree } from './types'
 
-// The root group lives at the empty path. This must be a single stable
-// reference, not a fresh `[]` literal per render: the root `FilterGroup`
-// derives its children's `path` arrays from this prop and memoises them on
-// `[path, rules.length]`. A new array each render would invalidate that memo,
-// hand every direct child a new `path`, and cascade a re-render through the
-// whole tree — defeating the per-row memoisation. Frozen so it cannot be
-// mutated into a non-empty path by accident.
+// Корневая группа живёт по пустому пути. Это должна быть одна стабильная ссылка, а
+// не свежий [] на каждый рендер: корневой FilterGroup выводит path детей из этого
+// пропа и мемоизирует их на [path, rules.length]. Новый массив каждый рендер убил
+// бы memo, раздал детям новые path и каскадом перерисовал всё дерево. Заморожен,
+// чтобы случайно не стал непустым путём.
 const ROOT_PATH: FilterPath = Object.freeze([])
 
 export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
@@ -43,10 +41,9 @@ export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
    */
   createRule?: () => FilterRule<S>
   /**
-   * Optional seam: render a rule with custom controls instead of the built-in
-   * field/operator/value editor. Receives the rule plus pre-bound
-   * `update`/`remove` callbacks and an `idBase` for unique control ids. An
-   * explicit `renderRule` always wins over the schema-driven editor below.
+   * Seam to render a rule with custom controls instead of the built-in editor.
+   * Receives the rule plus pre-bound `update`/`remove` and an `idBase` for unique
+   * control ids; an explicit `renderRule` always wins over the schema editor.
    */
   renderRule?: (ctx: RenderRuleContext<S>) => ReactNode
   /**
@@ -56,10 +53,9 @@ export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
    */
   fields?: FilterFieldSchema
   /**
-   * Display mode. `'expanded'` (default) shows full editable controls;
-   * `'compact'` shows a read-only chip summary; `'auto'` picks compact on a
-   * narrow container. The chip summary needs `fields`, so without `fields` both
-   * `'compact'` and `'auto'` fall back to the editable tree.
+   * Display mode: `'expanded'` (default) full editable controls, `'compact'` a
+   * read-only chip summary, `'auto'` compact on a narrow container. The chip
+   * summary needs `fields`; without it `'compact'`/`'auto'` fall back to the tree.
    */
   mode?: FilterMode
   /** Container width (px) at/below which `'auto'` resolves to compact. */
@@ -67,30 +63,19 @@ export interface FilterBuilderProps<S extends FilterSchema = FilterSchema> {
   className?: string
 }
 
-// Without a concrete schema the union widens to `{ field: string; operator:
-// string; value: FilterValue }`, so a blank rule is structurally valid; the cast
-// is only needed for the parameterised-schema case, where the consumer supplies
-// its own `createRule`.
-//
-// Footgun: against a CONCRETE schema with no `createRule` prop, "Add rule" emits
-// this blank rule into `value` — a structurally off-union rule the cast hides
-// from the type system (empty field/operator may not exist in the schema).
-// Concrete-schema consumers should always pass `createRule` so new rules satisfy
-// the discriminated union.
+// Без конкретной схемы union расширяется до {field:string; operator:string;
+// value:FilterValue}, так что пустое правило структурно валидно; каст нужен лишь для
+// параметризованной схемы. Footgun: против КОНКРЕТНОЙ схемы без пропа createRule
+// «Add rule» вбросит это пустое правило в value — вне-union правило, которое каст
+// прячет от типов. Консьюмеры с конкретной схемой должны всегда передавать createRule.
 function defaultCreateRule<S extends FilterSchema>(): FilterRule<S> {
   return { field: '', operator: '', value: '' } as FilterRule<S>
 }
 
 /**
- * Controlled, recursive view over a {@link FilterTree}. It renders the root
- * group and dispatches every edit through a single stable `actions` object: the
- * tree itself lives in `value`, never in component state.
- *
- * The `actions` object and its methods are created once (`useMemo(…, [])`). They
- * read the latest `value`/`onChange`/`createRule` from refs updated on every
- * render, so their identity is stable across renders without going stale. Stable
- * `actions` flowing down to the memoised `FilterGroup`/`FilterRule` rows is what
- * keeps an edit to one rule from re-rendering the rest of the tree.
+ * Controlled, recursive view over a {@link FilterTree}. Renders the root group
+ * and dispatches every edit through a single stable `actions` object; the tree
+ * lives in `value`, never in component state.
  */
 export function FilterBuilder<S extends FilterSchema = FilterSchema>({
   value,
@@ -112,11 +97,10 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
   const rootRef = useRef<HTMLDivElement>(null)
   const resolvedMode = useFilterMode(mode, rootRef, compactBreakpoint)
 
-  // Records where focus should land after the next commit, paired with the exact
-  // tree that commit is expected to produce. A ref (not state) so recording an
-  // intent neither triggers a render nor reintroduces tree state — it is stable
-  // across renders, which is why the `actions` memo below can close over it with
-  // an empty dependency list.
+  // Куда сядет фокус после следующего коммита, в паре с точным деревом, которое
+  // этот коммит должен дать. Ref (не state): запись намерения не триггерит рендер и
+  // не возвращает состояние дерева — стабильна между рендерами, поэтому actions-memo
+  // ниже может замкнуться на неё с пустым списком зависимостей.
   const pendingFocusRef = useRef<{
     intent: FocusIntent
     expected: FilterTree<S>
@@ -125,9 +109,9 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
   const actions = useMemo<FilterActions<S>>(() => {
     const emit = (next: FilterTree<S>) => onChangeRef.current(next)
     const make = () => (createRuleRef.current ?? defaultCreateRule<S>)()
-    // Where a newly appended node lands: after `addRule`/`addGroup` the new node
-    // sits at the current child count of the target group (0 if it is a leaf,
-    // which cannot happen for these paths but keeps the read total).
+    // Куда встанет добавленный узел: после addRule/addGroup он на позиции текущего
+    // числа детей целевой группы (0 для листа — для этих путей невозможно, но
+    // делает чтение тотальным).
     const appendIndex = (path: FilterPath) => {
       const group = getNodeAt(treeRef.current, path)
       return isGroup(group) ? group.rules.length : 0
@@ -161,9 +145,8 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
         }
         emit(next)
       },
-      // Editing clears any stale focus intent: the user is typing, so a focus
-      // jump is unwanted, and a leftover add/remove intent must not fire on this
-      // commit.
+      // Правка сбрасывает устаревшее focus-намерение: юзер печатает, прыжок фокуса
+      // не нужен, и оставшееся add/remove-намерение не должно сработать на коммите.
       updateRule: (path, patch) => {
         pendingFocusRef.current = null
         emit(updateRule(treeRef.current, path, patch))
@@ -175,15 +158,12 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
     }
   }, [])
 
-  // Resolve a pending focus intent only when the consumer echoed back exactly the
-  // tree the action computed (`value === expected`). Depending on `[value]`, this
-  // runs on every tree change; the identity gate ensures a rejected, transformed,
-  // or superseded edit never moves focus — so a stale intent can neither steal
-  // focus from a field the user is editing nor fire on an unrelated re-render.
-  //
-  // Trade-off: a consumer that clones/normalises the tree instead of echoing it
-  // by reference (the `onChange={setValue}` pattern used everywhere here echoes
-  // exactly) simply gets no focus movement — graceful degradation, never a theft.
+  // Разрешаем focus-намерение только когда консьюмер вернул РОВНО то дерево, что
+  // посчитал экшен (value === expected). Гейт по identity гарантирует, что
+  // отклонённая/трансформированная/перекрытая правка не двинет фокус — устаревшее
+  // намерение не украдёт фокус у редактируемого поля и не сработает на постороннем
+  // рендере. Trade-off: консьюмер, клонирующий/нормализующий дерево вместо эхо по
+  // ссылке, просто не получит движения фокуса — мягкая деградация, не кража.
   useEffect(() => {
     const pending = pendingFocusRef.current
     if (pending === null) return
@@ -194,8 +174,8 @@ export function FilterBuilder<S extends FilterSchema = FilterSchema>({
     focusIntent(root, pending.intent, value)
   }, [value])
 
-  // Precedence: an explicit `renderRule` always wins; otherwise, given `fields`,
-  // build the schema-driven editor; otherwise fall back to the default editor.
+  // Приоритет: явный renderRule всегда побеждает; иначе при наличии fields —
+  // schema-driven редактор; иначе дефолтный.
   const effectiveRenderRule = useMemo<
     ((ctx: RenderRuleContext<S>) => ReactNode) | undefined
   >(() => {

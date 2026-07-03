@@ -8,16 +8,10 @@ import type { RulePatch } from './tree'
 import type { FilterPath, FilterRule as FilterRuleModel, FilterSchema } from './types'
 
 /**
- * Context handed to a custom {@link FilterBuilderProps.renderRule}. It exposes the
- * current rule plus pre-bound `update`/`remove` callbacks, an `idBase` for
- * deriving stable, unique control ids — the seam the schema-driven editor uses to
- * swap itself in without re-implementing the tree wiring — and the rule's `path`.
- *
- * A custom renderer does **not** need to stamp any focus attribute: `FilterRule`
- * wraps every rendered row (built-in or custom) in a `display:contents` element
- * carrying `data-rule-path`, so post-commit focus management can address the row
- * without the renderer's cooperation. `path` is exposed for renderers that want
- * to derive their own addressing.
+ * Context handed to a custom {@link FilterBuilderProps.renderRule}: the current
+ * rule, pre-bound `update`/`remove`, an `idBase` for unique control ids, and the
+ * rule's `path`. A custom renderer need not stamp any focus attribute — the row
+ * wrapper carries `data-rule-path` for post-commit focus management.
  */
 export interface RenderRuleContext<S extends FilterSchema> {
   rule: FilterRuleModel<S>
@@ -34,7 +28,7 @@ interface FilterRuleProps<S extends FilterSchema> {
   renderRule?: (ctx: RenderRuleContext<S>) => ReactNode
 }
 
-/** The minimal native field/operator/value editor used when no `renderRule`. */
+// Минимальный нативный field/operator/value редактор, когда renderRule не задан.
 function DefaultRuleEditor<S extends FilterSchema>({
   rule,
   update,
@@ -109,11 +103,10 @@ function FilterRuleInner<S extends FilterSchema>({
     remove: () => actions.removeNode(path),
   }
 
-  // Stamp `data-rule-path` on a single `display:contents` wrapper around whatever
-  // the row renders — built-in editor or a consumer's `renderRule`. Centralising
-  // it here (rather than in each editor) means custom renderers get post-commit
-  // focus management for free, and `contents` keeps the wrapper out of layout so
-  // the row's own flex/grid is unaffected.
+  // Штампуем data-rule-path на одной display:contents обёртке вокруг того, что
+  // рендерит строка (встроенный редактор или renderRule консьюмера). Централизация
+  // здесь даёт кастомным рендерерам пост-коммит фокус бесплатно, а contents держит
+  // обёртку вне layout, не трогая flex/grid строки.
   return (
     <div className="contents" data-rule-path={encodePath(path)}>
       {renderRule ? renderRule(ctx) : <DefaultRuleEditor {...ctx} />}
@@ -121,10 +114,7 @@ function FilterRuleInner<S extends FilterSchema>({
   )
 }
 
-/**
- * A single leaf rule. Wrapped in `React.memo`: combined with the structural
- * sharing in the tree ops (untouched rules keep their `===` identity) and the
- * stable `actions`/`path` references threaded from the root, editing one rule's
- * value does not re-render its siblings.
- */
+// Одно листовое правило в React.memo: вместе со структурным шарингом дерева
+// (нетронутые правила хранят === identity) и стабильными actions/path из корня
+// правка значения одного правила не перерисовывает сиблингов.
 export const FilterRule = memo(FilterRuleInner) as typeof FilterRuleInner
