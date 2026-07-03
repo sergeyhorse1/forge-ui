@@ -5,7 +5,7 @@ import { cn } from '../../utils/cn'
 import { Button } from '../Button'
 import type { ButtonVariantProps } from '../Button'
 
-const iconButtonVariants = cva('!p-0 aspect-square', {
+const iconButtonVariants = cva('aspect-square p-0', {
   variants: {
     size: {
       sm: 'size-8',

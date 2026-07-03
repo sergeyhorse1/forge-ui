@@ -1,6 +1,11 @@
 import { forwardRef } from 'react'
+import { cva } from 'class-variance-authority'
 
 import { cn } from '../../utils/cn'
+
+const skeletonVariants = cva(
+  'animate-pulse rounded-md bg-muted motion-reduce:animate-none',
+)
 
 export interface SkeletonProps extends React.ComponentPropsWithoutRef<'div'> {
   /** Explicit width (CSS value). */
@@ -16,10 +21,7 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
       <div
         ref={ref}
         aria-hidden="true"
-        className={cn(
-          'animate-pulse rounded-md bg-muted motion-reduce:animate-none',
-          className,
-        )}
+        className={cn(skeletonVariants(), className)}
         style={{ width, height, ...style }}
         {...props}
       />

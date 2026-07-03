@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 
 const spinnerVariants = cva(
-  'inline-block animate-spin text-current motion-reduce:animate-[spin_3s_linear_infinite]',
+  'inline-block animate-spin text-current motion-reduce:animate-none',
   {
     variants: {
       size: {

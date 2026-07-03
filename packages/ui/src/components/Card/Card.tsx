@@ -1,6 +1,16 @@
 import { forwardRef } from 'react'
+import { cva } from 'class-variance-authority'
 
 import { cn } from '../../utils/cn'
+
+const cardVariants = cva(
+  'rounded-lg border border-border bg-card text-card-foreground shadow-sm',
+)
+const cardHeaderVariants = cva('flex flex-col gap-1.5 p-6')
+const cardTitleVariants = cva('text-2xl font-semibold leading-none tracking-tight')
+const cardDescriptionVariants = cva('text-sm text-muted-foreground')
+const cardContentVariants = cva('p-6 pt-0')
+const cardFooterVariants = cva('flex items-center p-6 pt-0')
 
 export interface CardProps extends React.ComponentPropsWithoutRef<'div'> {}
 export interface CardHeaderProps extends React.ComponentPropsWithoutRef<'div'> {}
@@ -15,7 +25,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={cn('rounded-lg border border-border bg-card text-card-foreground shadow-sm', className)}
+        className={cn(cardVariants(), className)}
         {...props}
       />
     )
@@ -28,7 +38,7 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
     return (
       <div
         ref={ref}
-        className={cn('flex flex-col gap-1.5 p-6', className)}
+        className={cn(cardHeaderVariants(), className)}
         {...props}
       />
     )
@@ -41,7 +51,7 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
     return (
       <h3
         ref={ref}
-        className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+        className={cn(cardTitleVariants(), className)}
         {...props}
       />
     )
@@ -54,7 +64,7 @@ export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionP
     return (
       <p
         ref={ref}
-        className={cn('text-sm text-muted-foreground', className)}
+        className={cn(cardDescriptionVariants(), className)}
         {...props}
       />
     )
@@ -67,7 +77,7 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
     return (
       <div
         ref={ref}
-        className={cn('p-6 pt-0', className)}
+        className={cn(cardContentVariants(), className)}
         {...props}
       />
     )
@@ -80,7 +90,7 @@ export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={cn('flex items-center p-6 pt-0', className)}
+        className={cn(cardFooterVariants(), className)}
         {...props}
       />
     )
