@@ -29,7 +29,7 @@ export const AllSizes: Story = {
 }
 
 export const WithError: Story = {
-  args: { error: 'Message is too short', placeholder: 'Description' },
+  args: { error: 'Message is too short', placeholder: 'Description', 'aria-label': 'Description' },
 }
 
 export const Disabled: Story = {

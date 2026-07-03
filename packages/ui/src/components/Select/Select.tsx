@@ -85,6 +85,10 @@ export interface SelectProps extends SelectVariantProps {
   className?: string
   /** Name for form submission. */
   name?: string
+  /** Accessible label for the trigger when no visible label is associated. */
+  'aria-label'?: string
+  /** ID of an element labelling the trigger. */
+  'aria-labelledby'?: string
 }
 
 /** Select dropdown with keyboard and type-ahead support. */
@@ -102,6 +106,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
       placeholder,
       disabled,
       name,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledby,
     },
     ref,
   ) {
@@ -130,6 +136,8 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             )}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : undefined}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledby}
           >
             <RadixSelect.Value placeholder={placeholder} />
             <RadixSelect.Icon className="ml-2">

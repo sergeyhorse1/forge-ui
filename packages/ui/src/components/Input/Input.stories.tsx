@@ -29,7 +29,7 @@ export const AllSizes: Story = {
 }
 
 export const WithError: Story = {
-  args: { error: 'This field is required', placeholder: 'Email' },
+  args: { error: 'This field is required', placeholder: 'Email', 'aria-label': 'Email' },
 }
 
 export const Disabled: Story = {
