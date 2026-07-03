@@ -5,8 +5,8 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../utils/cn'
 import { useControllableState } from '../../hooks'
 
-const triggerVariants = cva(
-  'flex w-full items-center justify-between rounded-md border border-input bg-transparent text-foreground transition-colors placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+const selectTriggerVariants = cva(
+  'flex w-full items-center justify-between rounded-md border border-input bg-transparent text-foreground transition-colors motion-reduce:transition-none placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       size: {
@@ -21,7 +21,7 @@ const triggerVariants = cva(
   },
 )
 
-const contentVariants = cva(
+const selectContentVariants = cva(
   'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none',
   {
     variants: {
@@ -37,8 +37,8 @@ const contentVariants = cva(
   },
 )
 
-const itemVariants = cva(
-  'relative flex w-full cursor-default select-none items-center rounded-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+const selectItemVariants = cva(
+  'relative flex w-full cursor-default select-none items-center rounded-sm outline-none transition-colors motion-reduce:transition-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
   {
     variants: {
       size: {
@@ -53,7 +53,7 @@ const itemVariants = cva(
   },
 )
 
-export type SelectVariantProps = VariantProps<typeof triggerVariants>
+export type SelectVariantProps = VariantProps<typeof selectTriggerVariants>
 
 export interface SelectOptionItem {
   /** Option value. */
@@ -124,7 +124,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
           <RadixSelect.Trigger
             ref={ref}
             className={cn(
-              triggerVariants({ size }),
+              selectTriggerVariants({ size }),
               error && 'border-destructive focus:ring-destructive',
               className,
             )}
@@ -137,7 +137,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             </RadixSelect.Icon>
           </RadixSelect.Trigger>
           <RadixSelect.Portal>
-            <RadixSelect.Content className={cn(contentVariants({ size }))}>
+            <RadixSelect.Content className={cn(selectContentVariants({ size }))}>
               <RadixSelect.Viewport className="p-1">
                 {items
                   ? items.map((item) => (
@@ -176,7 +176,7 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         ref={ref}
         value={value}
         disabled={disabled}
-        className={cn(itemVariants({ size }), className)}
+        className={cn(selectItemVariants({ size }), className)}
       >
         <RadixSelect.ItemText>{children}</RadixSelect.ItemText>
       </RadixSelect.Item>
@@ -192,4 +192,4 @@ function ChevronIcon() {
   )
 }
 
-export { triggerVariants, contentVariants, itemVariants }
+export { selectTriggerVariants, selectContentVariants, selectItemVariants }

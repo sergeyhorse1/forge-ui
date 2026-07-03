@@ -19,7 +19,7 @@ const radioGroupVariants = cva('flex flex-col gap-2', {
 })
 
 const radioItemVariants = cva(
-  'shrink-0 rounded-full border border-input transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary',
+  'shrink-0 rounded-full border border-input transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary',
   {
     variants: {
       size: {

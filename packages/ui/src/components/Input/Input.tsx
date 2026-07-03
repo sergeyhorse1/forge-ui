@@ -5,7 +5,7 @@ import { cn } from '../../utils/cn'
 import { useControllableState } from '../../hooks'
 
 const inputVariants = cva(
-  'flex w-full rounded-md border border-input bg-transparent text-foreground transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+  'flex w-full rounded-md border border-input bg-transparent text-foreground transition-colors motion-reduce:transition-none file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
   {
     variants: {
       size: {
@@ -80,7 +80,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         onChange={handleChange}
         className={cn(
           inputVariants({ size }),
-          error && 'border-destructive focus-visible:ring-destructive',
+          !hasAddons && error && 'border-destructive focus-visible:ring-destructive',
           hasAddons && 'border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 min-w-0',
           className,
         )}
@@ -95,7 +95,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {hasAddons ? (
           <div
             className={cn(
-              'flex items-center rounded-md border border-input transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+              'flex items-center rounded-md border border-input transition-colors motion-reduce:transition-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
               error && 'border-destructive focus-within:ring-destructive',
               props.disabled && 'cursor-not-allowed opacity-50',
             )}

@@ -136,7 +136,6 @@ export type {
   CardFooterProps,
 } from './components/Card'
 
-// --- Form components ---
 
 export { Input, inputVariants } from './components/Input'
 export type { InputProps, InputVariantProps } from './components/Input'
@@ -153,5 +152,5 @@ export type { RadioGroupProps, RadioItemProps, RadioGroupVariantProps } from './
 export { Switch, switchVariants } from './components/Switch'
 export type { SwitchProps, SwitchVariantProps } from './components/Switch'
 
-export { Select, SelectItem, triggerVariants, contentVariants, itemVariants } from './components/Select'
+export { Select, SelectItem, selectTriggerVariants, selectContentVariants, selectItemVariants } from './components/Select'
 export type { SelectProps, SelectItemProps, SelectOptionItem, SelectVariantProps } from './components/Select'
