@@ -32,7 +32,9 @@ describe('Textarea', () => {
     render(<Textarea error="Too short" />)
     const el = screen.getByRole('textbox')
     expect(el).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText('Too short')).toBeInTheDocument()
+    const errorId = el.getAttribute('aria-describedby')
+    expect(errorId).toBeTruthy()
+    expect(screen.getByText('Too short')).toHaveAttribute('id', errorId)
   })
 
   it('is disabled when disabled prop set', () => {
@@ -43,5 +45,24 @@ describe('Textarea', () => {
   it('sets rows attribute', () => {
     render(<Textarea rows={5} />)
     expect(screen.getByRole('textbox')).toHaveAttribute('rows', '5')
+  })
+
+  it('renders all size variants without errors', () => {
+    const { unmount: u1 } = render(<Textarea size="sm" placeholder="sm" />)
+    expect(screen.getByPlaceholderText('sm')).toBeInTheDocument()
+    u1()
+
+    const { unmount: u2 } = render(<Textarea size="md" placeholder="md" />)
+    expect(screen.getByPlaceholderText('md')).toBeInTheDocument()
+    u2()
+
+    render(<Textarea size="lg" placeholder="lg" />)
+    expect(screen.getByPlaceholderText('lg')).toBeInTheDocument()
+  })
+
+  it('applies resize-none class when autoResize is enabled', () => {
+    render(<Textarea autoResize placeholder="auto" />)
+    const el = screen.getByRole('textbox')
+    expect(el.className).toContain('resize-none')
   })
 })

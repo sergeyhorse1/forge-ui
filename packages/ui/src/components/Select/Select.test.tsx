@@ -32,7 +32,9 @@ describe('Select', () => {
     render(<Select items={items} error="Required" placeholder="Choose" />)
     const trigger = screen.getByRole('combobox')
     expect(trigger).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText('Required')).toBeInTheDocument()
+    const errorId = trigger.getAttribute('aria-describedby')
+    expect(errorId).toBeTruthy()
+    expect(screen.getByText('Required')).toHaveAttribute('id', errorId)
   })
 
   it('is disabled when disabled prop set', () => {
@@ -43,5 +45,25 @@ describe('Select', () => {
   it('renders with default value', () => {
     render(<Select items={items} defaultValue="cherry" placeholder="Pick" />)
     expect(screen.getByText('Cherry')).toBeInTheDocument()
+  })
+
+  it('renders all size variants without errors', () => {
+    const { unmount: u1 } = render(<Select items={items} size="sm" placeholder="sm" />)
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    u1()
+
+    const { unmount: u2 } = render(<Select items={items} size="md" placeholder="md" />)
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    u2()
+
+    render(<Select items={items} size="lg" placeholder="lg" />)
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+  })
+
+  it('trigger has correct aria attributes for accessibility', () => {
+    render(<Select items={items} placeholder="Pick" />)
+    const trigger = screen.getByRole('combobox')
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(trigger).toHaveAttribute('aria-autocomplete', 'none')
   })
 })

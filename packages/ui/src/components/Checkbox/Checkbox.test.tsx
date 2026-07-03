@@ -32,7 +32,9 @@ describe('Checkbox', () => {
     render(<Checkbox error="Must accept" label="Terms" />)
     const cb = screen.getByRole('checkbox')
     expect(cb).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText('Must accept')).toBeInTheDocument()
+    const errorId = cb.getAttribute('aria-describedby')
+    expect(errorId).toBeTruthy()
+    expect(screen.getByText('Must accept')).toHaveAttribute('id', errorId)
   })
 
   it('is disabled when disabled prop set', () => {
@@ -43,5 +45,27 @@ describe('Checkbox', () => {
   it('supports indeterminate state', () => {
     render(<Checkbox checked="indeterminate" label="Partial" />)
     expect(screen.getByRole('checkbox')).toHaveAttribute('data-state', 'indeterminate')
+  })
+
+  it('renders all size variants without errors', () => {
+    const { unmount: u1 } = render(<Checkbox size="sm" label="Small" />)
+    expect(screen.getByRole('checkbox')).toBeInTheDocument()
+    u1()
+
+    const { unmount: u2 } = render(<Checkbox size="md" label="Medium" />)
+    expect(screen.getByRole('checkbox')).toBeInTheDocument()
+    u2()
+
+    render(<Checkbox size="lg" label="Large" />)
+    expect(screen.getByRole('checkbox')).toBeInTheDocument()
+  })
+
+  it('toggles via Space key', async () => {
+    const user = userEvent.setup()
+    render(<Checkbox label="Space test" />)
+    const cb = screen.getByRole('checkbox')
+    cb.focus()
+    await user.keyboard(' ')
+    expect(cb).toHaveAttribute('data-state', 'checked')
   })
 })

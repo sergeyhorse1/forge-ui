@@ -54,4 +54,40 @@ describe('Input', () => {
     render(<Input ref={ref} />)
     expect(ref.current).toBeInstanceOf(HTMLInputElement)
   })
+
+  it('renders all size variants without errors', () => {
+    const { unmount: u1 } = render(<Input size="sm" placeholder="sm" />)
+    expect(screen.getByPlaceholderText('sm')).toBeInTheDocument()
+    u1()
+
+    const { unmount: u2 } = render(<Input size="md" placeholder="md" />)
+    expect(screen.getByPlaceholderText('md')).toBeInTheDocument()
+    u2()
+
+    render(<Input size="lg" placeholder="lg" />)
+    expect(screen.getByPlaceholderText('lg')).toBeInTheDocument()
+  })
+
+  it('supports type variants', () => {
+    const { unmount: u1 } = render(<Input type="email" placeholder="email" />)
+    expect(screen.getByPlaceholderText('email')).toHaveAttribute('type', 'email')
+    u1()
+
+    const { unmount: u2 } = render(<Input type="password" placeholder="pass" />)
+    expect(screen.getByPlaceholderText('pass')).toHaveAttribute('type', 'password')
+    u2()
+
+    render(<Input type="number" placeholder="num" />)
+    expect(screen.getByPlaceholderText('num')).toHaveAttribute('type', 'number')
+  })
+
+  it('calls onChange and onValueChange on input', async () => {
+    const onValueChange = vi.fn()
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<Input value="" onValueChange={onValueChange} onChange={onChange} />)
+    await user.type(screen.getByRole('textbox'), 'a')
+    expect(onValueChange).toHaveBeenCalledWith('a')
+    expect(onChange).toHaveBeenCalled()
+  })
 })

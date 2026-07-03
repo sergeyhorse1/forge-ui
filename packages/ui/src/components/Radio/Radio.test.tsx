@@ -35,13 +35,38 @@ describe('RadioGroup', () => {
 
   it('shows error with aria attributes', () => {
     render(<RadioGroup items={items} error="Select one" />)
-    expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText('Select one')).toBeInTheDocument()
+    const group = screen.getByRole('radiogroup')
+    expect(group).toHaveAttribute('aria-invalid', 'true')
+    const errorId = group.getAttribute('aria-describedby')
+    expect(errorId).toBeTruthy()
+    expect(screen.getByText('Select one')).toHaveAttribute('id', errorId)
   })
 
   it('is disabled when disabled prop set', () => {
     render(<RadioGroup items={items} disabled />)
     const radios = screen.getAllByRole('radio')
     radios.forEach((r) => expect(r).toBeDisabled())
+  })
+
+  it('renders all size variants without errors', () => {
+    const { unmount: u1 } = render(<RadioGroup items={items} size="sm" />)
+    expect(screen.getAllByRole('radio')).toHaveLength(3)
+    u1()
+
+    const { unmount: u2 } = render(<RadioGroup items={items} size="md" />)
+    expect(screen.getAllByRole('radio')).toHaveLength(3)
+    u2()
+
+    render(<RadioGroup items={items} size="lg" />)
+    expect(screen.getAllByRole('radio')).toHaveLength(3)
+  })
+
+  it('calls onValueChange when selecting a different option', async () => {
+    const onChange = vi.fn()
+    const user = userEvent.setup()
+    render(<RadioGroup items={items} defaultValue="a" onValueChange={onChange} />)
+    const radios = screen.getAllByRole('radio')
+    await user.click(radios[2]!)
+    expect(onChange).toHaveBeenCalledWith('c')
   })
 })
