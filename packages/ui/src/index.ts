@@ -154,3 +154,97 @@ export type { SwitchProps, SwitchVariantProps } from './components/Switch'
 
 export { Select, SelectItem, selectTriggerVariants, selectContentVariants, selectItemVariants } from './components/Select'
 export type { SelectProps, SelectItemProps, SelectOptionItem, SelectVariantProps } from './components/Select'
+
+// --- Overlay components ---
+
+export { Tooltip, tooltipContentVariants } from './components/Tooltip'
+export type { TooltipProps } from './components/Tooltip'
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverClose, popoverContentVariants } from './components/Popover'
+export type { PopoverProps, PopoverTriggerProps, PopoverContentProps, PopoverCloseProps } from './components/Popover'
+
+export {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  dialogOverlayVariants,
+  dialogContentVariants,
+  dialogHeaderVariants,
+  dialogFooterVariants,
+  dialogTitleVariants,
+  dialogDescriptionVariants,
+} from './components/Dialog'
+export type {
+  DialogProps,
+  DialogTriggerProps,
+  DialogContentProps,
+  DialogHeaderProps,
+  DialogFooterProps,
+  DialogTitleProps,
+  DialogDescriptionProps,
+  DialogCloseProps,
+} from './components/Dialog'
+
+export {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+  SheetClose,
+  sheetOverlayVariants,
+  sheetContentVariants,
+  sheetHeaderVariants,
+  sheetFooterVariants,
+  sheetTitleVariants,
+  sheetDescriptionVariants,
+} from './components/Sheet'
+export type {
+  SheetProps,
+  SheetTriggerProps,
+  SheetContentProps,
+  SheetHeaderProps,
+  SheetFooterProps,
+  SheetTitleProps,
+  SheetDescriptionProps,
+  SheetCloseProps,
+  SheetVariantProps,
+} from './components/Sheet'
+
+export {
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastAction,
+  ToastClose,
+  useToast,
+  toast,
+  dismissToast,
+  toastViewportVariants,
+  toastVariants,
+  toastTitleVariants,
+  toastDescriptionVariants,
+  toastActionVariants,
+  toastCloseVariants,
+} from './components/Toast'
+export type {
+  ToastProviderProps,
+  ToastViewportProps,
+  ToastProps,
+  ToastTitleProps,
+  ToastDescriptionProps,
+  ToastActionProps,
+  ToastCloseProps,
+  ToastVariantProps,
+  ToastData,
+  ToastInput,
+} from './components/Toast'
