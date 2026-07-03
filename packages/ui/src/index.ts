@@ -98,3 +98,40 @@ export {
   useFocusVisible,
 } from './hooks'
 export type { UseControllableStateParams } from './hooks'
+
+// --- Base components ---
+
+export { Button, buttonVariants } from './components/Button'
+export type { ButtonProps, ButtonVariantProps } from './components/Button'
+
+export { IconButton } from './components/IconButton'
+export type { IconButtonProps } from './components/IconButton'
+
+export { Spinner } from './components/Spinner'
+export type { SpinnerProps } from './components/Spinner'
+
+export { Badge } from './components/Badge'
+export type { BadgeProps, BadgeVariantProps } from './components/Badge'
+
+export { Avatar } from './components/Avatar'
+export type { AvatarProps } from './components/Avatar'
+
+export { Skeleton } from './components/Skeleton'
+export type { SkeletonProps } from './components/Skeleton'
+
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from './components/Card'
+export type {
+  CardProps,
+  CardHeaderProps,
+  CardTitleProps,
+  CardDescriptionProps,
+  CardContentProps,
+  CardFooterProps,
+} from './components/Card'
