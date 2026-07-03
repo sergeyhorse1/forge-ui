@@ -12,12 +12,12 @@ const cardDescriptionVariants = cva('text-sm text-muted-foreground')
 const cardContentVariants = cva('p-6 pt-0')
 const cardFooterVariants = cva('flex items-center p-6 pt-0')
 
-export interface CardProps extends React.ComponentPropsWithoutRef<'div'> {}
-export interface CardHeaderProps extends React.ComponentPropsWithoutRef<'div'> {}
-export interface CardTitleProps extends React.ComponentPropsWithoutRef<'h3'> {}
-export interface CardDescriptionProps extends React.ComponentPropsWithoutRef<'p'> {}
-export interface CardContentProps extends React.ComponentPropsWithoutRef<'div'> {}
-export interface CardFooterProps extends React.ComponentPropsWithoutRef<'div'> {}
+export type CardProps = React.ComponentPropsWithoutRef<'div'>
+export type CardHeaderProps = React.ComponentPropsWithoutRef<'div'>
+export type CardTitleProps = React.ComponentPropsWithoutRef<'h3'>
+export type CardDescriptionProps = React.ComponentPropsWithoutRef<'p'>
+export type CardContentProps = React.ComponentPropsWithoutRef<'div'>
+export type CardFooterProps = React.ComponentPropsWithoutRef<'div'>
 
 /** Container card with semantic sub-components. */
 export const Card = forwardRef<HTMLDivElement, CardProps>(
