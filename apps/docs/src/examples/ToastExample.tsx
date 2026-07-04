@@ -50,7 +50,7 @@ export function ToastExample() {
           Show toast
         </Button>
         <ToastList />
-        <ToastViewport />
+        <ToastViewport className="top-auto bottom-0" />
       </ToastProvider>
     </Preview>
   )
