@@ -107,4 +107,28 @@ describe('Dialog', () => {
     )
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
+
+  it('renders the close button by default', () => {
+    render(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>With close</DialogTitle>
+          <DialogDescription>Body</DialogDescription>
+        </DialogContent>
+      </Dialog>,
+    )
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+  })
+
+  it('hides the close button when hideCloseButton is set', () => {
+    render(
+      <Dialog open>
+        <DialogContent hideCloseButton>
+          <DialogTitle>No close</DialogTitle>
+          <DialogDescription>Body</DialogDescription>
+        </DialogContent>
+      </Dialog>,
+    )
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+  })
 })

@@ -42,11 +42,14 @@ export type DialogCloseProps = React.ComponentPropsWithoutRef<typeof RadixDialog
 /** Element that closes the dialog. */
 export const DialogClose = RadixDialog.Close
 
-export type DialogContentProps = React.ComponentPropsWithoutRef<typeof RadixDialog.Content>
+export type DialogContentProps = React.ComponentPropsWithoutRef<typeof RadixDialog.Content> & {
+  /** Hide the built-in close (X) button. ESC and click-outside still close. */
+  hideCloseButton?: boolean
+}
 
 /** Dialog content panel with overlay. */
 export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
-  function DialogContent({ className, children, ...props }, ref) {
+  function DialogContent({ className, children, hideCloseButton = false, ...props }, ref) {
     return (
       <RadixDialog.Portal>
         <RadixDialog.Overlay className={cn(dialogOverlayVariants())} />
@@ -57,10 +60,12 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
           {...props}
         >
           {children}
-          <RadixDialog.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none motion-reduce:transition-none">
-            <CloseIcon />
-            <span className="sr-only">Close</span>
-          </RadixDialog.Close>
+          {hideCloseButton ? null : (
+            <RadixDialog.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none motion-reduce:transition-none">
+              <CloseIcon />
+              <span className="sr-only">Close</span>
+            </RadixDialog.Close>
+          )}
         </RadixDialog.Content>
       </RadixDialog.Portal>
     )
