@@ -211,4 +211,96 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
       )
     expect(movedCell).toHaveAttribute('tabindex', '0')
   })
+
+  it('leaves the roving cell untouched when arrows originate from the header', () => {
+    renderGrid({ selection: { mode: 'multi' } })
+    const firstCell = screen
+      .getAllByRole('gridcell')
+      .find((cell) => cell.getAttribute('aria-rowindex') === '2')!
+    firstCell.focus()
+
+    // Событие с columnheader всплывает до grid.onKeyDown, но гард
+    // (role === 'columnheader') выходит no-op — активная ячейка не двигается.
+    const header = screen.getAllByRole('columnheader')[1]!
+    fireEvent.keyDown(header, { key: 'ArrowRight' })
+
+    expect(firstCell).toHaveAttribute('tabindex', '0')
+  })
+})
+
+describe('DataGrid – roving navigation across rows and columns', () => {
+  const cellAt = (rowIndex: number, colIndex: number) =>
+    screen
+      .getAllByRole('gridcell')
+      .find(
+        (cell) =>
+          cell.getAttribute('aria-rowindex') === String(rowIndex) &&
+          cell.getAttribute('aria-colindex') === String(colIndex),
+      )
+
+  it('walks columns with ArrowRight/ArrowLeft, Home and End', () => {
+    renderGrid()
+    const start = cellAt(2, 1)!
+    start.focus()
+
+    fireEvent.keyDown(start, { key: 'ArrowRight' })
+    expect(cellAt(2, 2)).toHaveFocus()
+
+    fireEvent.keyDown(cellAt(2, 2)!, { key: 'End' })
+    expect(cellAt(2, COLUMNS.length)).toHaveAttribute('tabindex', '0')
+
+    fireEvent.keyDown(cellAt(2, COLUMNS.length)!, { key: 'ArrowLeft' })
+    expect(cellAt(2, COLUMNS.length - 1)).toHaveFocus()
+
+    fireEvent.keyDown(cellAt(2, COLUMNS.length - 1)!, { key: 'Home' })
+    expect(cellAt(2, 1)).toHaveAttribute('tabindex', '0')
+  })
+
+  it('clamps column moves at the edges', () => {
+    renderGrid()
+    const first = cellAt(2, 1)!
+    first.focus()
+    // ArrowLeft на первом столбце остаётся на нём (кламп по нижней границе).
+    fireEvent.keyDown(first, { key: 'ArrowLeft' })
+    expect(cellAt(2, 1)).toHaveAttribute('tabindex', '0')
+  })
+
+  it('jumps whole pages with PageDown/PageUp, clamped to the data range', () => {
+    renderGrid()
+    const first = cellAt(2, 1)!
+    first.focus()
+
+    // PageDown прыгает на PAGE_STEP строк вниз, но датасет короче — кламп на
+    // последнюю строку (aria-rowindex = ROWS.length + 1).
+    fireEvent.keyDown(first, { key: 'PageDown' })
+    const lastRowIndex = ROWS.length + 1
+    expect(cellAt(lastRowIndex, 1)).toHaveAttribute('tabindex', '0')
+
+    // PageUp с последней строки клампится на первую строку данных.
+    fireEvent.keyDown(cellAt(lastRowIndex, 1)!, { key: 'PageUp' })
+    expect(cellAt(2, 1)).toHaveAttribute('tabindex', '0')
+  })
+
+  it('moves up with ArrowUp and clamps at the first data row', () => {
+    renderGrid()
+    const second = cellAt(3, 1)!
+    second.focus()
+
+    fireEvent.keyDown(second, { key: 'ArrowUp' })
+    expect(cellAt(2, 1)).toHaveFocus()
+
+    // Ещё раз вверх — упираемся в первую строку данных.
+    fireEvent.keyDown(cellAt(2, 1)!, { key: 'ArrowUp' })
+    expect(cellAt(2, 1)).toHaveAttribute('tabindex', '0')
+  })
+
+  it('ignores keys that do not move the active cell', () => {
+    renderGrid()
+    const first = cellAt(2, 1)!
+    first.focus()
+    const prevented = !fireEvent.keyDown(first, { key: 'x' })
+    // Неизвестная клавиша не двигает фокус и не вызывает preventDefault.
+    expect(prevented).toBe(false)
+    expect(cellAt(2, 1)).toHaveAttribute('tabindex', '0')
+  })
 })
