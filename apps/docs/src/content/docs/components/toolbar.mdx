@@ -1,0 +1,32 @@
+---
+title: Toolbar
+description: Container for grouped actions with roving keyboard focus.
+---
+
+import { ToolbarExample } from '../../../examples/ToolbarExample'
+
+A toolbar groups buttons, links and toggles into a single focus stop with roving
+`Tab` behaviour and arrow-key navigation. It is built on the Radix toolbar
+primitive.
+
+<ToolbarExample client:load />
+
+## Anatomy
+
+```tsx
+<Toolbar aria-label="Formatting">
+  <ToolbarToggleGroup type="multiple" aria-label="Style">
+    <ToolbarToggleItem value="bold">Bold</ToolbarToggleItem>
+  </ToolbarToggleGroup>
+  <ToolbarSeparator />
+  <ToolbarButton>Share</ToolbarButton>
+  <ToolbarLink href="#docs">Docs</ToolbarLink>
+</Toolbar>
+```
+
+## Props
+
+`Toolbar` forwards to the Radix root and accepts `orientation`
+(`'horizontal' | 'vertical'`). `ToolbarButton`, `ToolbarLink`,
+`ToolbarSeparator`, `ToolbarToggleGroup` and `ToolbarToggleItem` forward to their
+Radix equivalents.

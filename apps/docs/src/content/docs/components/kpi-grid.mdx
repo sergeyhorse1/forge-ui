@@ -1,0 +1,19 @@
+---
+title: KpiGrid
+description: Responsive auto-fit grid for dashboard metric tiles.
+---
+
+import { KpiGridExample } from '../../../examples/KpiGridExample'
+
+A responsive grid that auto-fits its children into as many columns as fit, then
+wraps. Pair it with `MetricCard` tiles to build a dashboard header.
+
+<KpiGridExample client:load />
+
+## Props
+
+| Prop          | Type     | Default | Description                                        |
+| ------------- | -------- | ------- | -------------------------------------------------- |
+| `minColWidth` | `number` | `200`   | Minimum column width (px) before dropping columns. |
+
+All native `<div>` attributes are also accepted.

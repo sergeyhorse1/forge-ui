@@ -1,0 +1,23 @@
+---
+title: MetricCard
+description: Dashboard KPI tile with value, signed delta and sparkline.
+---
+
+import { MetricCardExample } from '../../../examples/MetricCardExample'
+
+A metric card surfaces a single KPI: a title, a primary value, an optional signed
+delta that drives the trend arrow and colour, and an optional inline sparkline.
+
+<MetricCardExample client:load />
+
+## Props
+
+| Prop             | Type                                          | Default | Description                                       |
+| ---------------- | --------------------------------------------- | ------- | ------------------------------------------------- |
+| `title`          | `React.ReactNode`                             | —       | Metric caption (required).                        |
+| `value`          | `React.ReactNode`                             | —       | Primary metric value (required).                  |
+| `delta`          | `number \| { value: number; label?: string }` | —       | Signed change; drives the trend arrow and colour. |
+| `sparkline`      | `number[]`                                    | —       | Numbers for the inline sparkline.                 |
+| `sparklineLabel` | `string`                                      | —       | Accessible label; makes the sparkline meaningful. |
+
+All native `<div>` attributes are also accepted.

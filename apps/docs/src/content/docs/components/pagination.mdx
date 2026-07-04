@@ -1,0 +1,25 @@
+---
+title: Pagination
+description: Accessible pagination with page numbers and prev/next controls.
+---
+
+import { PaginationExample } from '../../../examples/PaginationExample'
+
+Pagination renders numbered page controls with previous/next buttons, always
+keeping the first and last page visible and collapsing long gaps into ellipses.
+It is fully controlled.
+
+<PaginationExample client:load />
+
+## Props
+
+| Prop            | Type                     | Default                 | Description                                |
+| --------------- | ------------------------ | ----------------------- | ------------------------------------------ |
+| `page`          | `number`                 | —                       | Current page, 1-based (required).          |
+| `pageCount`     | `number`                 | —                       | Total number of pages (required).          |
+| `onPageChange`  | `(page: number) => void` | —                       | Called with the requested page (required). |
+| `siblingCount`  | `number`                 | `1`                     | Pages shown on each side of the current.   |
+| `previousLabel` | `string`                 | `'Go to previous page'` | Accessible label for the prev control.     |
+| `nextLabel`     | `string`                 | `'Go to next page'`     | Accessible label for the next control.     |
+
+All native `<nav>` attributes are also accepted.

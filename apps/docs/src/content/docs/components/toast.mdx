@@ -1,0 +1,50 @@
+---
+title: Toast
+description: Transient notifications raised imperatively from anywhere.
+---
+
+import { ToastExample } from '../../../examples/ToastExample'
+
+Toasts announce brief, transient messages. Wrap your app once in `ToastProvider`
+and render a `ToastViewport`, then raise messages imperatively with `toast()`.
+
+<ToastExample client:load />
+
+## Usage
+
+```tsx
+import {
+  ToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastClose,
+  useToast,
+  toast,
+} from '@sergeyhorse/forge'
+
+function Notifications() {
+  const { toasts, dismiss } = useToast()
+  return (
+    <>
+      {toasts.map((t) => (
+        <Toast key={t.id} open variant={t.variant} onOpenChange={(o) => !o && dismiss(t.id)}>
+          <ToastTitle>{t.title}</ToastTitle>
+          <ToastClose />
+        </Toast>
+      ))}
+    </>
+  )
+}
+
+// anywhere
+toast({ title: 'Saved', description: 'Your changes are saved.' })
+```
+
+## API
+
+`toast(input)` adds a toast to the store and returns its id; `input` accepts
+`title`, `description`, `variant` (`'default' | 'success' | 'destructive'`),
+`action` and `duration`. `useToast()` returns the current `toasts` plus `toast`
+and `dismiss`. `ToastProvider` and `ToastViewport` forward to their Radix
+equivalents.

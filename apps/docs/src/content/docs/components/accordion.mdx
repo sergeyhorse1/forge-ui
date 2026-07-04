@@ -1,0 +1,30 @@
+---
+title: Accordion
+description: Collapsible sections built on the Radix accordion primitive.
+---
+
+import { AccordionExample } from '../../../examples/AccordionExample'
+
+An accordion stacks collapsible sections. Use `type="single"` (optionally
+`collapsible`) for one-open-at-a-time, or `type="multiple"` to allow several open
+sections.
+
+<AccordionExample client:load />
+
+## Anatomy
+
+```tsx
+<Accordion type="single" collapsible defaultValue="a">
+  <AccordionItem value="a">
+    <AccordionTrigger>Section A</AccordionTrigger>
+    <AccordionContent>Body A</AccordionContent>
+  </AccordionItem>
+</Accordion>
+```
+
+## Props
+
+`Accordion` forwards to the Radix root: pass `type="single"` (with `collapsible`)
+or `type="multiple"`, plus `value` / `defaultValue` / `onValueChange`.
+`AccordionItem` takes a `value`; `AccordionTrigger` and `AccordionContent` forward
+to their Radix equivalents.

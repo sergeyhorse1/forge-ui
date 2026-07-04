@@ -1,0 +1,30 @@
+---
+title: Tabs
+description: Tabbed navigation built on the Radix tabs primitive.
+---
+
+import { TabsExample } from '../../../examples/TabsExample'
+
+Tabs switch between related panels. They support roving keyboard focus and work
+controlled (`value`) or uncontrolled (`defaultValue`).
+
+<TabsExample client:load />
+
+## Anatomy
+
+```tsx
+<Tabs defaultValue="overview">
+  <TabsList>
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+    <TabsTrigger value="activity">Activity</TabsTrigger>
+  </TabsList>
+  <TabsContent value="overview">…</TabsContent>
+  <TabsContent value="activity">…</TabsContent>
+</Tabs>
+```
+
+## Props
+
+`Tabs` forwards to the Radix root and accepts `value`, `defaultValue` and
+`onValueChange`. `TabsList`, `TabsTrigger` (with a `value`) and `TabsContent`
+(with a matching `value`) forward to their Radix equivalents.

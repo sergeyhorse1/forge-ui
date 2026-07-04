@@ -1,0 +1,27 @@
+---
+title: CommandMenu
+description: Command palette with fuzzy search and a global shortcut.
+---
+
+import { CommandMenuExample } from '../../../examples/CommandMenuExample'
+
+A command palette built on `cmdk`. It opens from a trigger or the global
+⌘K / Ctrl+K shortcut, filters grouped commands as you type and runs each item's
+action on selection.
+
+<CommandMenuExample client:load />
+
+## Props
+
+| Prop           | Type                      | Default | Description                                   |
+| -------------- | ------------------------- | ------- | --------------------------------------------- |
+| `groups`       | `CommandMenuGroup[]`      | —       | Grouped commands (required).                  |
+| `recent`       | `CommandMenuItem[]`       | —       | Items shown on top while the search is empty. |
+| `onSelect`     | `(value: string) => void` | —       | Called with the selected item value.          |
+| `trigger`      | `React.ReactNode`         | —       | Element that opens the menu on click.         |
+| `hotkey`       | `boolean`                 | `true`  | Enable the global ⌘K / Ctrl+K shortcut.       |
+| `open`         | `boolean`                 | —       | Controlled open state.                        |
+| `onOpenChange` | `(open: boolean) => void` | —       | Open state change handler.                    |
+| `placeholder`  | `string`                  | —       | Input placeholder.                            |
+| `emptyText`    | `string`                  | —       | Text shown when nothing matches.              |
+| `label`        | `string`                  | —       | Accessible name for the dialog.               |

@@ -1,0 +1,33 @@
+---
+title: Popover
+description: Click-triggered floating panel built on the Radix popover primitive.
+---
+
+import { PopoverExample } from '../../../examples/PopoverExample'
+
+A popover anchors a floating panel to a trigger and opens on click. It traps focus
+while open and closes on `Escape` or an outside click.
+
+<PopoverExample client:load />
+
+## Anatomy
+
+```tsx
+<Popover>
+  <PopoverTrigger asChild>
+    <Button>Open</Button>
+  </PopoverTrigger>
+  <PopoverContent>
+    Panel content
+    <PopoverClose asChild>
+      <Button>Close</Button>
+    </PopoverClose>
+  </PopoverContent>
+</Popover>
+```
+
+## Props
+
+`Popover` is controllable via `open` / `onOpenChange`. `PopoverContent` forwards
+`align` and `sideOffset` to Radix and accepts all native `<div>` attributes; the
+trigger and close parts support `asChild`.

@@ -1,0 +1,24 @@
+---
+title: FilterBuilder
+description: Nestable query builder for schema-driven filters.
+---
+
+import { FilterBuilderExample } from '../../../examples/FilterBuilderExample'
+
+A fully controlled filter builder. It edits a tree of AND/OR groups and rules,
+supports nested groups and drives its field/operator/value editors from a runtime
+`fields` schema.
+
+<FilterBuilderExample client:load />
+
+## Props
+
+| Prop                | Type                                    | Default      | Description                                          |
+| ------------------- | --------------------------------------- | ------------ | ---------------------------------------------------- |
+| `value`             | `FilterTree`                            | —            | The whole filter tree; fully controlled (required).  |
+| `onChange`          | `(next: FilterTree) => void`            | —            | Called with the next tree after any edit (required). |
+| `fields`            | `FilterFieldSchema`                     | —            | Field schema driving the editors and summary.        |
+| `mode`              | `'expanded' \| 'compact' \| 'auto'`     | `'expanded'` | Editable controls, read-only chips, or responsive.   |
+| `createRule`        | `() => FilterRule`                      | —            | Factory for the rule appended by "Add rule".         |
+| `renderRule`        | `(ctx: RenderRuleContext) => ReactNode` | —            | Render a rule with custom controls.                  |
+| `compactBreakpoint` | `number`                                | —            | Width (px) at/below which `'auto'` goes compact.     |

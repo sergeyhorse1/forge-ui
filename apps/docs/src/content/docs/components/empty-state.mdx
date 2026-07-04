@@ -1,0 +1,22 @@
+---
+title: EmptyState
+description: Centered placeholder for empty, no-results and zero states.
+---
+
+import { EmptyStateExample } from '../../../examples/EmptyStateExample'
+
+An empty state fills a region that has no content yet with an optional icon, a
+title, supporting text and a call to action.
+
+<EmptyStateExample client:load />
+
+## Props
+
+| Prop          | Type              | Default | Description                             |
+| ------------- | ----------------- | ------- | --------------------------------------- |
+| `title`       | `React.ReactNode` | —       | Primary heading (required).             |
+| `description` | `React.ReactNode` | —       | Supporting text below the title.        |
+| `icon`        | `React.ReactNode` | —       | Decorative icon above the title.        |
+| `action`      | `React.ReactNode` | —       | Call-to-action rendered below the copy. |
+
+All native `<div>` attributes are also accepted.

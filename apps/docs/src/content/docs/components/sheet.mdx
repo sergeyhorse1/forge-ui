@@ -1,0 +1,39 @@
+---
+title: Sheet
+description: Side panel overlay that slides in from any edge.
+---
+
+import { SheetExample } from '../../../examples/SheetExample'
+
+A sheet is a dialog that slides in from an edge of the screen. It is composed from
+the same parts as `Dialog` and picks its edge with the `side` prop on
+`SheetContent`.
+
+<SheetExample client:load />
+
+## Anatomy
+
+```tsx
+<Sheet>
+  <SheetTrigger asChild>
+    <Button>Open</Button>
+  </SheetTrigger>
+  <SheetContent side="right">
+    <SheetHeader>
+      <SheetTitle>Title</SheetTitle>
+      <SheetDescription>Description</SheetDescription>
+    </SheetHeader>
+    <SheetFooter>
+      <SheetClose asChild>
+        <Button>Save</Button>
+      </SheetClose>
+    </SheetFooter>
+  </SheetContent>
+</Sheet>
+```
+
+## Props
+
+`Sheet` is controllable via `open` / `onOpenChange`. `SheetContent` accepts
+`side` (`'top' | 'right' | 'bottom' | 'left'`, default `'right'`) and all native
+`<div>` attributes; the trigger and close parts support `asChild`.
