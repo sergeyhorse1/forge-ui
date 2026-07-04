@@ -35,6 +35,8 @@ export default defineConfig({
         'tailwind-merge',
         'class-variance-authority',
         '@tanstack/react-virtual',
+        'react-day-picker',
+        /^react-day-picker\//,
       ],
       output: {
         preserveModules: true,

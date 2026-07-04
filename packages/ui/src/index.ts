@@ -173,6 +173,16 @@ export type {
   ComboboxVariantProps,
 } from './components/Combobox'
 
+export { DatePicker, datePickerTriggerVariants, dayPickerClassNames } from './components/DatePicker'
+export type {
+  DatePickerProps,
+  DatePickerLocale,
+  DatePickerTriggerVariantProps,
+  SingleDatePickerProps,
+  RangeDatePickerProps,
+  DateRange,
+} from './components/DatePicker'
+
 
 // --- Overlay components ---
 
