@@ -226,6 +226,21 @@ describe('DataGrid – keyboard selection (roving tabindex)', () => {
 
     expect(firstCell).toHaveAttribute('tabindex', '0')
   })
+
+  it('resizes via the separator without the grid intercepting the arrow key', () => {
+    renderGrid()
+    // Сепаратор столбца team: arrow-нудж меняет ширину, а гард навигации
+    // (role === 'separator') не перехватывает клавишу.
+    const separator = screen
+      .getAllByRole('separator')
+      .find((el) => el.getAttribute('aria-label') === 'Resize column team')!
+    expect(separator).toHaveAttribute('aria-valuenow', '160')
+
+    separator.focus()
+    fireEvent.keyDown(separator, { key: 'ArrowRight' })
+
+    expect(separator).toHaveAttribute('aria-valuenow', '176')
+  })
 })
 
 describe('DataGrid – roving navigation across rows and columns', () => {

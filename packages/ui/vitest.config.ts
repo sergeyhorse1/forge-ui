@@ -15,7 +15,6 @@ export default defineConfig({
         '**/demo/**',
         'src/preview/**',
         '**/index.ts',
-        '**/types.ts',
         'src/styles/preset.ts',
       ],
       reporter: ['text', 'json-summary'],
