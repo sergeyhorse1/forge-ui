@@ -1,9 +1,10 @@
-import { useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 
 import { cn } from '../../utils/cn'
-import type { FlatOption } from './helpers'
+import type { ComboboxOption } from './helpers'
 import {
   comboboxGroupLabelVariants,
+  comboboxListVariants,
   comboboxOptionVariants,
   comboboxStatusVariants,
 } from './styles'
@@ -11,7 +12,7 @@ import type { ComboboxGroup, ComboboxItem, ComboboxVariantProps } from './types'
 
 interface ComboboxListProps {
   groups: ComboboxGroup[]
-  options: FlatOption[]
+  options: ComboboxOption[]
   loading: boolean
   isEmpty: boolean
   value: string
@@ -46,7 +47,12 @@ export function ComboboxList({
 
   return (
     // mousedown гасим, чтобы клик по опции не уводил фокус с инпута.
-    <div role="listbox" id={listboxId} onMouseDown={(event) => event.preventDefault()}>
+    <div
+      role="listbox"
+      id={listboxId}
+      className={cn(comboboxListVariants())}
+      onMouseDown={(event) => event.preventDefault()}
+    >
       {loading && (
         <div role="status" aria-live="polite" className={cn(comboboxStatusVariants())}>
           {loadingText}
@@ -65,7 +71,7 @@ export function ComboboxList({
             flatIndex += 1
             return (
               <Option
-                key={item.value}
+                key={option.id}
                 option={option}
                 selected={item.value === value}
                 active={activeIndex === option.index}
@@ -93,7 +99,7 @@ export function ComboboxList({
 }
 
 interface OptionProps {
-  option: FlatOption
+  option: ComboboxOption
   selected: boolean
   active: boolean
   size: ComboboxVariantProps['size']
@@ -103,8 +109,18 @@ interface OptionProps {
 
 function Option({ option, selected, active, size, onSelect, onHover }: OptionProps) {
   const { item } = option
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Навигация идёт через aria-activedescendant (фокус на инпуте), поэтому браузер
+  // сам не скроллит контейнер — подтягиваем активную опцию в зону видимости.
+  // scrollIntoView не переносит DOM-фокус; в jsdom метод отсутствует → optional-call.
+  useEffect(() => {
+    if (active) ref.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [active])
+
   return (
     <div
+      ref={ref}
       role="option"
       id={option.id}
       aria-selected={selected}
@@ -115,7 +131,7 @@ function Option({ option, selected, active, size, onSelect, onHover }: OptionPro
       onClick={() => onSelect(item)}
       onMouseMove={() => onHover(option.index)}
     >
-      <span className="truncate">{item.label}</span>
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {selected && <CheckIcon />}
     </div>
   )

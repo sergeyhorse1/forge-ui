@@ -29,9 +29,15 @@ export type ComboboxVariantProps = VariantProps<typeof comboboxInputVariants>
 export type ComboboxLoader = (query: string) => Promise<ComboboxItems>
 
 export interface ComboboxProps extends ComboboxVariantProps {
-  /** Static options for the synchronous, client-filtered mode. */
+  /**
+   * Static options for the synchronous, client-filtered mode. Mutually exclusive
+   * with `loadItems`; ignored when `loadItems` is provided.
+   */
   items?: ComboboxItems
-  /** Loader for the async mode; called with the debounced query. */
+  /**
+   * Loader for the async mode; called with the debounced query. Takes precedence
+   * over `items` — when set the component runs in async mode.
+   */
   loadItems?: ComboboxLoader
   /** Debounce applied to the query before `loadItems` runs. */
   debounceMs?: number

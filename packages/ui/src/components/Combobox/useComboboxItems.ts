@@ -56,17 +56,24 @@ export function useComboboxItems({
     const requestId = (requestIdRef.current += 1)
     setLoading(true)
 
+    // cancelled гасит setState после размонтирования/смены эффекта (в дополнение к
+    // requestId-гарду, отсеивающему устаревшие ответы).
+    let cancelled = false
     loader(debouncedQuery)
       .then((result) => {
-        if (requestId !== requestIdRef.current) return
+        if (cancelled || requestId !== requestIdRef.current) return
         setAsyncGroups(normalizeGroups(result))
         setLoading(false)
       })
       .catch(() => {
-        if (requestId !== requestIdRef.current) return
+        if (cancelled || requestId !== requestIdRef.current) return
         setAsyncGroups([])
         setLoading(false)
       })
+
+    return () => {
+      cancelled = true
+    }
   }, [debouncedQuery, open])
 
   if (!isAsync) {

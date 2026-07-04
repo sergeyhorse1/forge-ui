@@ -1,5 +1,7 @@
 export { Combobox } from './Combobox'
 export { useCombobox } from './useCombobox'
+export type { UseComboboxResult } from './useCombobox'
+export type { ComboboxOption } from './helpers'
 export {
   comboboxInputVariants,
   comboboxContentVariants,

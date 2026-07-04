@@ -170,7 +170,9 @@ export type {
   ComboboxGroup,
   ComboboxItems,
   ComboboxLoader,
+  ComboboxOption,
   ComboboxVariantProps,
+  UseComboboxResult,
 } from './components/Combobox'
 
 export { DatePicker, datePickerTriggerVariants, dayPickerClassNames } from './components/DatePicker'

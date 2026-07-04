@@ -51,6 +51,16 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
       setActiveIndex,
     } = combobox
 
+    // Живой анонс для скринридера: контейнер всегда смонтирован (вне портала), поэтому
+    // смена текста надёжно озвучивается, в отличие от портального статуса.
+    const liveMessage = !open
+      ? ''
+      : loading
+        ? loadingText
+        : isEmpty
+          ? emptyText
+          : `${options.length} ${options.length === 1 ? 'result' : 'results'} available`
+
     return (
       <div className="flex flex-col gap-1">
         <RadixPopover.Root open={open} onOpenChange={handleOpenChange}>
@@ -89,6 +99,9 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                   className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground"
                 />
               )}
+              <span role="status" aria-live="polite" className="sr-only">
+                {liveMessage}
+              </span>
             </div>
           </RadixPopover.Anchor>
           <RadixPopover.Portal>

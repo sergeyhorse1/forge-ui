@@ -4,16 +4,17 @@ import { useControllableState } from '../../hooks'
 import {
   enabledIndexes,
   flattenOptions,
-  type FlatOption,
+  type ComboboxOption,
 } from './helpers'
 import { useComboboxItems } from './useComboboxItems'
 import type { ComboboxGroup, ComboboxItem, ComboboxProps } from './types'
 
 const DEFAULT_DEBOUNCE_MS = 300
 
+/** Public shape returned by {@link useCombobox} for headless consumers. */
 export interface UseComboboxResult {
   groups: ComboboxGroup[]
-  options: FlatOption[]
+  options: ComboboxOption[]
   loading: boolean
   isEmpty: boolean
   open: boolean
@@ -180,7 +181,10 @@ export function useCombobox(props: ComboboxProps): UseComboboxResult {
     [open, enabled, activeIndex, options, selectOption, setOpen, inputValue, setInputValue],
   )
 
-  const activeId = open && activeIndex !== null ? options[activeIndex]?.id : undefined
+  // Во время loading options держат ещё старый набор, а рендер списка их прячет —
+  // не указываем activedescendant на несуществующий в DOM узел.
+  const activeId =
+    open && !loading && activeIndex !== null ? options[activeIndex]?.id : undefined
 
   return {
     groups,

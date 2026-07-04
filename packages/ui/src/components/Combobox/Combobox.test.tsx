@@ -4,7 +4,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Combobox } from './Combobox'
-import type { ComboboxItems } from './types'
+import type { ComboboxOption, ComboboxItems, UseComboboxResult } from '.'
 
 const fruits = [
   { value: 'apple', label: 'Apple' },
@@ -113,7 +113,8 @@ describe('Combobox — synchronous', () => {
   it('shows the empty state when nothing matches', () => {
     render(<Combobox items={fruits} defaultOpen aria-label="Fruit" emptyText="Nothing here" />)
     fireEvent.change(getCombobox(), { target: { value: 'zzz' } })
-    expect(screen.getByText('Nothing here')).toBeInTheDocument()
+    // Текст есть и в портальном статусе, и в sr-only live-region — скоупим на список.
+    expect(within(screen.getByRole('listbox')).getByText('Nothing here')).toBeInTheDocument()
   })
 
   it('works uncontrolled with a default value', () => {
@@ -205,5 +206,65 @@ describe('Combobox — asynchronous', () => {
 
     expect(screen.getByRole('option', { name: 'Fresh' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: 'Stale' })).not.toBeInTheDocument()
+  })
+
+  it('drops aria-activedescendant while a request is loading', async () => {
+    const { load, settle } = deferredLoader()
+    render(<Combobox loadItems={load} debounceMs={300} aria-label="Search" />)
+    const input = getCombobox()
+
+    fireEvent.change(input, { target: { value: 'a' } })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+    await settle('a', [{ value: 'a', label: 'Alpha' }])
+    // Результаты пришли → активная опция подсвечена.
+    expect(input).toHaveAttribute('aria-activedescendant')
+
+    // Новый запрос → снова loading, узла активной опции в DOM нет.
+    fireEvent.change(input, { target: { value: 'ab' } })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+    expect(input).toHaveAttribute('aria-busy', 'true')
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+  })
+})
+
+describe('Combobox — grouping edge cases', () => {
+  it('does not render a heading for a group with no matches', () => {
+    const grouped = [
+      { label: 'Fruit', items: [{ value: 'apple', label: 'Apple' }] },
+      { label: 'Veg', items: [{ value: 'carrot', label: 'Carrot' }] },
+    ]
+    render(<Combobox items={grouped} defaultInputValue="app" defaultOpen aria-label="Food" />)
+    expect(screen.getByRole('group', { name: 'Fruit' })).toBeInTheDocument()
+    // Пустая после фильтра группа не оставляет висячий заголовок.
+    expect(screen.queryByText('Veg')).not.toBeInTheDocument()
+  })
+
+  it('drops an already-empty group even without a query', () => {
+    const grouped = [
+      { label: 'Fruit', items: [{ value: 'apple', label: 'Apple' }] },
+      { label: 'Empty', items: [] },
+    ]
+    render(<Combobox items={grouped} defaultOpen aria-label="Food" />)
+    expect(screen.queryByText('Empty')).not.toBeInTheDocument()
+  })
+
+  it('renders duplicate-value items as distinct options (stable keys)', () => {
+    const dupes = [
+      { value: 'x', label: 'First X' },
+      { value: 'x', label: 'Second X' },
+    ]
+    render(<Combobox items={dupes} defaultOpen aria-label="Dupes" />)
+    expect(screen.getAllByRole('option')).toHaveLength(2)
+  })
+})
+
+describe('Combobox — public headless types', () => {
+  it('re-exports the hook result and option types', () => {
+    const asResult = (result: UseComboboxResult): ComboboxOption[] => result.options
+    expect(asResult).toBeTypeOf('function')
   })
 })

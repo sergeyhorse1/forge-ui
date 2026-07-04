@@ -127,3 +127,61 @@ export const Controlled: Story = {
     )
   },
 }
+
+const manyItems = Array.from({ length: 40 }, (_, index) => ({
+  value: `item-${index}`,
+  label: `Option number ${index + 1}`,
+}))
+
+export const LongList: Story = {
+  args: { items: manyItems, placeholder: 'Search…', 'aria-label': 'Long list' },
+  tags: ['test'],
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole('combobox')
+    await userEvent.click(input)
+    const listbox = await within(document.body).findByRole('listbox')
+
+    // Уводим подсветку далеко вниз — активная опция должна подтянуться в зону видимости.
+    await userEvent.keyboard('{ArrowDown>25/}')
+    const active = listbox.querySelector('[data-active="true"]') as HTMLElement
+    await expect(active).not.toBeNull()
+
+    // scrollIntoView сдвинул listbox-скроллер (без фикса scrollTop остался бы 0).
+    await expect(listbox.scrollTop).toBeGreaterThan(0)
+    const activeRect = active.getBoundingClientRect()
+    const viewRect = listbox.getBoundingClientRect()
+    await expect(activeRect.bottom).toBeLessThanOrEqual(viewRect.bottom + 1)
+    await expect(activeRect.top).toBeGreaterThanOrEqual(viewRect.top - 1)
+
+    // Индикатор активной опции виден (inset-ring => box-shadow != none).
+    await expect(getComputedStyle(active).boxShadow).not.toBe('none')
+  },
+}
+
+const longLabelItems = [
+  {
+    value: 'long',
+    label:
+      'An extremely long option label that easily exceeds the width of the combobox input and must be truncated with an ellipsis instead of stretching the popover',
+  },
+  { value: 'short', label: 'Short' },
+]
+
+export const LongLabels: Story = {
+  args: { items: longLabelItems, placeholder: 'Search…', 'aria-label': 'Long labels' },
+  tags: ['test'],
+  play: async ({ canvasElement }) => {
+    const input = within(canvasElement).getByRole('combobox')
+    await userEvent.click(input)
+    const listbox = await within(document.body).findByRole('listbox')
+    const option = within(listbox).getByRole('option', { name: /extremely long/ })
+
+    // Опция не шире контейнера (попап не распух под длинную строку).
+    await expect(option.getBoundingClientRect().width).toBeLessThanOrEqual(
+      listbox.getBoundingClientRect().width + 1,
+    )
+    // Текст реально обрезан: контент шире видимой ширины span.
+    const label = option.querySelector('span') as HTMLElement
+    await expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
+  },
+}
