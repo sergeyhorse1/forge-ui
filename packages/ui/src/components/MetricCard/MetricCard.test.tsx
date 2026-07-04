@@ -12,22 +12,26 @@ describe('MetricCard', () => {
     expect(screen.getByText('$12.4k')).toBeInTheDocument()
   })
 
-  it('shows a positive delta with the success colour', () => {
+  it('shows a positive delta with the emphasis success colour and announces direction', () => {
     render(<MetricCard title="Users" value={120} delta={12} />)
     const delta = screen.getByText('12').parentElement
-    expect(delta).toHaveClass('text-success')
+    expect(delta).toHaveClass('text-success-emphasis')
+    expect(delta).toHaveTextContent('Increased by 12')
   })
 
-  it('shows a negative delta with the destructive colour and absolute value', () => {
+  it('shows a negative delta with the emphasis destructive colour and announces direction', () => {
     render(<MetricCard title="Churn" value={5} delta={-3} />)
     const delta = screen.getByText('3').parentElement
-    expect(delta).toHaveClass('text-destructive')
+    expect(delta).toHaveClass('text-destructive-emphasis')
+    expect(delta).toHaveTextContent('Decreased by 3')
   })
 
-  it('shows a zero delta as muted', () => {
+  it('shows a zero delta as muted without a direction word', () => {
     render(<MetricCard title="Flat" value="99%" delta={0} />)
     const delta = screen.getByText('0').parentElement
     expect(delta).toHaveClass('text-muted-foreground')
+    expect(delta).not.toHaveTextContent('Increased')
+    expect(delta).not.toHaveTextContent('Decreased')
   })
 
   it('renders a delta label', () => {

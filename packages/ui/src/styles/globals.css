@@ -70,6 +70,15 @@
   --color-success-foreground: oklch(0.98 0.02 150);
   --color-warning: oklch(0.75 0.16 75);
   --color-warning-foreground: oklch(0.27 0.04 75);
+  /*
+   * On-surface trend text (metric deltas). Unlike success/destructive (used as
+   * fills with a light foreground pair), these are read AS text on card/background,
+   * so they need >= 4.5:1 there in BOTH themes. Light matches the base tokens
+   * (already 5.10-5.11 on white); dark is lightened (base dark-destructive is only
+   * 3.26:1 on card). Verified: light 5.11/5.10, dark 6.55/6.16 on card.
+   */
+  --color-success-emphasis: oklch(0.52 0.15 150);
+  --color-destructive-emphasis: oklch(0.565 0.22 27);
 
   /* Lines & focus */
   --color-border: oklch(0.92 0.01 286);
@@ -134,6 +143,9 @@
   --color-success-foreground: oklch(0.18 0.02 150);
   --color-warning: oklch(0.8 0.15 75);
   --color-warning-foreground: oklch(0.27 0.04 75);
+  /* Lightened trend text so it clears 4.5:1 on the dark card (base dest = 3.26). */
+  --color-success-emphasis: oklch(0.68 0.15 150);
+  --color-destructive-emphasis: oklch(0.7 0.17 27);
 
   --color-border: oklch(0.3 0.01 286);
   --color-input: oklch(0.32 0.01 286);

@@ -12,8 +12,9 @@ const metricValueVariants = cva(
 const metricDeltaVariants = cva('inline-flex items-center gap-1 text-sm font-medium', {
   variants: {
     trend: {
-      up: 'text-success',
-      down: 'text-destructive',
+      // *-emphasis — on-surface trend text with AA contrast on card in both themes.
+      up: 'text-success-emphasis',
+      down: 'text-destructive-emphasis',
       flat: 'text-muted-foreground',
     },
   },
@@ -48,9 +49,11 @@ function DeltaBadge({ delta }: { delta: MetricDelta }) {
   const value = typeof delta === 'number' ? delta : delta.value
   const label = typeof delta === 'number' ? undefined : delta.label
   const trend = trendOf(value)
+  const direction = trend === 'up' ? 'Increased by ' : trend === 'down' ? 'Decreased by ' : ''
   return (
     <span className={cn(metricDeltaVariants({ trend }))}>
       <TrendArrow trend={trend} />
+      {direction ? <span className="sr-only">{direction}</span> : null}
       <span>{Math.abs(value)}</span>
       {label ? <span className="text-muted-foreground">{label}</span> : null}
     </span>

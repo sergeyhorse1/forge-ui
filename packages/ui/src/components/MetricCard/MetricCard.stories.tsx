@@ -31,7 +31,7 @@ export const Positive: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await expect(canvas.getByText('12.5')).toBeInTheDocument()
-    await expect(canvas.getByText('12.5').parentElement).toHaveClass('text-success')
+    await expect(canvas.getByText('12.5').parentElement).toHaveClass('text-success-emphasis')
   },
 }
 
@@ -44,7 +44,7 @@ export const Negative: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    await expect(canvas.getByText('4.2').parentElement).toHaveClass('text-destructive')
+    await expect(canvas.getByText('4.2').parentElement).toHaveClass('text-destructive-emphasis')
   },
 }
 
