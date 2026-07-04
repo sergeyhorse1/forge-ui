@@ -279,3 +279,97 @@ export type {
   ToastData,
   ToastInput,
 } from './components/Toast'
+
+// --- Dashboard primitives ---
+
+export { MetricCard, metricCardVariants, metricDeltaVariants } from './components/MetricCard'
+export type { MetricCardProps, MetricDelta } from './components/MetricCard'
+
+export { KpiGrid, kpiGridVariants } from './components/KpiGrid'
+export type { KpiGridProps } from './components/KpiGrid'
+
+export {
+  EmptyState,
+  emptyStateVariants,
+  emptyStateIconVariants,
+  emptyStateTitleVariants,
+  emptyStateDescriptionVariants,
+} from './components/EmptyState'
+export type { EmptyStateProps } from './components/EmptyState'
+
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  tabsListVariants,
+  tabsTriggerVariants,
+  tabsContentVariants,
+} from './components/Tabs'
+export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from './components/Tabs'
+
+export {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+  accordionItemVariants,
+  accordionTriggerVariants,
+  accordionContentVariants,
+} from './components/Accordion'
+export type {
+  AccordionProps,
+  AccordionItemProps,
+  AccordionTriggerProps,
+  AccordionContentProps,
+} from './components/Accordion'
+
+export {
+  Toolbar,
+  ToolbarButton,
+  ToolbarLink,
+  ToolbarSeparator,
+  ToolbarToggleGroup,
+  ToolbarToggleItem,
+  toolbarVariants,
+  toolbarItemVariants,
+  toolbarSeparatorVariants,
+  toolbarToggleGroupVariants,
+} from './components/Toolbar'
+export type {
+  ToolbarProps,
+  ToolbarButtonProps,
+  ToolbarLinkProps,
+  ToolbarSeparatorProps,
+  ToolbarToggleGroupProps,
+  ToolbarToggleItemProps,
+} from './components/Toolbar'
+
+export {
+  Pagination,
+  getPaginationRange,
+  paginationItemVariants,
+  paginationNavVariants,
+  paginationEllipsisVariants,
+} from './components/Pagination'
+export type { PaginationProps, PaginationItem } from './components/Pagination'
+
+export {
+  CommandMenu,
+  useCommandMenu,
+  commandVariants,
+  commandInputWrapperVariants,
+  commandInputVariants,
+  commandListVariants,
+  commandEmptyVariants,
+  commandGroupVariants,
+  commandItemVariants,
+  commandShortcutVariants,
+} from './components/CommandMenu'
+export type {
+  CommandMenuProps,
+  CommandMenuItem,
+  CommandMenuGroup,
+  UseCommandMenuParams,
+  UseCommandMenuResult,
+} from './components/CommandMenu'

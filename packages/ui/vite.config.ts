@@ -37,6 +37,8 @@ export default defineConfig({
         '@tanstack/react-virtual',
         'react-day-picker',
         /^react-day-picker\//,
+        'cmdk',
+        /^cmdk\//,
       ],
       output: {
         preserveModules: true,
