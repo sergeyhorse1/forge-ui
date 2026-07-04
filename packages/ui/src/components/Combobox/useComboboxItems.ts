@@ -42,9 +42,12 @@ export function useComboboxItems({
   const debouncedQuery = useDebouncedValue(query, debounceMs)
   const [asyncGroups, setAsyncGroups] = useState<ComboboxGroup[]>([])
   const [loading, setLoading] = useState(false)
+  // Запрос, для которого asyncGroups уже актуальны. null = ни один ещё не резолвился.
+  const [resolvedQuery, setResolvedQuery] = useState<string | null>(null)
 
-  // Монотонный счётчик: ответ применяется, только если он от последнего запроса —
-  // иначе медленный старый ответ перезатёр бы свежий (load-bearing, есть тест).
+  // Монотонный счётчик отсеивает устаревшие ответы — если старый (медленный) запрос
+  // резолвится после нового, он игнорируется. cancelled-флаг ниже — defense-in-depth
+  // на размонтирование/смену эффекта (не отдельный тест, дублирует гард).
   const requestIdRef = useRef(0)
   const loadRef = useRef(loadItems)
   loadRef.current = loadItems
@@ -56,18 +59,18 @@ export function useComboboxItems({
     const requestId = (requestIdRef.current += 1)
     setLoading(true)
 
-    // cancelled гасит setState после размонтирования/смены эффекта (в дополнение к
-    // requestId-гарду, отсеивающему устаревшие ответы).
     let cancelled = false
     loader(debouncedQuery)
       .then((result) => {
         if (cancelled || requestId !== requestIdRef.current) return
         setAsyncGroups(normalizeGroups(result))
+        setResolvedQuery(debouncedQuery)
         setLoading(false)
       })
       .catch(() => {
         if (cancelled || requestId !== requestIdRef.current) return
         setAsyncGroups([])
+        setResolvedQuery(debouncedQuery)
         setLoading(false)
       })
 
@@ -79,5 +82,8 @@ export function useComboboxItems({
   if (!isAsync) {
     return { groups: syncGroups, loading: false }
   }
-  return { groups: asyncGroups, loading }
+  // Пока текущий debounced-запрос не резолвился — считаем loading, даже до того как
+  // эффект успел выставить флаг. Инвариант: нет кадра «No results» до первого ответа.
+  const effectiveLoading = open && (loading || resolvedQuery !== debouncedQuery)
+  return { groups: asyncGroups, loading: effectiveLoading }
 }

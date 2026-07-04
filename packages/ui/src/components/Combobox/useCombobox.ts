@@ -92,10 +92,13 @@ export function useCombobox(props: ComboboxProps): UseComboboxResult {
   const enabled = useMemo(() => enabledIndexes(options), [options])
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
-  // При смене набора опций или открытии подсвечиваем первую доступную опцию.
+  // Reset подсветки на первую опцию завязан ТОЛЬКО на смену набора опций (фильтр/
+  // резолв), НЕ на open-toggle: иначе открытие затирало бы явный active из клав-хендлера
+  // (ArrowUp-из-закрытого → последняя). activeId всё равно гейтится open, так что при
+  // закрытом списке подсветка не видна.
   useEffect(() => {
-    setActiveIndex(open && enabled.length > 0 ? enabled[0]! : null)
-  }, [groups, open, enabled])
+    setActiveIndex(enabled.length > 0 ? enabled[0]! : null)
+  }, [groups, enabled])
 
   const isEmpty = !loading && options.length === 0
 

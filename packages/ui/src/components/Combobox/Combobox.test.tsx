@@ -139,6 +139,84 @@ describe('Combobox — synchronous', () => {
     // Значение управляется извне → инпут не меняется без обновления пропа.
     expect(input).toHaveValue('controlled')
   })
+
+  it('opens and highlights the first option with ArrowDown when closed', () => {
+    render(<Combobox items={fruits} aria-label="Fruit" />)
+    const input = getCombobox()
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+    const options = screen.getAllByRole('option')
+    expect(input).toHaveAttribute('aria-activedescendant', options[0]!.id)
+  })
+
+  it('opens and highlights the last enabled option with ArrowUp when closed', () => {
+    render(<Combobox items={fruits} aria-label="Fruit" />)
+    const input = getCombobox()
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    const options = screen.getAllByRole('option')
+    // cherry disabled → последняя доступная banana (индекс 2).
+    expect(input).toHaveAttribute('aria-activedescendant', options[2]!.id)
+  })
+
+  it('clamps the active option at both ends without wrapping', () => {
+    render(<Combobox items={fruits} defaultOpen aria-label="Fruit" />)
+    const input = getCombobox()
+    const options = screen.getAllByRole('option')
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    // Уже на первой опции — вверх не заворачивает на последнюю.
+    expect(input).toHaveAttribute('aria-activedescendant', options[0]!.id)
+    for (let i = 0; i < 5; i += 1) fireEvent.keyDown(input, { key: 'ArrowDown' })
+    // Упираемся в последнюю доступную, без wrap на первую.
+    expect(input).toHaveAttribute('aria-activedescendant', options[2]!.id)
+  })
+
+  it('closes on Tab and keeps the input value', () => {
+    render(<Combobox items={fruits} defaultInputValue="ap" defaultOpen aria-label="Fruit" />)
+    const input = getCombobox()
+    fireEvent.keyDown(input, { key: 'Tab' })
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(input).toHaveValue('ap')
+  })
+
+  it('clears the input on a second Escape once the listbox is closed', () => {
+    render(<Combobox items={fruits} defaultInputValue="ap" defaultOpen aria-label="Fruit" />)
+    const input = getCombobox()
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(input).toHaveValue('ap')
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(input).toHaveValue('')
+  })
+
+  it('references the listbox with aria-controls only while open', () => {
+    render(<Combobox items={fruits} aria-label="Fruit" />)
+    const input = getCombobox()
+    expect(input).not.toHaveAttribute('aria-controls')
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    expect(input).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+  })
+
+  it('filters case-insensitively regardless of query casing', () => {
+    render(<Combobox items={fruits} defaultOpen aria-label="Fruit" />)
+    fireEvent.change(getCombobox(), { target: { value: 'AP' } })
+    expect(screen.getByRole('option', { name: 'Apple' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Apricot' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Banana' })).not.toBeInTheDocument()
+  })
+
+  it('treats a whitespace-only query as no filter', () => {
+    render(<Combobox items={fruits} defaultOpen aria-label="Fruit" />)
+    fireEvent.change(getCombobox(), { target: { value: '   ' } })
+    expect(screen.getAllByRole('option')).toHaveLength(fruits.length)
+  })
+
+  it('does not select a disabled option on click', () => {
+    const onValueChange = vi.fn()
+    render(<Combobox items={fruits} defaultOpen onValueChange={onValueChange} aria-label="Fruit" />)
+    fireEvent.click(screen.getByRole('option', { name: 'Cherry' }))
+    expect(onValueChange).not.toHaveBeenCalled()
+    expect(getCombobox()).toHaveAttribute('aria-expanded', 'true')
+  })
 })
 
 describe('Combobox — asynchronous', () => {
@@ -179,11 +257,44 @@ describe('Combobox — asynchronous', () => {
       await vi.advanceTimersByTimeAsync(300)
     })
     expect(load).toHaveBeenCalledWith('ab')
-    // Спиннер в инпуте тоже role=status — скоупим на список.
-    expect(within(screen.getByRole('listbox')).getByRole('status')).toHaveTextContent('Loading…')
+    // Видимая статус-строка теперь презентационная (role=status только у sr-only анонсера).
+    expect(within(screen.getByRole('listbox')).getByText('Loading…')).toBeInTheDocument()
 
     await settle('ab', [{ value: 'ab', label: 'AB result' }])
     expect(screen.getByRole('option', { name: 'AB result' })).toBeInTheDocument()
+  })
+
+  it('never flashes the empty state before the first async resolve', () => {
+    const { load } = deferredLoader()
+    render(
+      <Combobox
+        loadItems={load}
+        debounceMs={300}
+        emptyText="No matches"
+        loadingText="Loading…"
+        aria-label="Search"
+      />,
+    )
+    fireEvent.change(getCombobox(), { target: { value: 'a' } })
+    // Первый кадр после открытия async: показываем loading, а не ложный empty.
+    const listbox = screen.getByRole('listbox')
+    expect(within(listbox).queryByText('No matches')).not.toBeInTheDocument()
+    expect(within(listbox).getByText('Loading…')).toBeInTheDocument()
+  })
+
+  it('shows the empty state when the loader resolves with nothing', async () => {
+    const { load, settle } = deferredLoader()
+    render(
+      <Combobox loadItems={load} debounceMs={300} emptyText="No matches" aria-label="Search" />,
+    )
+    const input = getCombobox()
+    fireEvent.change(input, { target: { value: 'zz' } })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300)
+    })
+    await settle('zz', [])
+    expect(within(screen.getByRole('listbox')).getByText('No matches')).toBeInTheDocument()
+    expect(input).not.toHaveAttribute('aria-activedescendant')
   })
 
   it('discards a stale response when a newer query resolves first', async () => {

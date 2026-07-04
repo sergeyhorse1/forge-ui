@@ -53,16 +53,10 @@ export function ComboboxList({
       className={cn(comboboxListVariants())}
       onMouseDown={(event) => event.preventDefault()}
     >
-      {loading && (
-        <div role="status" aria-live="polite" className={cn(comboboxStatusVariants())}>
-          {loadingText}
-        </div>
-      )}
-      {!loading && isEmpty && (
-        <div role="status" aria-live="polite" className={cn(comboboxStatusVariants())}>
-          {emptyText}
-        </div>
-      )}
+      {/* Статус-строки чисто визуальные: единственный анонсер — sr-only role=status
+          рядом с инпутом (см. Combobox.tsx), иначе скринридер читал бы дважды. */}
+      {loading && <div className={cn(comboboxStatusVariants())}>{loadingText}</div>}
+      {!loading && isEmpty && <div className={cn(comboboxStatusVariants())}>{emptyText}</div>}
       {!loading &&
         groups.map((group, groupIndex) => {
           const labelId = `${groupBaseId}-${groupIndex}`

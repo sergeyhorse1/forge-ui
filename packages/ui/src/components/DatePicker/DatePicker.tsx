@@ -65,6 +65,9 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(
     const [selected, setSelected] = useControllableState<Date | DateRange | undefined>({
       value: props.value,
       defaultValue: props.defaultValue,
+      // Каст безопасен: onValueChange у дискриминированного union — это (Date=>void) ЛИБО
+      // (DateRange=>void); сводим к колбэку широкого типа, а фактический аргумент даёт
+      // ветка mode ниже (single→Date, range→DateRange), так что тип не нарушается.
       onChange: props.onValueChange as
         | ((value: Date | DateRange | undefined) => void)
         | undefined,

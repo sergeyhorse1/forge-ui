@@ -41,6 +41,41 @@ describe('DatePicker — single', () => {
   })
 })
 
+describe('DatePicker — keyboard', () => {
+  it('navigates days with the arrow keys and selects with Enter', async () => {
+    const onValueChange = vi.fn<(date: Date | undefined) => void>()
+    const user = userEvent.setup()
+    render(
+      <DatePicker aria-label="Date" defaultValue={july2026} onValueChange={onValueChange} />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Date' }))
+    const grid = await screen.findByRole('grid')
+
+    // Стартуем с выбранного дня (10), стрелкой вправо переходим на 11.
+    const day10 = within(grid).getByText('10')
+    day10.focus()
+    await user.keyboard('{ArrowRight}')
+    await user.keyboard('{Enter}')
+
+    expect(onValueChange).toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Date' })).toHaveTextContent('Jul 11, 2026')
+  })
+
+  it('selects the focused day with Space', async () => {
+    const user = userEvent.setup()
+    render(<DatePicker aria-label="Date" defaultValue={july2026} />)
+    await user.click(screen.getByRole('button', { name: 'Date' }))
+    const grid = await screen.findByRole('grid')
+
+    const day10 = within(grid).getByText('10')
+    day10.focus()
+    await user.keyboard('{ArrowDown}') // +7 дней → 17
+    await user.keyboard(' ')
+
+    expect(screen.getByRole('button', { name: 'Date' })).toHaveTextContent('Jul 17, 2026')
+  })
+})
+
 describe('DatePicker — range', () => {
   it('builds a range and shows both ends in the trigger', async () => {
     const onValueChange = vi.fn<(range: DateRange | undefined) => void>()
