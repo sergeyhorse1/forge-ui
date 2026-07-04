@@ -29,6 +29,7 @@
     "verify-styles": "node scripts/verify-dist-styles.mjs",
     "build:verify": "vite build && node scripts/verify-dist-styles.mjs",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.stories.json --noEmit"
   },
   "peerDependencies": {
@@ -59,6 +60,7 @@
     "@types/node": "26.0.1",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
+    "@vitest/coverage-v8": "4.1.9",
     "date-fns": "^4",
     "jsdom": "29.1.1",
     "lucide-react": "^1",
