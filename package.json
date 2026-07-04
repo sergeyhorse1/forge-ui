@@ -13,7 +13,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm --filter @sergeyhorse/forge test",
+    "test:storybook": "pnpm --filter storybook test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
