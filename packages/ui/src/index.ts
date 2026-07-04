@@ -155,6 +155,25 @@ export type { SwitchProps, SwitchVariantProps } from './components/Switch'
 export { Select, SelectItem, selectTriggerVariants, selectContentVariants, selectItemVariants } from './components/Select'
 export type { SelectProps, SelectItemProps, SelectOptionItem, SelectVariantProps } from './components/Select'
 
+export {
+  Combobox,
+  useCombobox,
+  comboboxInputVariants,
+  comboboxContentVariants,
+  comboboxOptionVariants,
+  comboboxGroupLabelVariants,
+  comboboxStatusVariants,
+} from './components/Combobox'
+export type {
+  ComboboxProps,
+  ComboboxItem,
+  ComboboxGroup,
+  ComboboxItems,
+  ComboboxLoader,
+  ComboboxVariantProps,
+} from './components/Combobox'
+
+
 // --- Overlay components ---
 
 export { Tooltip, tooltipContentVariants } from './components/Tooltip'
