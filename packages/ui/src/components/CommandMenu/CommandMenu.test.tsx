@@ -111,6 +111,45 @@ describe('CommandMenu', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('marks exactly one option active when a recent duplicates a group item', async () => {
+    render(
+      <CommandMenu
+        groups={makeGroups()}
+        recent={[{ value: 'settings', label: 'Open settings' }]}
+        defaultOpen
+      />,
+    )
+    await screen.findByRole('dialog')
+    expect(document.querySelectorAll('[aria-selected="true"]')).toHaveLength(1)
+  })
+
+  it('clears the search and restores recents on reopen', async () => {
+    const user = userEvent.setup()
+    const recent = [{ value: 'home', label: 'Go home' }]
+    const { rerender } = render(
+      <CommandMenu groups={makeGroups()} recent={recent} recentHeading="Recently used" open />,
+    )
+    const input = await screen.findByRole('combobox')
+    await user.type(input, 'log')
+    expect(screen.queryByText('Recently used')).not.toBeInTheDocument()
+
+    rerender(
+      <CommandMenu groups={makeGroups()} recent={recent} recentHeading="Recently used" open={false} />,
+    )
+    rerender(
+      <CommandMenu groups={makeGroups()} recent={recent} recentHeading="Recently used" open />,
+    )
+    const reopened = await screen.findByRole('combobox')
+    expect(reopened).toHaveValue('')
+    expect(screen.getByText('Recently used')).toBeInTheDocument()
+  })
+
+  it('does not render the dialog close button', async () => {
+    render(<CommandMenu groups={makeGroups()} defaultOpen />)
+    await screen.findByRole('dialog')
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+  })
+
   it('removes the document keydown listener on unmount', () => {
     const addSpy = vi.spyOn(document, 'addEventListener')
     const removeSpy = vi.spyOn(document, 'removeEventListener')

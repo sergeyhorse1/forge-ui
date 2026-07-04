@@ -5,7 +5,8 @@ export const commandVariants = cva(
 )
 
 export const commandInputWrapperVariants = cva(
-  'flex items-center gap-2 border-b border-border px-3',
+  // focus-within-ring на обёртке = видимый индикатор фокуса инпута (сам инпут outline-none).
+  'flex items-center gap-2 border-b border-border px-3 focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring',
 )
 
 export const commandInputVariants = cva(

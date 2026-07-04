@@ -17,8 +17,6 @@ export interface UseCommandMenuResult {
    * opener exists it also prevents Radix's default restore via the passed event.
    */
   restoreFocus: (event?: Event) => void
-  /** Captures the current focus target; call before opening programmatically. */
-  captureOpener: () => void
 }
 
 /**
@@ -44,10 +42,6 @@ export function useCommandMenu({
   const setOpenRef = useRef(setOpen)
   setOpenRef.current = setOpen
 
-  const captureOpener = useCallback(() => {
-    openerRef.current = document.activeElement as HTMLElement | null
-  }, [])
-
   const restoreFocus = useCallback((event?: Event) => {
     const opener = openerRef.current
     openerRef.current = null
@@ -58,11 +52,12 @@ export function useCommandMenu({
     }
   }, [])
 
+  // Один глобальный листенер на document; палитра — синглтон by convention.
   useEffect(() => {
     if (!hotkey) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return
-      event.preventDefault()
+      event.preventDefault() // цель хоткея — перехватить браузерный ⌘K
       if (!isOpenRef.current) openerRef.current = document.activeElement as HTMLElement | null
       setOpenRef.current(!isOpenRef.current)
     }
@@ -70,5 +65,5 @@ export function useCommandMenu({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [hotkey])
 
-  return { open: isOpen, setOpen, restoreFocus, captureOpener }
+  return { open: isOpen, setOpen, restoreFocus }
 }

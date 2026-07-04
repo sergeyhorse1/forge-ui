@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Command } from 'cmdk'
 
 import { cn } from '../../utils/cn'
@@ -39,6 +39,12 @@ export function CommandMenu({
   })
   const [search, setSearch] = useState('')
 
+  // CommandMenu смонтирован всегда — сбрасываем фильтр при закрытии, иначе reopen
+  // покажет устаревший поиск и спрячет recent.
+  useEffect(() => {
+    if (!isOpen) setSearch('')
+  }, [isOpen])
+
   const handleSelect = (item: CommandMenuItem) => {
     // Порядок важен: сначала действие пункта, затем внешний onSelect, затем закрытие
     // (фокус вернётся в onCloseAutoFocus).
@@ -55,6 +61,7 @@ export function CommandMenu({
       <DialogContent
         className="max-w-xl gap-0 overflow-hidden p-0"
         aria-describedby={undefined}
+        hideCloseButton
         onCloseAutoFocus={restoreFocus}
       >
         <DialogTitle className="sr-only">{label}</DialogTitle>
@@ -74,7 +81,14 @@ export function CommandMenu({
             {showRecent ? (
               <Command.Group heading={recentHeading} className={cn(commandGroupVariants())}>
                 {recent.map((item) => (
-                  <CommandRow key={`recent-${item.value}`} item={item} onSelect={handleSelect} />
+                  // Неймспейсим cmdk-value: иначе recent-двойник делит value с пунктом
+                  // группы → cmdk метит selected ОБА (double aria-selected).
+                  <CommandRow
+                    key={`recent-${item.value}`}
+                    item={item}
+                    cmdkValue={`recent:${item.value}`}
+                    onSelect={handleSelect}
+                  />
                 ))}
               </Command.Group>
             ) : null}
@@ -99,25 +113,28 @@ export function CommandMenu({
 
 function CommandRow({
   item,
+  cmdkValue = item.value,
   onSelect,
 }: {
   item: CommandMenuItem
+  /** cmdk selection/filter value; namespaced for recents. Reported value stays `item.value`. */
+  cmdkValue?: string
   onSelect: (item: CommandMenuItem) => void
 }) {
   return (
     <Command.Item
-      value={item.value}
+      value={cmdkValue}
       keywords={item.keywords}
       disabled={item.disabled}
       onSelect={() => onSelect(item)}
       className={cn(commandItemVariants())}
     >
       {item.icon ? (
-        <span className="flex size-4 items-center justify-center" aria-hidden="true">
+        <span className="flex size-4 shrink-0 items-center justify-center" aria-hidden="true">
           {item.icon}
         </span>
       ) : null}
-      <span>{item.label}</span>
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {item.shortcut ? <span className={cn(commandShortcutVariants())}>{item.shortcut}</span> : null}
     </Command.Item>
   )
