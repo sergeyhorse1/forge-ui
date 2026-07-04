@@ -1,0 +1,20 @@
+---
+title: Badge
+description: Non-interactive status label with five variants and two sizes.
+---
+
+import { BadgeExample } from '../../../examples/BadgeExample'
+
+Badges label status, categories or counts. They render as a `<span>` and support
+five colour variants and two sizes.
+
+<BadgeExample client:load />
+
+## Props
+
+| Prop      | Type                                                                  | Default     | Description               |
+| --------- | --------------------------------------------------------------------- | ----------- | ------------------------- |
+| `variant` | `'default' \| 'secondary' \| 'destructive' \| 'success' \| 'outline'` | `'default'` | Visual style.             |
+| `size`    | `'sm' \| 'md'`                                                        | `'md'`      | Control padding and text. |
+
+All native `<span>` attributes are also accepted.

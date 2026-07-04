@@ -1,0 +1,26 @@
+---
+title: Radio
+description: Radio group for selecting one option from a set.
+---
+
+import { RadioExample } from '../../../examples/RadioExample'
+
+A radio group built on the Radix radio primitive. Provide options as `items` data
+or as `RadioItem` children. Exactly one option can be selected at a time.
+
+<RadioExample client:load />
+
+## Props
+
+`RadioGroup` accepts the group props below; each option is a `RadioItem` with a
+`value` and `label`.
+
+| Prop            | Type                      | Default | Description                               |
+| --------------- | ------------------------- | ------- | ----------------------------------------- |
+| `items`         | `RadioItemProps[]`        | —       | Options as data (value, label, disabled). |
+| `value`         | `string`                  | —       | Controlled value.                         |
+| `defaultValue`  | `string`                  | —       | Initial value when uncontrolled.          |
+| `onValueChange` | `(value: string) => void` | —       | Called on selection.                      |
+| `size`          | `'sm' \| 'md' \| 'lg'`    | `'md'`  | Control size.                             |
+| `error`         | `string`                  | —       | Error message; toggles invalid styling.   |
+| `disabled`      | `boolean`                 | `false` | Disable the whole group.                  |

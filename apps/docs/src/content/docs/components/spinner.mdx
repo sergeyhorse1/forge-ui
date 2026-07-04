@@ -1,0 +1,20 @@
+---
+title: Spinner
+description: Animated loading indicator that respects reduced motion.
+---
+
+import { SpinnerExample } from '../../../examples/SpinnerExample'
+
+A lightweight SVG spinner for loading states. It inherits the current text colour
+and stops animating when the user prefers reduced motion.
+
+<SpinnerExample client:load />
+
+## Props
+
+| Prop         | Type                   | Default     | Description                      |
+| ------------ | ---------------------- | ----------- | -------------------------------- |
+| `size`       | `'sm' \| 'md' \| 'lg'` | `'md'`      | Spinner diameter.                |
+| `aria-label` | `string`               | `'Loading'` | Accessible label for the status. |
+
+All native `<svg>` attributes are also accepted.

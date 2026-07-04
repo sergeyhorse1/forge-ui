@@ -1,0 +1,23 @@
+---
+title: Checkbox
+description: Checkbox with an optional label and indeterminate state.
+---
+
+import { CheckboxExample } from '../../../examples/CheckboxExample'
+
+A checkbox built on the Radix checkbox primitive. It supports a two- or
+three-state (`indeterminate`) value and works controlled or uncontrolled.
+
+<CheckboxExample client:load />
+
+## Props
+
+| Prop              | Type                                            | Default | Description                             |
+| ----------------- | ----------------------------------------------- | ------- | --------------------------------------- |
+| `label`           | `string`                                        | —       | Text label beside the box.              |
+| `checked`         | `boolean \| 'indeterminate'`                    | —       | Controlled checked state.               |
+| `defaultChecked`  | `boolean \| 'indeterminate'`                    | —       | Initial state when uncontrolled.        |
+| `onCheckedChange` | `(checked: boolean \| 'indeterminate') => void` | —       | Called when the state changes.          |
+| `size`            | `'sm' \| 'md' \| 'lg'`                          | `'md'`  | Control size.                           |
+| `error`           | `string`                                        | —       | Error message; toggles invalid styling. |
+| `disabled`        | `boolean`                                       | `false` | Disable the control.                    |

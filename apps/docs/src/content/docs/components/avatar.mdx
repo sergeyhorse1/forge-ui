@@ -1,0 +1,22 @@
+---
+title: Avatar
+description: User avatar with image and automatic fallback initials.
+---
+
+import { AvatarExample } from '../../../examples/AvatarExample'
+
+Avatars represent a user or entity. When `src` is missing or the image fails to
+load, the `fallback` initials are shown instead.
+
+<AvatarExample client:load />
+
+## Props
+
+| Prop       | Type                   | Default | Description                                         |
+| ---------- | ---------------------- | ------- | --------------------------------------------------- |
+| `alt`      | `string`               | —       | Alt text for the image (required).                  |
+| `fallback` | `string`               | —       | Initials shown when the image is absent (required). |
+| `src`      | `string`               | —       | Image source URL.                                   |
+| `size`     | `'sm' \| 'md' \| 'lg'` | `'md'`  | Avatar diameter.                                    |
+
+All native `<span>` attributes are also accepted.

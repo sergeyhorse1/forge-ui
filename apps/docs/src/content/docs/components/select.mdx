@@ -1,0 +1,27 @@
+---
+title: Select
+description: Dropdown select with keyboard and type-ahead support.
+---
+
+import { SelectExample } from '../../../examples/SelectExample'
+
+A select built on the Radix select primitive. Provide options as `items` data or
+as `SelectItem` children. It supports controlled and uncontrolled usage.
+
+<SelectExample client:load />
+
+## Props
+
+| Prop            | Type                      | Default | Description                               |
+| --------------- | ------------------------- | ------- | ----------------------------------------- |
+| `items`         | `SelectOptionItem[]`      | —       | Options as data (value, label, disabled). |
+| `value`         | `string`                  | —       | Controlled value.                         |
+| `defaultValue`  | `string`                  | —       | Initial value when uncontrolled.          |
+| `onValueChange` | `(value: string) => void` | —       | Called on selection.                      |
+| `placeholder`   | `string`                  | —       | Text shown when nothing is selected.      |
+| `size`          | `'sm' \| 'md' \| 'lg'`    | `'md'`  | Trigger size.                             |
+| `error`         | `string`                  | —       | Error message; toggles invalid styling.   |
+| `disabled`      | `boolean`                 | `false` | Disable the control.                      |
+
+Use `SelectItem` (with `value` and children) instead of `items` to author options
+as JSX.

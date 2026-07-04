@@ -1,0 +1,24 @@
+---
+title: Textarea
+description: Multi-line text input with optional auto-resize.
+---
+
+import { TextareaExample } from '../../../examples/TextareaExample'
+
+A multi-line text field. It works controlled or uncontrolled, surfaces an inline
+error message and can grow to fit its content with `autoResize`.
+
+<TextareaExample client:load />
+
+## Props
+
+| Prop            | Type                      | Default | Description                             |
+| --------------- | ------------------------- | ------- | --------------------------------------- |
+| `value`         | `string`                  | —       | Controlled value.                       |
+| `defaultValue`  | `string`                  | —       | Initial value when uncontrolled.        |
+| `onValueChange` | `(value: string) => void` | —       | Called with the next value.             |
+| `size`          | `'sm' \| 'md' \| 'lg'`    | `'md'`  | Control size.                           |
+| `error`         | `string`                  | —       | Error message; toggles invalid styling. |
+| `autoResize`    | `boolean`                 | `false` | Grow the height to fit the content.     |
+
+All native `<textarea>` attributes are also accepted.

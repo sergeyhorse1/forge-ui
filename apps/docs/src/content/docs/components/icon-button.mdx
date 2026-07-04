@@ -1,0 +1,24 @@
+---
+title: IconButton
+description: Square icon-only button with a required accessible label.
+---
+
+import { IconButtonExample } from '../../../examples/IconButtonExample'
+
+An icon-only button built on `Button`. Because it has no visible text, an
+`aria-label` is required. It shares the button variants and adds a `loading`
+state.
+
+<IconButtonExample client:load />
+
+## Props
+
+| Prop         | Type                                                         | Default   | Description                            |
+| ------------ | ------------------------------------------------------------ | --------- | -------------------------------------- |
+| `icon`       | `React.ReactElement`                                         | —         | Icon element to render (required).     |
+| `aria-label` | `string`                                                     | —         | Accessible label (required).           |
+| `variant`    | `'solid' \| 'soft' \| 'outline' \| 'ghost' \| 'destructive'` | `'solid'` | Visual style.                          |
+| `size`       | `'sm' \| 'md' \| 'lg'`                                       | `'md'`    | Square control size.                   |
+| `loading`    | `boolean`                                                    | `false`   | Show a spinner and disable the button. |
+
+All native `<button>` attributes are also accepted.

@@ -1,0 +1,26 @@
+---
+title: DatePicker
+description: Calendar date picker with single and range selection.
+---
+
+import { DatePickerExample } from '../../../examples/DatePickerExample'
+
+A date picker that opens a calendar in a popover. It supports single-date or
+range selection, English and Russian locales, and controlled or uncontrolled
+usage.
+
+<DatePickerExample client:load />
+
+## Props
+
+| Prop             | Type                                  | Default    | Description                                |
+| ---------------- | ------------------------------------- | ---------- | ------------------------------------------ |
+| `mode`           | `'single' \| 'range'`                 | `'single'` | Selection mode.                            |
+| `value`          | `Date \| DateRange`                   | —          | Controlled value (type depends on `mode`). |
+| `defaultValue`   | `Date \| DateRange`                   | —          | Initial value when uncontrolled.           |
+| `onValueChange`  | `(value?: Date \| DateRange) => void` | —          | Called with the next value.                |
+| `locale`         | `'en' \| 'ru'`                        | `'en'`     | Calendar locale.                           |
+| `placeholder`    | `string`                              | —          | Trigger text when nothing is selected.     |
+| `size`           | `'sm' \| 'md' \| 'lg'`                | `'md'`     | Trigger size.                              |
+| `numberOfMonths` | `number`                              | —          | Month grids shown side by side.            |
+| `disabled`       | `boolean`                             | `false`    | Disable the trigger.                       |

@@ -1,0 +1,25 @@
+---
+title: Tooltip
+description: Accessible tooltip that appears on hover and focus.
+---
+
+import { TooltipExample } from '../../../examples/TooltipExample'
+
+A tooltip shows a short hint anchored to its trigger. It opens on hover and
+keyboard focus and is built on the Radix tooltip primitive. The single child is
+the trigger.
+
+<TooltipExample client:load />
+
+## Props
+
+| Prop            | Type                                     | Default    | Description                              |
+| --------------- | ---------------------------------------- | ---------- | ---------------------------------------- |
+| `content`       | `React.ReactNode`                        | —          | Tooltip content (required).              |
+| `side`          | `'top' \| 'right' \| 'bottom' \| 'left'` | `'top'`    | Preferred side.                          |
+| `align`         | `'start' \| 'center' \| 'end'`           | `'center'` | Content alignment.                       |
+| `delayDuration` | `number`                                 | `300`      | Delay before showing, in ms.             |
+| `arrow`         | `boolean`                                | `true`     | Show the arrow indicator.                |
+| `asChild`       | `boolean`                                | `true`     | Merge the trigger into the single child. |
+| `open`          | `boolean`                                | —          | Controlled open state.                   |
+| `onOpenChange`  | `(open: boolean) => void`                | —          | Open state change handler.               |

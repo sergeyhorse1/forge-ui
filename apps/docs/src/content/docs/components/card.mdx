@@ -1,0 +1,30 @@
+---
+title: Card
+description: Container surface composed from semantic sub-components.
+---
+
+import { CardExample } from '../../../examples/CardExample'
+
+A card groups related content on a bordered surface. It is composed from a small
+set of parts you arrange as needed.
+
+<CardExample client:load />
+
+## Anatomy
+
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent>Body</CardContent>
+  <CardFooter>Actions</CardFooter>
+</Card>
+```
+
+## Props
+
+`Card`, `CardHeader`, `CardContent` and `CardFooter` are `<div>` wrappers,
+`CardTitle` renders an `<h3>` and `CardDescription` a `<p>`. Each part forwards
+its ref and accepts all native attributes for its element.
