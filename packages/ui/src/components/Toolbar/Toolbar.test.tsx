@@ -52,4 +52,14 @@ describe('Toolbar', () => {
     await user.keyboard('{ArrowRight}')
     expect(screen.getByRole('radio', { name: 'Center' })).toHaveFocus()
   })
+
+  it('jumps to the first and last item with Home and End', async () => {
+    const user = userEvent.setup()
+    render(<TestToolbar />)
+    await user.tab()
+    await user.keyboard('{End}')
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveFocus()
+    await user.keyboard('{Home}')
+    expect(screen.getByRole('radio', { name: 'Left' })).toHaveFocus()
+  })
 })

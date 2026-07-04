@@ -47,4 +47,14 @@ describe('Tabs', () => {
     await user.keyboard('{ArrowRight}')
     expect(screen.getByRole('tab', { name: 'Activity' })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('jumps to the first and last tab with Home and End', async () => {
+    const user = userEvent.setup()
+    render(<TestTabs />)
+    await user.click(screen.getByRole('tab', { name: 'Overview' }))
+    await user.keyboard('{End}')
+    expect(screen.getByRole('tab', { name: 'Activity' })).toHaveAttribute('aria-selected', 'true')
+    await user.keyboard('{Home}')
+    expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true')
+  })
 })

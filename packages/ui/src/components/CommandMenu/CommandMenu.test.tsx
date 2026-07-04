@@ -26,6 +26,12 @@ function pressHotkey() {
   })
 }
 
+function pressHotkeyMeta() {
+  act(() => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
+  })
+}
+
 function makeGroups(onRun?: () => void): CommandMenuGroup[] {
   return [
     {
@@ -54,6 +60,12 @@ describe('CommandMenu', () => {
   it('opens and closes with the ⌘K / Ctrl+K hotkey (uncontrolled)', async () => {
     render(<CommandMenu groups={makeGroups()} />)
     pressHotkey()
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('opens with the ⌘K hotkey on macOS (metaKey)', async () => {
+    render(<CommandMenu groups={makeGroups()} />)
+    pressHotkeyMeta()
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
@@ -93,6 +105,23 @@ describe('CommandMenu', () => {
     const input = screen.getByRole('combobox')
     await user.type(input, 'log')
     expect(screen.queryByText('Recently used')).not.toBeInTheDocument()
+  })
+
+  it('reports the plain value when a recent item is picked', async () => {
+    const onSelect = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <CommandMenu
+        groups={makeGroups()}
+        recent={[{ value: 'reports', label: 'View reports' }]}
+        recentHeading="Recently used"
+        onSelect={onSelect}
+        defaultOpen
+      />,
+    )
+    await screen.findByRole('dialog')
+    await user.click(screen.getByText('View reports'))
+    expect(onSelect).toHaveBeenCalledWith('reports')
   })
 
   it('is controlled by the open prop', () => {

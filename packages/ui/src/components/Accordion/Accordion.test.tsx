@@ -47,4 +47,22 @@ describe('Accordion', () => {
     await user.click(screen.getByRole('button', { name: 'First' }))
     expect(screen.getByRole('button', { name: 'First' })).toHaveAttribute('aria-expanded', 'false')
   })
+
+  it('toggles a section with Enter from the keyboard', async () => {
+    const user = userEvent.setup()
+    render(<TestAccordion />)
+    const second = screen.getByRole('button', { name: 'Second' })
+    second.focus()
+    await user.keyboard('{Enter}')
+    expect(second).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('toggles a section with Space from the keyboard', async () => {
+    const user = userEvent.setup()
+    render(<TestAccordion />)
+    const second = screen.getByRole('button', { name: 'Second' })
+    second.focus()
+    await user.keyboard(' ')
+    expect(second).toHaveAttribute('aria-expanded', 'true')
+  })
 })
