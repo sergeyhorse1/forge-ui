@@ -10,6 +10,7 @@ export default defineConfig({
     starlight({
       title: 'Forge UI',
       description: 'Accessible, headless-first React components built on Radix and Tailwind.',
+      favicon: '/favicon.svg',
       social: [
         {
           icon: 'github',

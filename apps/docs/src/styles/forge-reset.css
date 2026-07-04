@@ -1,14 +1,7 @@
 /*
- * Scoped preflight — mirrors the component-relevant rules of Tailwind's global
- * preflight, confined to `.forge-preview`.
- *
- * The scope is written as `:where(.forge-preview)` so it contributes zero
- * specificity, exactly like the bare element selectors of the real preflight.
- * That is what lets the component utility classes (`.text-sm`, `.rounded-md`,
- * `.border`, …) win over the reset: Astro flattens the CSS cascade layers at
- * build time, so precedence falls back to specificity — and a plain `.text-sm`
- * (0,1,0) must outrank the reset. A `.forge-preview button` selector (0,1,1)
- * would clobber the utilities; the `:where()` wrapper prevents that.
+ * Скоуплённый preflight для превью: component-relevant правила глобального preflight
+ * Tailwind, ограниченные `.forge-preview`. Скоуп через `:where()` — нулевая
+ * специфичность (как голые селекторы оригинала), чтобы утилиты выигрывали. ADR-009.
  */
 :where(.forge-preview) {
   font-family:
@@ -82,13 +75,8 @@
   border-collapse: collapse;
 }
 
-/*
- * Form controls inherit the surrounding font *family* (so they use the sans
- * stack, not the UA control font) but NOT font-size / weight / line-height —
- * the components set those through utilities (`text-sm`, `font-medium`, …).
- * Using the `font` shorthand here would reset those longhands and, after
- * Astro's CSS flattening, unexpectedly outrank the utility classes.
- */
+/* Наследуем только семейство шрифта, не размер/вес/lh — их задают утилиты;
+   `font`-shorthand после уплощения слоёв перебивал бы их (ADR-009). */
 :where(.forge-preview) button,
 :where(.forge-preview) input,
 :where(.forge-preview) select,

@@ -1,28 +1,12 @@
 /*
- * Documentation stylesheet for the live component previews.
- *
- * The shipped `styles.css` bundles Tailwind's global preflight, which would
- * reset Starlight's own typography (headings, lists, tables) if imported
- * as-is. So instead of importing it, this file recompiles the same utilities
- * from the component sources and reuses the exact same design tokens
- * (tokens.css) — no values are duplicated — while confining the base reset to
- * the `.forge-preview` scope (forge-reset.css). Tokens and utilities are
- * emitted globally, which is harmless: custom properties and unused utility
- * classes never affect the surrounding docs. Preview wrappers also carry
- * Starlight's `not-content` class so the docs content styles do not leak into
- * a demo.
- *
- * The component utilities are emitted UNLAYERED on purpose. Starlight ships a
- * global, unlayered reset — `input, button, textarea, select { font: inherit }`
- * — and unlayered rules beat any `@layer`. If the utilities lived in a layer,
- * that reset would override `text-sm` / `font-medium` on every form control and
- * button. Kept unlayered, a `.text-sm` (0,1,0) simply outranks a bare `button`
- * (0,0,1). The reset below stays in the `base` layer and uses `:where()` (zero
- * specificity) so the utilities always win over it too.
+ * Стили живых превью в доках. Не импортируем прибилт `styles.css` (его глобальный
+ * preflight сбросил бы типографику Starlight): рекомпилируем утилиты из исходников
+ * и переиспользуем те же токены (tokens.css). Обоснование scoping — docs/adr/009.
  */
 @import 'tailwindcss/theme.css' layer(theme);
 @import '../../../../packages/ui/src/styles/tokens.css';
 @import './forge-reset.css' layer(base);
+/* unlayered: у Starlight глобальный unlayered `input,button{font:inherit}` бьёт @layer (ADR-009) */
 @import 'tailwindcss/utilities.css' source(none);
 
 @source '../../../../packages/ui/src/components';
