@@ -19,7 +19,7 @@ function InboxIcon() {
 export function EmptyStateExample() {
   return (
     <Preview>
-      <div className="w-full max-w-md">
+      <div className="w-full">
         <EmptyState
           icon={<InboxIcon />}
           title="No messages yet"
