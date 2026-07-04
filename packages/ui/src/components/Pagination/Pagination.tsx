@@ -105,7 +105,6 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
               className={cn(paginationItemVariants())}
               onClick={() => onPageChange(page - 1)}
               disabled={isFirst}
-              aria-disabled={isFirst || undefined}
               aria-label={previousLabel}
             >
               <ChevronIcon direction="left" />
@@ -138,7 +137,6 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
               className={cn(paginationItemVariants())}
               onClick={() => onPageChange(page + 1)}
               disabled={isLast}
-              aria-disabled={isLast || undefined}
               aria-label={nextLabel}
             >
               <ChevronIcon direction="right" />
