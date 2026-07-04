@@ -1,0 +1,22 @@
+---
+title: Switch
+description: Toggle control with an optional label.
+---
+
+import { SwitchExample } from '../../../examples/SwitchExample'
+
+A toggle switch built on the Radix switch primitive. It supports controlled and
+uncontrolled usage and an optional associated label.
+
+<SwitchExample client:load />
+
+## Props
+
+| Prop              | Type                         | Default | Description                      |
+| ----------------- | ---------------------------- | ------- | -------------------------------- |
+| `checked`         | `boolean`                    | —       | Controlled checked state.        |
+| `defaultChecked`  | `boolean`                    | —       | Initial state when uncontrolled. |
+| `onCheckedChange` | `(checked: boolean) => void` | —       | Called when the state changes.   |
+| `label`           | `string`                     | —       | Text label rendered beside it.   |
+| `size`            | `'sm' \| 'md' \| 'lg'`       | `'md'`  | Control size.                    |
+| `disabled`        | `boolean`                    | `false` | Disable the control.             |

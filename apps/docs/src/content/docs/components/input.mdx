@@ -1,0 +1,25 @@
+---
+title: Input
+description: Text field with sizes, addons and an error state.
+---
+
+import { InputExample } from '../../../examples/InputExample'
+
+A text field that works in both controlled and uncontrolled modes. Passing an
+`error` message toggles the invalid styling and wires up `aria-invalid` and
+`aria-describedby`.
+
+<InputExample client:load />
+
+## Props
+
+| Prop            | Type                      | Default | Description                             |
+| --------------- | ------------------------- | ------- | --------------------------------------- |
+| `size`          | `'sm' \| 'md' \| 'lg'`    | `'md'`  | Control height and padding.             |
+| `value`         | `string`                  | —       | Controlled value.                       |
+| `onValueChange` | `(value: string) => void` | —       | Called with the new value on input.     |
+| `error`         | `string`                  | —       | Error message; toggles invalid styling. |
+| `leftAddon`     | `ReactNode`               | —       | Content rendered before the field.      |
+| `rightAddon`    | `ReactNode`               | —       | Content rendered after the field.       |
+
+All native `<input>` attributes are also accepted.

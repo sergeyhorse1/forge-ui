@@ -1,0 +1,22 @@
+---
+title: Button
+description: Primary action button with five variants and three sizes.
+---
+
+import { ButtonExample } from '../../../examples/ButtonExample'
+
+Buttons trigger an action. They support five visual variants, three sizes, an
+`asChild` prop for polymorphic rendering and a built-in `loading` state.
+
+<ButtonExample client:load />
+
+## Props
+
+| Prop      | Type                                                         | Default   | Description                                |
+| --------- | ------------------------------------------------------------ | --------- | ------------------------------------------ |
+| `variant` | `'solid' \| 'soft' \| 'outline' \| 'ghost' \| 'destructive'` | `'solid'` | Visual style.                              |
+| `size`    | `'sm' \| 'md' \| 'lg'`                                       | `'md'`    | Control height and padding.                |
+| `loading` | `boolean`                                                    | `false`   | Show a spinner and disable the button.     |
+| `asChild` | `boolean`                                                    | `false`   | Merge props onto the single child element. |
+
+All native `<button>` attributes are also accepted.

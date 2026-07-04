@@ -1,0 +1,23 @@
+---
+title: Combobox
+description: Editable combobox with client-side filtering or async loading.
+---
+
+import { ComboboxExample } from '../../../examples/ComboboxExample'
+
+An editable combobox that follows the WAI-ARIA combobox pattern. Type to filter
+the list, navigate with the arrow keys and select with `Enter`. It supports
+synchronous filtering (`items`) or debounced async loading (`loadItems`).
+
+<ComboboxExample client:load />
+
+## Props
+
+| Prop            | Type                                | Default | Description                               |
+| --------------- | ----------------------------------- | ------- | ----------------------------------------- |
+| `items`         | `ComboboxItems`                     | —       | Static options for client-side filtering. |
+| `loadItems`     | `(query: string) => Promise<Items>` | —       | Async loader; enables async mode.         |
+| `value`         | `string`                            | —       | Controlled selected value.                |
+| `onValueChange` | `(value: string) => void`           | —       | Called on selection.                      |
+| `debounceMs`    | `number`                            | —       | Debounce applied before `loadItems`.      |
+| `error`         | `string`                            | —       | Error message; toggles invalid styling.   |

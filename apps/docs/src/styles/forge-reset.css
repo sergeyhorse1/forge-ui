@@ -1,0 +1,125 @@
+/*
+ * Scoped preflight — mirrors the component-relevant rules of Tailwind's global
+ * preflight, confined to `.forge-preview`.
+ *
+ * The scope is written as `:where(.forge-preview)` so it contributes zero
+ * specificity, exactly like the bare element selectors of the real preflight.
+ * That is what lets the component utility classes (`.text-sm`, `.rounded-md`,
+ * `.border`, …) win over the reset: Astro flattens the CSS cascade layers at
+ * build time, so precedence falls back to specificity — and a plain `.text-sm`
+ * (0,1,0) must outrank the reset. A `.forge-preview button` selector (0,1,1)
+ * would clobber the utilities; the `:where()` wrapper prevents that.
+ */
+:where(.forge-preview) {
+  font-family:
+    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  color: var(--color-foreground);
+}
+
+:where(.forge-preview),
+:where(.forge-preview) *,
+:where(.forge-preview) *::before,
+:where(.forge-preview) *::after,
+:where(.forge-preview) ::backdrop,
+:where(.forge-preview) ::file-selector-button {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+
+:where(.forge-preview) h1,
+:where(.forge-preview) h2,
+:where(.forge-preview) h3,
+:where(.forge-preview) h4,
+:where(.forge-preview) h5,
+:where(.forge-preview) h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+:where(.forge-preview) a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+:where(.forge-preview) b,
+:where(.forge-preview) strong {
+  font-weight: bolder;
+}
+
+:where(.forge-preview) ol,
+:where(.forge-preview) ul,
+:where(.forge-preview) menu {
+  list-style: none;
+}
+
+:where(.forge-preview) img,
+:where(.forge-preview) svg,
+:where(.forge-preview) video,
+:where(.forge-preview) canvas,
+:where(.forge-preview) audio,
+:where(.forge-preview) iframe,
+:where(.forge-preview) embed,
+:where(.forge-preview) object {
+  display: block;
+  vertical-align: middle;
+}
+
+:where(.forge-preview) img,
+:where(.forge-preview) video {
+  max-width: 100%;
+  height: auto;
+}
+
+:where(.forge-preview) table {
+  text-indent: 0;
+  border-color: inherit;
+  border-collapse: collapse;
+}
+
+/*
+ * Form controls inherit the surrounding font *family* (so they use the sans
+ * stack, not the UA control font) but NOT font-size / weight / line-height —
+ * the components set those through utilities (`text-sm`, `font-medium`, …).
+ * Using the `font` shorthand here would reset those longhands and, after
+ * Astro's CSS flattening, unexpectedly outrank the utility classes.
+ */
+:where(.forge-preview) button,
+:where(.forge-preview) input,
+:where(.forge-preview) select,
+:where(.forge-preview) optgroup,
+:where(.forge-preview) textarea,
+:where(.forge-preview) ::file-selector-button {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+:where(.forge-preview) button,
+:where(.forge-preview) input:where([type='button'], [type='reset'], [type='submit']),
+:where(.forge-preview) ::file-selector-button {
+  appearance: button;
+}
+
+:where(.forge-preview) ::placeholder {
+  opacity: 1;
+  color: color-mix(in oklab, currentcolor 50%, transparent);
+}
+
+:where(.forge-preview) textarea {
+  resize: vertical;
+}
+
+:where(.forge-preview) [hidden]:where(:not([hidden='until-found'])) {
+  display: none !important;
+}

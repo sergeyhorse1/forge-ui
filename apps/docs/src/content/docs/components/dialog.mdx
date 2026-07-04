@@ -1,0 +1,38 @@
+---
+title: Dialog
+description: Modal dialog built on the Radix dialog primitive.
+---
+
+import { DialogExample } from '../../../examples/DialogExample'
+
+A modal dialog with focus trapping, `Escape`-to-close, click-outside dismissal
+and focus return to the trigger. It is composed from a small set of parts.
+
+<DialogExample client:load />
+
+## Anatomy
+
+```tsx
+<Dialog>
+  <DialogTrigger asChild>
+    <Button>Open</Button>
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Title</DialogTitle>
+      <DialogDescription>Description</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <DialogClose asChild>
+        <Button variant="outline">Cancel</Button>
+      </DialogClose>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+## Props
+
+`Dialog` is controllable via `open` / `onOpenChange`. `DialogContent` accepts a
+`hideCloseButton` prop and all native `<div>` attributes; the trigger and close
+parts forward to their Radix equivalents and support `asChild`.

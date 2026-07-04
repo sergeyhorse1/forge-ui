@@ -1,0 +1,52 @@
+---
+title: Forge UI
+description: Accessible, headless-first React components built on Radix and Tailwind.
+template: splash
+hero:
+  tagline: Accessible, headless-first React components for data-dense apps — built on Radix and Tailwind, themeable out of the box.
+  actions:
+    - text: Get started
+      link: /getting-started/installation/
+      icon: right-arrow
+      variant: primary
+    - text: Browse components
+      link: /components/button/
+      icon: open-book
+      variant: secondary
+    - text: View on GitHub
+      link: https://github.com/sergeyhorse1/forge-ui
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+## Install
+
+```bash
+pnpm add @sergeyhorse/forge
+```
+
+<CardGrid>
+  <Card title="Accessible by default" icon="approve-check">
+    Keyboard navigation, focus management and ARIA roles ship with every component. Overlays trap
+    focus and restore it on close.
+  </Card>
+  <Card title="Headless-first" icon="setting">
+    Behaviour lives in framework-agnostic hooks; the presentation is a thin, fully typed layer you
+    can restyle or replace.
+  </Card>
+  <Card title="Themeable tokens" icon="seti:css">
+    A single set of design tokens drives light and dark themes. Opt into dark mode with a
+    `data-theme="dark"` attribute — no per-element variants.
+  </Card>
+  <Card title="Virtualized DataGrid" icon="list-format">
+    Frozen columns, a sticky header, multi-sort, selection and column resizing — virtualized to stay
+    smooth with large datasets.
+  </Card>
+</CardGrid>
+
+## Live examples
+
+Every component page renders a real, interactive React island — click, type and
+tab through the demos to see the components as they behave in your app.

@@ -1,0 +1,31 @@
+---
+title: DataGrid
+description: Virtualized data grid with frozen columns, sorting and selection.
+---
+
+import { DataGridExample } from '../../../examples/DataGridExample'
+
+A virtualized, headless-backed data grid. It renders only the visible window of
+rows and columns, so it stays smooth with large datasets. Frozen columns, a
+sticky header, multi-sort (click a header, `Shift`-click for secondary sorts),
+row selection and column resizing are all built in.
+
+<DataGridExample client:load />
+
+Click a header to sort, `Shift`-click to add a secondary sort, drag a header
+edge to resize, and click a row to select it. Keyboard navigation follows the
+WAI-ARIA grid pattern — focus a cell and move with the arrow keys.
+
+## Props
+
+| Prop        | Type                   | Default | Description                |
+| ----------- | ---------------------- | ------- | -------------------------- |
+| `rows`      | `readonly TRow[]`      | —       | The data to render.        |
+| `columns`   | `readonly ColumnDef[]` | —       | Column definitions.        |
+| `getRowKey` | `(row, index) => Key`  | —       | Stable unique key per row. |
+| `height`    | `number`               | `480`   | Total grid height in px.   |
+| `sort`      | `SortOptions`          | —       | Sorting configuration.     |
+| `selection` | `SelectionOptions`     | —       | Selection configuration.   |
+
+A column is pinned with `frozen: true`, aligned with `align`, and given a custom
+renderer through `cell`.
