@@ -2,8 +2,16 @@
  * Скоуплённый preflight для превью: component-relevant правила глобального preflight
  * Tailwind, ограниченные `.forge-preview`. Скоуп через `:where()` — нулевая
  * специфичность (как голые селекторы оригинала), чтобы утилиты выигрывали. ADR-009.
+ *
+ * Оверлеи (Dialog/Sheet/Popover/Select/Combobox/Tooltip/DatePicker/CommandMenu)
+ * портируются Radix'ом в `body` — ВНЕ `.forge-preview`, — поэтому scoped-reset до них
+ * не доедет и у портированных голых `<button>` вылезает нативная рамка браузера
+ * (кнопки-дни календаря, крестик Dialog). Добавляем в скоуп стабильные слои порталов:
+ * `[data-radix-popper-content-wrapper]` (popper: Popover/Select/Combobox/Tooltip/DatePicker)
+ * и `[role='dialog']`/`[role='alertdialog']` (Dialog/Sheet/CommandMenu). Оба — только
+ * Radix; поиск Starlight — нативный `<dialog>` без атрибута role, под селектор не попадает.
  */
-:where(.forge-preview) {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) {
   font-family:
     ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
     'Noto Color Emoji';
@@ -13,63 +21,63 @@
   color: var(--color-foreground);
 }
 
-:where(.forge-preview),
-:where(.forge-preview) *,
-:where(.forge-preview) *::before,
-:where(.forge-preview) *::after,
-:where(.forge-preview) ::backdrop,
-:where(.forge-preview) ::file-selector-button {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']),
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) *,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) *::before,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) *::after,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ::backdrop,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ::file-selector-button {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   border: 0 solid;
 }
 
-:where(.forge-preview) h1,
-:where(.forge-preview) h2,
-:where(.forge-preview) h3,
-:where(.forge-preview) h4,
-:where(.forge-preview) h5,
-:where(.forge-preview) h6 {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) h1,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) h2,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) h3,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) h4,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) h5,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) h6 {
   font-size: inherit;
   font-weight: inherit;
 }
 
-:where(.forge-preview) a {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) a {
   color: inherit;
   text-decoration: inherit;
 }
 
-:where(.forge-preview) b,
-:where(.forge-preview) strong {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) b,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) strong {
   font-weight: bolder;
 }
 
-:where(.forge-preview) ol,
-:where(.forge-preview) ul,
-:where(.forge-preview) menu {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ol,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ul,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) menu {
   list-style: none;
 }
 
-:where(.forge-preview) img,
-:where(.forge-preview) svg,
-:where(.forge-preview) video,
-:where(.forge-preview) canvas,
-:where(.forge-preview) audio,
-:where(.forge-preview) iframe,
-:where(.forge-preview) embed,
-:where(.forge-preview) object {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) img,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) svg,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) video,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) canvas,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) audio,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) iframe,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) embed,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) object {
   display: block;
   vertical-align: middle;
 }
 
-:where(.forge-preview) img,
-:where(.forge-preview) video {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) img,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) video {
   max-width: 100%;
   height: auto;
 }
 
-:where(.forge-preview) table {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) table {
   text-indent: 0;
   border-color: inherit;
   border-collapse: collapse;
@@ -77,12 +85,12 @@
 
 /* Наследуем только семейство шрифта, не размер/вес/lh — их задают утилиты;
    `font`-shorthand после уплощения слоёв перебивал бы их (ADR-009). */
-:where(.forge-preview) button,
-:where(.forge-preview) input,
-:where(.forge-preview) select,
-:where(.forge-preview) optgroup,
-:where(.forge-preview) textarea,
-:where(.forge-preview) ::file-selector-button {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) button,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) input,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) select,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) optgroup,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) textarea,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ::file-selector-button {
   font-family: inherit;
   font-feature-settings: inherit;
   font-variation-settings: inherit;
@@ -93,21 +101,21 @@
   opacity: 1;
 }
 
-:where(.forge-preview) button,
-:where(.forge-preview) input:where([type='button'], [type='reset'], [type='submit']),
-:where(.forge-preview) ::file-selector-button {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) button,
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) input:where([type='button'], [type='reset'], [type='submit']),
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ::file-selector-button {
   appearance: button;
 }
 
-:where(.forge-preview) ::placeholder {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) ::placeholder {
   opacity: 1;
   color: color-mix(in oklab, currentcolor 50%, transparent);
 }
 
-:where(.forge-preview) textarea {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) textarea {
   resize: vertical;
 }
 
-:where(.forge-preview) [hidden]:where(:not([hidden='until-found'])) {
+:where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) [hidden]:where(:not([hidden='until-found'])) {
   display: none !important;
 }

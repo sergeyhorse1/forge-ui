@@ -61,3 +61,10 @@ isolation but creates a second source of truth.
 - The scoping was verified empirically in both Starlight themes: the rendered
   Solid button matches Storybook (14px / 500 / 40px height / 8px radius / primary
   fill) while Starlight's own headings and lists keep their styling.
+- Overlay components portal their content to `body`, outside `.forge-preview`, so
+  the scoped preflight also targets the Radix portal layers
+  (`[data-radix-popper-content-wrapper]`, `[role='dialog']`, `[role='alertdialog']`).
+  Without it, portaled bare `<button>`s (calendar days, the dialog close control)
+  fall back to the native browser border. Those selectors are Radix-only —
+  Starlight's search is a native `<dialog>` with no `role` attribute, so the reset
+  never touches it.
