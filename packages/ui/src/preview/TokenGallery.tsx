@@ -12,8 +12,6 @@ const SWATCHES = [
   { name: 'Warning', swatchClassName: 'bg-warning' },
 ] as const
 
-// Демо-галерея семантических токенов: сквозная проверка пайплайна
-// Storybook + Tailwind + theming. Из пакета не экспортируется.
 export function TokenGallery() {
   return (
     <section className="flex flex-col gap-4">

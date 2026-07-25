@@ -31,7 +31,6 @@ export interface UseComboboxResult {
   openList: () => void
 }
 
-/** Move to the next/previous enabled option, clamping at the ends (no wrap). */
 function step(enabled: number[], current: number | null, delta: 1 | -1): number | null {
   if (enabled.length === 0) return null
   if (current === null) return delta === 1 ? enabled[0]! : enabled[enabled.length - 1]!

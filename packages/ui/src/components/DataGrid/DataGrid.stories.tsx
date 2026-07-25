@@ -39,7 +39,8 @@ export const Default: Story = {
 
     // Монтируется только видимое окно (плюс overscan), не весь датасет.
     const renderedCells = canvasElement.querySelectorAll('[role="gridcell"]')
-    const visibleRows = Math.ceil(420 / 40) + 8 /* overscanRows */ + 1
+    const overscanRows = 8
+    const visibleRows = Math.ceil(420 / 40) + overscanRows + 1
     const maxCells = visibleRows * demoColumns.length
     await expect(renderedCells.length).toBeGreaterThan(0)
     await expect(renderedCells.length).toBeLessThanOrEqual(maxCells)

@@ -1,28 +1,12 @@
-// Guards the published stylesheet on two fronts:
-//
-//  1. It must still carry the load-bearing component utilities. The Tailwind
-//     content scan is configured in globals.css; if that scope ever breaks, the
-//     emitted CSS quietly drops to a handful of token rules and every consumer
-//     renders an unstyled grid — something the unit and story tests do not catch.
-//
-//  2. It must NOT carry demo, preview, story or test classes. globals.css scopes
-//     the scan to the published directories precisely so these never leak; this
-//     check fails loudly if a stray `@source` (or a demo file moved under a
-//     scanned path) starts bloating the bundle again.
-//
-// Run after `vite build`. It reads dist/styles.css and asserts both invariants.
+// Скоуп content-scan из globals.css рвётся молча: юнит- и стори-тесты не заметят ни пропавших утилит, ни протёкших классов демок
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const STYLESHEET = fileURLToPath(new URL('../dist/styles.css', import.meta.url))
 
-// Emitted only when the published component sources are scanned. `overflow-auto`
-// also clips the virtualizer overscan, so its presence is doubly load-bearing.
+// overflow-auto ещё и обрезает overscan виртуализатора, так что его пропажа бьёт дважды
 const REQUIRED_CLASSES = ['overflow-auto', 'truncate', 'ring-ring', 'bg-muted']
 
-// Emitted only by demo harnesses, the token-preview gallery or stories. None of
-// these files are exported from the package entry, so their classes must never
-// reach the published CSS.
 const FORBIDDEN_CLASSES = ['grid-cols-2', 'font-mono', 'max-w-prose', 'min-h-svh']
 
 function fail(message) {

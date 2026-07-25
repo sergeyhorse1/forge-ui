@@ -1,16 +1,5 @@
-/*
- * Скоуплённый preflight для превью: component-relevant правила глобального preflight
- * Tailwind, ограниченные `.forge-preview`. Скоуп через `:where()` — нулевая
- * специфичность (как голые селекторы оригинала), чтобы утилиты выигрывали. ADR-009.
- *
- * Оверлеи (Dialog/Sheet/Popover/Select/Combobox/Tooltip/DatePicker/CommandMenu)
- * портируются Radix'ом в `body` — ВНЕ `.forge-preview`, — поэтому scoped-reset до них
- * не доедет и у портированных голых `<button>` вылезает нативная рамка браузера
- * (кнопки-дни календаря, крестик Dialog). Добавляем в скоуп стабильные слои порталов:
- * `[data-radix-popper-content-wrapper]` (popper: Popover/Select/Combobox/Tooltip/DatePicker)
- * и `[role='dialog']`/`[role='alertdialog']` (Dialog/Sheet/CommandMenu). Оба — только
- * Radix; поиск Starlight — нативный `<dialog>` без атрибута role, под селектор не попадает.
- */
+/* :where() даёт нулевую специфичность, чтобы утилиты выигрывали у reset (ADR-009) */
+/* Слои порталов в скоупе: Radix уносит оверлеи в body, там reset их иначе не догонит */
 :where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) {
   font-family:
     ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
@@ -83,8 +72,7 @@
   border-collapse: collapse;
 }
 
-/* Наследуем только семейство шрифта, не размер/вес/lh — их задают утилиты;
-   `font`-shorthand после уплощения слоёв перебивал бы их (ADR-009). */
+/* Только family, без `font`-shorthand: после уплощения слоёв он перебил бы размер и вес от утилит */
 :where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) button,
 :where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) input,
 :where(.forge-preview, [data-radix-popper-content-wrapper], [role='dialog'], [role='alertdialog']) select,

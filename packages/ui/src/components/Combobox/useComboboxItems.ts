@@ -9,7 +9,6 @@ interface UseComboboxItemsParams {
   loadItems?: ComboboxLoader
   query: string
   debounceMs: number
-  /** Fetch only while the listbox is open. */
   open: boolean
 }
 
@@ -20,11 +19,6 @@ interface ComboboxItemsState {
 
 const EMPTY: ComboboxItems = []
 
-/**
- * Resolve the options to render. In sync mode the static `items` are filtered
- * client-side by the query. In async mode the debounced query drives `loadItems`
- * and stale responses are discarded so the latest request always wins.
- */
 export function useComboboxItems({
   items,
   loadItems,

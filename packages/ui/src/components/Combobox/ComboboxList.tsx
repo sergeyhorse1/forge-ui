@@ -25,7 +25,6 @@ interface ComboboxListProps {
   onHover: (index: number) => void
 }
 
-/** Presentational listbox: groups, options and the loading/empty status rows. */
 export function ComboboxList({
   groups,
   options,

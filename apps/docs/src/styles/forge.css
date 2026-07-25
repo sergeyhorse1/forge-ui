@@ -1,8 +1,4 @@
-/*
- * Стили живых превью в доках. Не импортируем прибилт `styles.css` (его глобальный
- * preflight сбросил бы типографику Starlight): рекомпилируем утилиты из исходников
- * и переиспользуем те же токены (tokens.css). Обоснование scoping — docs/adr/009.
- */
+/* Прибилт styles.css не берём: его глобальный preflight сбросил бы типографику Starlight (ADR-009) */
 @import 'tailwindcss/theme.css' layer(theme);
 @import '../../../../packages/ui/src/styles/tokens.css';
 @import './forge-reset.css' layer(base);

@@ -1,13 +1,4 @@
-// Guards against a silent regression where the built Storybook ships without the
-// component utility classes. Tailwind's content scan is anchored to the build
-// root, so the library's component sources (a sibling package) must be added as
-// an explicit `@source`; if that ever breaks, the emitted CSS quietly drops to a
-// handful of decorator rules and every component renders unstyled — something the
-// story snapshots and a11y checks do not catch.
-//
-// Run after `storybook build`. It reads the freshest emitted stylesheet and
-// asserts both that load-bearing component classes are present and that the rule
-// count is well above the bare-decorator baseline.
+// Content-scan Tailwind якорится на build-root, поэтому исходники пакета подключены явным @source: сломается, и CSS молча схлопнется до правил декоратора
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -16,8 +7,6 @@ const ASSETS_DIR = fileURLToPath(
   new URL('../storybook-static/assets', import.meta.url),
 )
 
-// Classes emitted only when the component package is scanned. `overflow-auto`
-// also clips the virtualizer overscan, so its presence is doubly load-bearing.
 const REQUIRED_CLASSES = [
   'overflow-auto',
   'bg-muted',
@@ -26,8 +15,7 @@ const REQUIRED_CLASSES = [
   'text-muted-foreground',
 ]
 
-// A package-less build emits roughly six decorator rules; a healthy build emits
-// well over forty. The threshold sits comfortably between the two.
+// Билд без пакета выпускает около шести правил декоратора, здоровый заметно больше сорока
 const MIN_RULE_COUNT = 40
 
 function fail(message) {
@@ -44,8 +32,7 @@ try {
 
 if (cssFiles.length === 0) fail('no CSS asset was emitted by the build')
 
-// storybook-static is not cleaned between builds, so several hashed stylesheets
-// may coexist. The most recently written one belongs to the current build.
+// storybook-static между билдами не чистится, так что рядом лежат несколько хешированных стилей
 const newest = cssFiles
   .map((name) => {
     const path = join(ASSETS_DIR, name)

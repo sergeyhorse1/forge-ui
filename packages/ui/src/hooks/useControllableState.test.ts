@@ -37,9 +37,8 @@ describe('useControllableState', () => {
 
     act(() => result.current[1]('b'))
 
-    // Setter must not mutate internal state in controlled mode...
+    // В controlled-режиме сеттер только предлагает значение родителю, своё состояние не двигает
     expect(result.current[0]).toBe('a')
-    // ...but still notifies the parent so it can update the prop.
     expect(onChange).toHaveBeenCalledWith('b')
 
     rerender({ value: 'b' })

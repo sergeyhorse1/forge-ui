@@ -1,18 +1,4 @@
-/*
- * Design tokens — the single source of truth shared by the pre-built
- * `styles.css`, the exported Tailwind preset and the documentation site.
- * Imported by globals.css (this package) and by the docs stylesheet so token
- * values are never duplicated.
- *
- * Values are authored for the light theme; the dark theme overrides the same
- * custom properties at the bottom of this file.
- */
-
-/*
- * Dark mode is opt-in via a `data-theme="dark"` attribute on (or above) the
- * element tree. The `@variant dark` definition lets `dark:` utilities target
- * that attribute instead of the default `prefers-color-scheme` media query.
- */
+/* Тёмная тема включается атрибутом, а не prefers-color-scheme: консьюмер решает сам */
 @variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
@@ -34,7 +20,7 @@
 
   /* States */
   --color-muted: oklch(0.97 0.01 286);
-  /* L tuned to keep muted text >= 4.5:1 (WCAG AA) on the muted header surface. */
+  /* L поджата под контраст >= 4.5:1 на muted-поверхности шапки (WCAG AA). */
   --color-muted-foreground: oklch(0.5 0.01 286);
   /* L поджата так, чтобы белый foreground держал контраст >= 4.5:1 (WCAG AA). */
   --color-destructive: oklch(0.565 0.22 27);
@@ -43,13 +29,7 @@
   --color-success-foreground: oklch(0.98 0.02 150);
   --color-warning: oklch(0.75 0.16 75);
   --color-warning-foreground: oklch(0.27 0.04 75);
-  /*
-   * On-surface trend text (metric deltas). Unlike success/destructive (used as
-   * fills with a light foreground pair), these are read AS text on card/background,
-   * so they need >= 4.5:1 there in BOTH themes. Light matches the base tokens
-   * (already 5.10-5.11 on white); dark is lightened (base dark-destructive is only
-   * 3.26:1 on card). Verified: light 5.11/5.10, dark 6.55/6.16 on card.
-   */
+  /* Читаются как текст на card, не как заливка, поэтому нужны свои 4.5:1 в обеих темах (light 5.11/5.10, dark 6.55/6.16). */
   --color-success-emphasis: oklch(0.52 0.15 150);
   --color-destructive-emphasis: oklch(0.565 0.22 27);
 
@@ -65,7 +45,7 @@
   --radius-lg: calc(var(--radius) + 0.25rem);
   --radius-xl: calc(var(--radius) + 0.5rem);
 
-  /* Motion — Accordion collapse driven by Radix content-height variable. */
+  /* Motion */
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 }
@@ -88,11 +68,7 @@
   }
 }
 
-/*
- * Dark theme overrides. Re-declaring the `--color-*` custom properties on the
- * themed scope swaps every utility that references them, no `dark:` variants
- * required on individual elements.
- */
+/* Переобъявили токены на скоупе темы, и все утилиты развернулись сразу, без dark:-вариантов на элементах */
 [data-theme='dark'] {
   --color-background: oklch(0.18 0.01 286);
   --color-foreground: oklch(0.96 0.01 286);
@@ -116,7 +92,7 @@
   --color-success-foreground: oklch(0.18 0.02 150);
   --color-warning: oklch(0.8 0.15 75);
   --color-warning-foreground: oklch(0.27 0.04 75);
-  /* Lightened trend text so it clears 4.5:1 on the dark card (base dest = 3.26). */
+  /* Светлее базовых: базовый destructive даёт на тёмной карточке только 3.26:1. */
   --color-success-emphasis: oklch(0.68 0.15 150);
   --color-destructive-emphasis: oklch(0.7 0.17 27);
 

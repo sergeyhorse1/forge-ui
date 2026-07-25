@@ -2,21 +2,13 @@ import { useEffect } from 'react'
 
 import type { Decorator, Preview } from '@storybook/react-vite'
 
-// Pre-built design tokens. Importing the source stylesheet lets the Tailwind
-// Vite plugin (see main.ts) compile the same utilities the library ships with.
+// Берём исходник, не прибилт: тогда плагин Tailwind соберёт те же утилиты, что уезжают в пакет
 import '../../../packages/ui/src/styles/globals.css'
-// Utilities used only by demo, preview and story files. globals.css scopes its
-// scan to published code so dist stays lean; this re-adds those classes for the
-// Storybook build (see storybook.css).
 import './storybook.css'
 
 type Theme = 'light' | 'dark'
 
-/**
- * Reflects the toolbar selection onto `<html data-theme>` so the
- * `[data-theme='dark']` token overrides in globals.css take effect, matching how
- * consumers opt into dark mode.
- */
+// Тему кладём на <html data-theme>, как это делает консьюмер: иначе dark-переопределения токенов не сработают
 const withTheme: Decorator = (Story, context) => {
   const theme = context.globals.theme as Theme
 
@@ -61,8 +53,6 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-    // Fail stories that contain accessibility violations instead of only
-    // surfacing them in the panel.
     a11y: {
       test: 'error',
     },

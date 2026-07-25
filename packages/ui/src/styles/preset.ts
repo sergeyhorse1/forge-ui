@@ -1,6 +1,4 @@
-// Типизированные токены для тех, кто собирает Forge вместе со своим Tailwind
-// (см. ADR-005). Значения зеркалят globals.css — он остаётся единственным
-// источником правды для собранного styles.css.
+// Значения зеркалят globals.css: правишь токен там, правь и здесь (ADR-005)
 
 export interface ForgeThemeTokens {
   colors: Record<string, string>

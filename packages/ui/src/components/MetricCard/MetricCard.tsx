@@ -12,7 +12,7 @@ const metricValueVariants = cva(
 const metricDeltaVariants = cva('inline-flex items-center gap-1 text-sm font-medium', {
   variants: {
     trend: {
-      // *-emphasis — on-surface trend text with AA contrast on card in both themes.
+      // Дельты читаются как текст на карточке, поэтому берём *-emphasis: у базовых токенов не хватает контраста
       up: 'text-success-emphasis',
       down: 'text-destructive-emphasis',
       flat: 'text-muted-foreground',
@@ -95,7 +95,7 @@ function Sparkline({ data, label }: { data: number[]; label?: string }) {
   const height = 32
   const min = Math.min(...data)
   const max = Math.max(...data)
-  // Guard: плоский ряд (min==max) не должен делить на ноль — рисуем по центру.
+  // Плоский ряд (min==max) иначе делил бы на ноль, поэтому рисуем по центру
   const range = max - min || 1
   const stepX = data.length > 1 ? width / (data.length - 1) : 0
   const points = data

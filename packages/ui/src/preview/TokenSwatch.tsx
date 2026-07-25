@@ -1,13 +1,10 @@
 import { cn } from '../utils/cn'
 
 interface TokenSwatchProps {
-  /** Human-readable token name shown under the color. */
   name: string
-  /** Tailwind background utility backed by a design token, e.g. `bg-primary`. */
   swatchClassName: string
 }
 
-// Демо-строительный блок для галереи токенов; в публичный API не входит.
 export function TokenSwatch({ name, swatchClassName }: TokenSwatchProps) {
   return (
     <figure className="flex flex-col gap-2">

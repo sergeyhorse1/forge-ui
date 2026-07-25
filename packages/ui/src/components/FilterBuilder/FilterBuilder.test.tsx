@@ -128,7 +128,7 @@ describe('FilterBuilder — recursion path correctness', () => {
         within(g).getByRole('button', { name: 'OR' }).getAttribute('aria-pressed') ===
         'true',
     )!
-    // toggle (role=group) → groupHeader → groupPanel
+    // Путь наверх от тоггла: groupHeader, затем groupPanel
     const nestedPanel = nestedToggle.parentElement!.parentElement!
     fireEvent.click(
       within(nestedPanel).getAllByRole('button', { name: 'Add rule' })[0]!,
@@ -160,7 +160,7 @@ describe('FilterBuilder — recursion path correctness', () => {
         within(g).getByRole('button', { name: 'OR' }).getAttribute('aria-pressed') ===
         'true',
     )!
-    // toggle (role=group) → groupHeader → groupPanel
+    // Путь наверх от тоггла: groupHeader, затем groupPanel
     const nestedPanel = nestedToggle.parentElement!.parentElement!
     fireEvent.click(
       within(nestedPanel).getAllByRole('button', { name: 'Add group' })[0]!,

@@ -99,8 +99,6 @@ export {
 } from './hooks'
 export type { UseControllableStateParams } from './hooks'
 
-// --- Base components ---
-
 export { Button, buttonVariants } from './components/Button'
 export type { ButtonProps, ButtonVariantProps } from './components/Button'
 
@@ -184,9 +182,6 @@ export type {
   RangeDatePickerProps,
   DateRange,
 } from './components/DatePicker'
-
-
-// --- Overlay components ---
 
 export { Tooltip, tooltipContentVariants } from './components/Tooltip'
 export type { TooltipProps } from './components/Tooltip'
@@ -279,8 +274,6 @@ export type {
   ToastData,
   ToastInput,
 } from './components/Toast'
-
-// --- Dashboard primitives ---
 
 export { MetricCard, metricCardVariants, metricDeltaVariants } from './components/MetricCard'
 export type { MetricCardProps, MetricDelta } from './components/MetricCard'

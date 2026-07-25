@@ -49,7 +49,7 @@ describe('DataGrid sorting – multi-key tie-breaks', () => {
     // Первичный: team asc. Вторичный: score desc.
     act(() => result.current.sort.toggle('team', false))
     act(() => result.current.sort.toggle('score', true))
-    act(() => result.current.sort.toggle('score', true)) // asc → desc
+    act(() => result.current.sort.toggle('score', true))
 
     expect(result.current.sort.infoFor('team').priority).toBe(1)
     expect(result.current.sort.infoFor('score').priority).toBe(2)

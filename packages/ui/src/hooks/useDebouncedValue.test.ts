@@ -41,7 +41,7 @@ describe('useDebouncedValue', () => {
 
     rerender({ value: 'abc' })
     act(() => vi.advanceTimersByTime(150))
-    // The first edit's timer was cleared, so nothing has committed yet.
+    // Таймер первой правки сброшен второй, поэтому коммита ещё не было
     expect(result.current).toBe('a')
 
     act(() => vi.advanceTimersByTime(50))

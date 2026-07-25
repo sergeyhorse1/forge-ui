@@ -20,11 +20,7 @@ export const datePickerTriggerVariants = cva(
 const navButton =
   'inline-flex size-8 items-center justify-center rounded-md text-foreground transition-colors motion-reduce:transition-none hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
 
-// В rdp@10 модификаторы выбора помечают ЯЧЕЙКУ (td: data-selected/aria-selected),
-// а НЕ кнопку. Поэтому заливку задаём в слотах selected/range_* (они на td), протягивая
-// её на дочернюю кнопку через `[&>button]`. Focus-ring на выбранном дне: ring==primary
-// на bg-primary был бы невидим (гоча 9e), но ring-offset-popover даёт зазор цвета
-// поверхности между кнопкой и кольцом → кольцо различимо в обеих темах.
+// В rdp@10 модификаторы выбора висят на td, а не на кнопке, поэтому заливка идёт через `[&>button]`
 const dayButton =
   'inline-flex size-9 items-center justify-center rounded-md text-sm font-normal text-foreground transition-colors motion-reduce:transition-none hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover'
 
@@ -59,8 +55,7 @@ export const dayPickerClassNames: Partial<ClassNames> = {
   disabled: '[&>button]:pointer-events-none [&>button]:opacity-40',
   range_start: '[&>button]:rounded-r-none',
   range_end: '[&>button]:rounded-l-none',
-  // Середина диапазона — bg-accent. Селектор с [data-selected=true] специфичнее слота
-  // selected (тоже на этой ячейке) → детерминированно перебивает primary без !important.
+  // [data-selected=true] специфичнее слота selected на той же ячейке, поэтому перебивает primary без !important
   range_middle:
     '[&[data-selected=true]>button]:bg-accent [&[data-selected=true]>button]:font-normal [&[data-selected=true]>button]:text-accent-foreground [&>button]:rounded-none',
   hidden: 'invisible',

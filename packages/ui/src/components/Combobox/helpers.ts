@@ -14,7 +14,6 @@ function isGroupArray(items: ComboboxItems): items is readonly ComboboxGroup[] {
   return first !== undefined && 'items' in first
 }
 
-/** Wrap a flat item list in a single untitled group; drop already-empty groups. */
 export function normalizeGroups(items: ComboboxItems): ComboboxGroup[] {
   if (items.length === 0) return []
   if (isGroupArray(items)) {
@@ -23,12 +22,10 @@ export function normalizeGroups(items: ComboboxItems): ComboboxGroup[] {
   return [{ label: '', items: [...(items as readonly ComboboxItem[])] }]
 }
 
-/** Case-insensitive substring match on the label. */
 function matches(item: ComboboxItem, query: string): boolean {
   return item.label.toLowerCase().includes(query.toLowerCase())
 }
 
-/** Filter groups by query; groups with no matching options are always dropped. */
 export function filterGroups(groups: ComboboxGroup[], query: string): ComboboxGroup[] {
   const trimmed = query.trim()
   const scoped =
@@ -41,7 +38,6 @@ export function filterGroups(groups: ComboboxGroup[], query: string): ComboboxGr
   return scoped.filter((group) => group.items.length > 0)
 }
 
-/** Flatten groups into a positional option list keyed off `listboxId`. */
 export function flattenOptions(groups: ComboboxGroup[], listboxId: string): ComboboxOption[] {
   const flat: ComboboxOption[] = []
   let index = 0
@@ -54,7 +50,6 @@ export function flattenOptions(groups: ComboboxGroup[], listboxId: string): Comb
   return flat
 }
 
-/** Positions of the options that can actually be selected. */
 export function enabledIndexes(options: ComboboxOption[]): number[] {
   return options.filter((option) => !option.item.disabled).map((option) => option.index)
 }

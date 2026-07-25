@@ -1,27 +1,5 @@
-/*
- * `source(none)` turns off Tailwind's automatic content detection, which is
- * otherwise anchored to the build root and would pull in *everything* near it —
- * including demo, preview, story and test files. The content scan is then driven
- * solely by the explicit `@source` directives below.
- *
- * The scope is deliberately limited to the directories whose classes belong in
- * the published `dist/styles.css`: components, hooks and utilities. Stories,
- * tests, demo harnesses and the token-preview gallery are excluded so their
- * classes (e.g. `grid-cols-2`, `font-mono`, `max-w-prose`) never bloat the
- * shipped bundle. Storybook re-adds those sources via its own stylesheet (see
- * apps/storybook/.storybook/storybook.css).
- *
- * This file is consumed from two build roots — the library build (this package)
- * and Storybook (a sibling app) — so the explicit scoping also fixes Storybook,
- * where the component sources sit outside the auto-detected tree. Paths resolve
- * relative to this file, pointing at `packages/ui/src/*` from either build.
- *
- * Within the scanned directories the demo and story files are filtered back out
- * so a `*.stories.tsx` or `demo/` file living beside a component never leaks.
- *
- * The design tokens and dark variant live in tokens.css so the documentation
- * site can reuse the exact same values without re-emitting this preflight.
- */
+/* source(none) + явные @source: автодетект якорится на build-root и затащил бы в публичный dist классы стори и демок */
+/* Файл читают два build-root (пакет и Storybook), пути в нём относительные, поэтому оба видят одни исходники */
 @import 'tailwindcss' source(none);
 @import './tokens.css';
 @source '../components';

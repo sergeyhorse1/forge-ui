@@ -76,7 +76,6 @@ export function coerceValue(
     const scalar = toScalar(value, type, config)
     return [scalar, scalarDefault(type, config)]
   }
-  // multi
   if (Array.isArray(value)) return value
   const isEmptyScalar = value === '' || value === null
   return isEmptyScalar ? [] : [value]

@@ -10,19 +10,10 @@ const storybookPlugins = await storybookTest({
   configDir: fileURLToPath(new URL('.storybook', import.meta.url)),
 })
 
-/**
- * Dedicated browser-mode project that runs every story as a test through the
- * Storybook Vitest addon. It is intentionally a standalone config rather than a
- * Vitest workspace entry: the library keeps its own jsdom unit project in
- * `packages/ui`, and the two never share a runner.
- *
- * The `test` field stays here (never in a Vite config) — the addon expects to
- * own the test project definition.
- */
+// Отдельный конфиг, не workspace-энтри: аддон хочет сам определять тест-проект, а jsdom-прогон живёт в packages/ui
 export default defineConfig({
   plugins: [...storybookPlugins, windowsStoryGuard()],
-  // Pre-bundle the story runtime so the browser runner does not reload mid-test
-  // when Vite discovers these imports lazily.
+  // Пре-бандлим рантайм стори, иначе Vite найдёт импорты лениво и перезагрузит раннер посреди теста
   optimizeDeps: {
     include: ['storybook/test', '@storybook/react-vite', 'react', 'react-dom'],
   },
