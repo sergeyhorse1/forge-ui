@@ -133,5 +133,8 @@ jobs:
       - name: Build & verify library styles
         run: pnpm --filter @sergeyhorse/forge build:verify
 
+      - name: Validate published package
+        run: pnpm --filter @sergeyhorse/forge check:publish
+
       - name: Build & verify storybook styles
         run: pnpm --filter forge-storybook build:verify

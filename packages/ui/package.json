@@ -58,6 +58,7 @@
     "build:verify": "vite build && node scripts/verify-dist-styles.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "check:publish": "publint && attw --pack . --profile esm-only --exclude-entrypoints styles.css",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.test.json --noEmit && tsc -p tsconfig.stories.json --noEmit"
   },
   "peerDependencies": {
@@ -72,6 +73,7 @@
     }
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@microsoft/api-extractor": "7.58.9",
     "@storybook/react-vite": "10.4.6",
     "@tailwindcss/vite": "4.3.1",
@@ -85,6 +87,7 @@
     "date-fns": "^4",
     "jsdom": "29.1.1",
     "lucide-react": "^1",
+    "publint": "0.3.22",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "storybook": "10.4.6",
