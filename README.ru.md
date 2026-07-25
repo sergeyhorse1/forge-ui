@@ -7,7 +7,7 @@ React-компоненты для дашбордов с плотными дан�
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/sergeyhorse1/forge-ui?style=flat)](https://github.com/sergeyhorse1/forge-ui/stargazers)
 
-Сайт документации и Storybook собираются из этого репозитория; ссылки на них появятся здесь после деплоя.
+**[Документация](https://sergeyhorse1.github.io/forge-ui/)** · **[Storybook](https://sergeyhorse1.github.io/forge-ui/storybook/)** · **[npm](https://www.npmjs.com/package/@sergeyhorse/forge)**
 
 [English version](README.md)
 

@@ -7,7 +7,7 @@ React components for data-dense dashboards — the parts a generic component lib
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/sergeyhorse1/forge-ui?style=flat)](https://github.com/sergeyhorse1/forge-ui/stargazers)
 
-The documentation site and Storybook build from this repository; hosted links are added here once they are deployed.
+**[Documentation](https://sergeyhorse1.github.io/forge-ui/)** · **[Storybook](https://sergeyhorse1.github.io/forge-ui/storybook/)** · **[npm](https://www.npmjs.com/package/@sergeyhorse/forge)**
 
 <!-- hero capture (DataGrid + FilterBuilder) goes here -->
 

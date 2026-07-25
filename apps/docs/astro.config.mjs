@@ -88,6 +88,11 @@ export default defineConfig({
             },
           ],
         },
+        {
+          label: 'Storybook',
+          link: '/storybook/',
+          attrs: { target: '_blank' },
+        },
       ],
     }),
     react(),
