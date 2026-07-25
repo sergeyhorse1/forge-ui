@@ -3,6 +3,31 @@
   "version": "0.0.0",
   "description": "Headless + styled React UI kit for dashboards",
   "license": "MIT",
+  "author": "Sergey Horse",
+  "homepage": "https://github.com/sergeyhorse1/forge-ui#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sergeyhorse1/forge-ui.git",
+    "directory": "packages/ui"
+  },
+  "bugs": {
+    "url": "https://github.com/sergeyhorse1/forge-ui/issues"
+  },
+  "keywords": [
+    "react",
+    "ui",
+    "components",
+    "design-system",
+    "datagrid",
+    "data-table",
+    "virtualization",
+    "filter-builder",
+    "tailwindcss",
+    "radix-ui",
+    "accessibility",
+    "dashboard",
+    "typescript"
+  ],
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -24,6 +49,9 @@
       "import": "./dist/preset.js"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build",
     "verify-styles": "node scripts/verify-dist-styles.mjs",
@@ -34,19 +62,12 @@
   },
   "peerDependencies": {
     "date-fns": "^4",
-    "lucide-react": "^1",
     "radix-ui": "^1",
     "react": "^19",
     "react-dom": "^19"
   },
   "peerDependenciesMeta": {
-    "lucide-react": {
-      "optional": true
-    },
     "date-fns": {
-      "optional": true
-    },
-    "radix-ui": {
       "optional": true
     }
   },
