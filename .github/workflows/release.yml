@@ -52,6 +52,7 @@ jobs:
         if: steps.pending.outputs.yes == 'true' && env.NPM_TOKEN != ''
         env:
           NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pnpm changeset version
           pnpm changeset publish
