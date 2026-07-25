@@ -5,6 +5,8 @@ import react from '@astrojs/react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  site: 'https://sergeyhorse1.github.io',
+  base: '/forge-ui',
   integrations: [
     starlight({
       title: 'Forge UI',
