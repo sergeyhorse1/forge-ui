@@ -51,7 +51,7 @@ to be settled before any component lands:
 ## Consequences
 
 - Running `pnpm --filter @sergeyhorse/forge test` exercises only the fast jsdom
-  project; running `pnpm --filter storybook test` exercises the browser project.
+  project; running `pnpm --filter forge-storybook test` exercises the browser project.
   CI runs both as separate jobs.
 - The browser project requires a Chromium download (`playwright install
   chromium`). CI must install it with system dependencies and cache the browser.

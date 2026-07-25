@@ -16,7 +16,7 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm --filter @sergeyhorse/forge test",
-    "test:storybook": "pnpm --filter storybook test"
+    "test:storybook": "pnpm --filter forge-storybook test"
   },
   "devDependencies": {
     "@changesets/changelog-github": "0.7.0",

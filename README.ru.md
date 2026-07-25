@@ -61,7 +61,7 @@ Vite в library mode + `vite-plugin-dts` · TypeScript strict · Tailwind 4 · �
 ```bash
 pnpm install
 pnpm build                      # библиотека → packages/ui/dist (ESM + .d.ts)
-pnpm --filter storybook dev     # http://localhost:6006
+pnpm --filter forge-storybook dev     # http://localhost:6006
 pnpm --filter docs dev          # http://localhost:4321
 ```
 

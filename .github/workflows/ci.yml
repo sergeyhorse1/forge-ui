@@ -107,10 +107,10 @@ jobs:
             playwright-${{ runner.os }}-
 
       - name: Install Playwright chromium with system deps
-        run: pnpm --filter storybook exec playwright install --with-deps chromium
+        run: pnpm --filter forge-storybook exec playwright install --with-deps chromium
 
       - name: Run story tests
-        run: pnpm --filter storybook test
+        run: pnpm --filter forge-storybook test
 
   build:
     name: Build & verify
@@ -134,4 +134,4 @@ jobs:
         run: pnpm --filter @sergeyhorse/forge build:verify
 
       - name: Build & verify storybook styles
-        run: pnpm --filter storybook build:verify
+        run: pnpm --filter forge-storybook build:verify

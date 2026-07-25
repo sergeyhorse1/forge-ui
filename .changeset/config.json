@@ -7,6 +7,6 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["storybook", "docs"],
+  "ignore": ["forge-storybook", "docs"],
   "privatePackages": { "version": false, "tag": false }
 }
