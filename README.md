@@ -1,6 +1,6 @@
 # Forge
 
-React components for data-dense dashboards — the parts a generic component library leaves you to build yourself: a virtualized DataGrid with frozen columns, a nested AND/OR FilterBuilder, an async Combobox, and the primitives around them.
+React components for data-dense dashboards. These are the parts a generic component library leaves you to build yourself: a virtualized DataGrid with frozen columns, a nested AND/OR FilterBuilder, an async Combobox, and the primitives around them.
 
 [![npm](https://img.shields.io/npm/v/@sergeyhorse/forge)](https://www.npmjs.com/package/@sergeyhorse/forge)
 [![CI](https://github.com/sergeyhorse1/forge-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/sergeyhorse1/forge-ui/actions/workflows/ci.yml)
@@ -8,8 +8,6 @@ React components for data-dense dashboards — the parts a generic component lib
 [![Stars](https://img.shields.io/github/stars/sergeyhorse1/forge-ui?style=flat)](https://github.com/sergeyhorse1/forge-ui/stargazers)
 
 **[Documentation](https://sergeyhorse1.github.io/forge-ui/)** · **[Storybook](https://sergeyhorse1.github.io/forge-ui/storybook/)** · **[npm](https://www.npmjs.com/package/@sergeyhorse/forge)**
-
-<!-- hero capture (DataGrid + FilterBuilder) goes here -->
 
 [Русская версия](README.ru.md)
 
@@ -26,7 +24,7 @@ import { Button, DataGrid } from '@sergeyhorse/forge'
 import '@sergeyhorse/forge/styles.css'
 ```
 
-`styles.css` is prebuilt — a scoped preflight, theme tokens for both colour schemes, and the utilities the components use. Import it once at the root; the library needs no Tailwind setup on your side. Dark mode is an attribute, not a media query, so you decide when it flips:
+`styles.css` is prebuilt: a scoped preflight, theme tokens for both colour schemes, and the utilities the components use. Import it once at the root; the library needs no Tailwind setup on your side. Dark mode reads an attribute instead of a media query, so you decide when it flips:
 
 ```js
 document.documentElement.dataset.theme = 'dark'
@@ -36,8 +34,8 @@ Tailwind users import the same stylesheet: Tailwind 4 dropped the JS preset form
 
 ## Highlights
 
-- **DataGrid that stays bounded.** Rows and columns are both virtualized through `@tanstack/react-virtual`, and frozen columns render as a separate layer instead of `position: sticky` — sticky breaks inside a transformed virtual container. Cells carry canonical `aria-rowindex` / `aria-colindex`, so assistive tech reads true positions while only the viewport is mounted. The mounted node count stays flat from 10k to 100k rows, and that invariant is asserted in CI rather than eyeballed.
-- **FilterBuilder built for round-tripping.** A fully controlled nested AND/OR tree with schema-driven editors for string, number, boolean, date and enum fields. Serialization is a versioned envelope validated key-by-key on the way back in, so a filter pasted from a URL either parses into a normalized tree or throws with the path to the bad node — no half-trusted state. Editing one rule re-renders that rule and nothing else, which is a test rather than a claim.
+- **DataGrid that stays bounded.** Rows and columns are both virtualized through `@tanstack/react-virtual`, and frozen columns render as a separate layer instead of `position: sticky`, which breaks inside a transformed virtual container. Cells carry canonical `aria-rowindex` / `aria-colindex`, so assistive tech reads true positions while only the viewport is mounted. The mounted node count stays flat from 10k to 100k rows, and that invariant is asserted in CI rather than eyeballed.
+- **FilterBuilder built for round-tripping.** A fully controlled nested AND/OR tree with schema-driven editors for string, number, boolean, date and enum fields. Serialization is a versioned envelope validated key-by-key on the way back in, so a filter pasted from a URL either parses into a normalized tree or throws with the path to the bad node, and a partially parsed filter never reaches your state. Editing one rule re-renders only that rule, and a test fails if that stops being true.
 - **Accessibility enforced by the build.** Every story runs through axe in Storybook's Vitest browser mode with violations configured to fail, so a regression breaks CI instead of surfacing in review. Colour tokens are tuned to hold a 4.5:1 contrast ratio in both themes, and a test parses the stylesheet to keep the exported token values from drifting away from it. 498 unit tests and 130 stories back the 30 components.
 
 ## Components
@@ -50,7 +48,7 @@ Tailwind users import the same stylesheet: Tailwind 4 dropped the JS preset form
 | Data & dashboard | DataGrid, MetricCard, KpiGrid, EmptyState, Tabs, Accordion, Toolbar, Pagination |
 | Advanced         | FilterBuilder, CommandMenu                                                      |
 
-The headless pieces are exported too — `useDataGrid`, `useCombobox`, the FilterBuilder tree operations and its serializer — if you want the behaviour without the markup.
+The headless pieces are exported too: `useDataGrid`, `useCombobox`, the FilterBuilder tree operations and its serializer. Reach for those if you want the behaviour without the markup.
 
 ## Stack
 
@@ -84,7 +82,7 @@ Changes to the public API need a changeset:
 pnpm changeset
 ```
 
-Releases are automated — merging the generated version pull request publishes to npm.
+Releases are automated: a push to `main` with a pending changeset bumps the version, publishes to npm and pushes the tag back.
 
 ## License
 
