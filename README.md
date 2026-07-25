@@ -1,66 +1,91 @@
-# Forge — headless UI kit for data-dense dashboards
+# Forge
 
-> Open-source React component library for the gaps in `shadcn/ui` when building admin dashboards: virtualized DataGrid, advanced grouped Combobox, AND/OR FilterBuilder, MetricCard, KpiGrid, CommandMenu. Published to npm.
+React components for data-dense dashboards — the parts a generic component library leaves you to build yourself: a virtualized DataGrid with frozen columns, a nested AND/OR FilterBuilder, an async Combobox, and the primitives around them.
 
+[![npm](https://img.shields.io/npm/v/@sergeyhorse/forge)](https://www.npmjs.com/package/@sergeyhorse/forge)
 [![CI](https://github.com/sergeyhorse1/forge-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/sergeyhorse1/forge-ui/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Status](https://img.shields.io/badge/status-in_development-orange)
+[![Stars](https://img.shields.io/github/stars/sergeyhorse1/forge-ui?style=flat)](https://github.com/sergeyhorse1/forge-ui/stargazers)
 
-🚧 **Status:** in active development. npm package, Storybook and docs site links will appear here once the first release lands.
+The documentation site and Storybook build from this repository; hosted links are added here once they are deployed.
 
----
+<!-- hero capture (DataGrid + FilterBuilder) goes here -->
 
-## EN
+[Русская версия](README.ru.md)
 
-### What it is
-A focused UI library for the gaps in `shadcn/ui` when building data-dense dashboards: virtualized `DataGrid`, grouped async `Combobox`, AND/OR `FilterBuilder`, `MetricCard` with trend sparkline, `KpiGrid`, `CommandMenu` (⌘K). Shipped as a tree-shakable ESM-only npm package with Storybook, a Nextra docs site, and Changesets-driven releases.
+## Install
 
-### Stack
-Vite (library mode) · TypeScript (strict) · Radix UI primitives · class-variance-authority · Tailwind · @tanstack/react-virtual · Storybook 9 + Test Runner + addon-a11y · Vitest + Testing Library · Changesets · Astro Starlight (docs site) · pnpm workspaces
-
-### Highlights
-- Tree-shakable ESM-only build via Vite library mode + `vite-plugin-dts`
-- Every component lives in its own folder: `Button.tsx` + `.stories.tsx` + `.test.tsx` + `index.ts`
-- All variants via `cva` + `VariantProps` (no manual `className` joins)
-- All composability via `asChild` (Radix Slot)
-- a11y violations block merge (Storybook addon-a11y + Test Runner in CI)
-- Changesets-driven releases — each PR ships its own changelog entry; npm publish automated via GitHub Actions
-
-### Run locally
 ```bash
-pnpm install
-pnpm --filter ui build              # build the library to dist/ (ESM + .d.ts)
-pnpm --filter storybook dev         # http://localhost:6006
-pnpm --filter docs dev              # http://localhost:3000
+pnpm add @sergeyhorse/forge
+pnpm add react react-dom radix-ui
+pnpm add date-fns   # optional, only for DatePicker
 ```
 
----
-
-## RU
-
-### Что это
-Фокусированная UI-библиотека для дыр в `shadcn/ui` при сборке data-dense дашбордов: виртуализированный `DataGrid`, grouped async `Combobox`, AND/OR `FilterBuilder`, `MetricCard` с trend-spark, `KpiGrid`, `CommandMenu` (⌘K). Публикуется как tree-shakable ESM-only npm-пакет со Storybook, Nextra docs-сайтом и Changesets-релизами.
-
-### Стек
-Vite (library mode) · TypeScript (strict) · Radix UI primitives · class-variance-authority · Tailwind · @tanstack/react-virtual · Storybook 9 + Test Runner + addon-a11y · Vitest + Testing Library · Changesets · Astro Starlight (docs site) · pnpm workspaces
-
-### Highlights
-- Tree-shakable ESM-only build через Vite library mode + `vite-plugin-dts`
-- Структура каждого компонента: `Button.tsx` + `.stories.tsx` + `.test.tsx` + `index.ts`
-- Все варианты через `cva` + `VariantProps` (никаких ручных `className` склеек)
-- Композиция через `asChild` (Radix Slot)
-- a11y violations блокируют merge (Storybook addon-a11y + Test Runner в CI)
-- Релизы через Changesets — каждый PR несёт changelog-запись; npm publish автоматический через GitHub Actions
-
-### Запуск локально
-```bash
-pnpm install
-pnpm --filter ui build
-pnpm --filter storybook dev
-pnpm --filter docs dev
+```tsx
+import { Button, DataGrid } from '@sergeyhorse/forge'
+import '@sergeyhorse/forge/styles.css'
 ```
 
----
+`styles.css` is prebuilt — a scoped preflight, theme tokens for both colour schemes, and the utilities the components use. Import it once at the root; the library needs no Tailwind setup on your side. Dark mode is an attribute, not a media query, so you decide when it flips:
+
+```js
+document.documentElement.dataset.theme = 'dark'
+```
+
+Tailwind users import the same stylesheet: Tailwind 4 dropped the JS preset format, so `@sergeyhorse/forge/preset` exports the token values as plain objects for tooling rather than as a config.
+
+## Highlights
+
+- **DataGrid that stays bounded.** Rows and columns are both virtualized through `@tanstack/react-virtual`, and frozen columns render as a separate layer instead of `position: sticky` — sticky breaks inside a transformed virtual container. Cells carry canonical `aria-rowindex` / `aria-colindex`, so assistive tech reads true positions while only the viewport is mounted. The mounted node count stays flat from 10k to 100k rows, and that invariant is asserted in CI rather than eyeballed.
+- **FilterBuilder built for round-tripping.** A fully controlled nested AND/OR tree with schema-driven editors for string, number, boolean, date and enum fields. Serialization is a versioned envelope validated key-by-key on the way back in, so a filter pasted from a URL either parses into a normalized tree or throws with the path to the bad node — no half-trusted state. Editing one rule re-renders that rule and nothing else, which is a test rather than a claim.
+- **Accessibility enforced by the build.** Every story runs through axe in Storybook's Vitest browser mode with violations configured to fail, so a regression breaks CI instead of surfacing in review. Colour tokens are tuned to hold a 4.5:1 contrast ratio in both themes, and a test parses the stylesheet to keep the exported token values from drifting away from it. 498 unit tests and 130 stories back the 30 components.
+
+## Components
+
+| Group            | Components                                                                      |
+| ---------------- | ------------------------------------------------------------------------------- |
+| Base             | Button, IconButton, Badge, Avatar, Card, Spinner, Skeleton, Tooltip             |
+| Forms            | Input, Textarea, Select, Checkbox, Radio, Switch, Combobox, DatePicker          |
+| Overlays         | Dialog, Popover, Sheet, Toast                                                   |
+| Data & dashboard | DataGrid, MetricCard, KpiGrid, EmptyState, Tabs, Accordion, Toolbar, Pagination |
+| Advanced         | FilterBuilder, CommandMenu                                                      |
+
+The headless pieces are exported too — `useDataGrid`, `useCombobox`, the FilterBuilder tree operations and its serializer — if you want the behaviour without the markup.
+
+## Stack
+
+Vite library mode + `vite-plugin-dts` · TypeScript strict · Tailwind 4 · Radix UI primitives · `class-variance-authority` · `@tanstack/react-virtual` · Storybook 10 with the Vitest addon and addon-a11y · Vitest + Testing Library · Astro Starlight for the docs site · Changesets · pnpm workspaces
+
+## Run locally
+
+Requires Node `^20.19.0 || >=22.12.0` and pnpm 10.
+
+```bash
+pnpm install
+pnpm build                      # library → packages/ui/dist (ESM + .d.ts)
+pnpm --filter storybook dev     # http://localhost:6006
+pnpm --filter docs dev          # http://localhost:4321
+```
+
+Checks, the same ones CI runs:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test                       # unit tests, with coverage thresholds
+pnpm test:storybook             # story tests in a real browser
+```
+
+## Contributing
+
+Changes to the public API need a changeset:
+
+```bash
+pnpm changeset
+```
+
+Releases are automated — merging the generated version pull request publishes to npm.
 
 ## License
-[MIT](LICENSE)
+
+[MIT](LICENSE) © Sergey Horse
