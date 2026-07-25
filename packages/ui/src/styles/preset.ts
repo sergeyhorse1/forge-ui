@@ -1,4 +1,4 @@
-// Значения зеркалят globals.css: правишь токен там, правь и здесь (ADR-005)
+// Источник истины — tokens.css, расхождение ловит preset.test.ts
 
 export interface ForgeThemeTokens {
   colors: Record<string, string>
@@ -21,13 +21,15 @@ export const lightTokens: ForgeThemeTokens = {
     accent: 'oklch(0.96 0.01 286)',
     'accent-foreground': 'oklch(0.3 0.01 286)',
     muted: 'oklch(0.97 0.01 286)',
-    'muted-foreground': 'oklch(0.55 0.01 286)',
-    destructive: 'oklch(0.58 0.22 27)',
+    'muted-foreground': 'oklch(0.5 0.01 286)',
+    destructive: 'oklch(0.565 0.22 27)',
     'destructive-foreground': 'oklch(0.98 0.01 27)',
-    success: 'oklch(0.6 0.16 150)',
+    success: 'oklch(0.52 0.15 150)',
     'success-foreground': 'oklch(0.98 0.02 150)',
     warning: 'oklch(0.75 0.16 75)',
     'warning-foreground': 'oklch(0.27 0.04 75)',
+    'success-emphasis': 'oklch(0.52 0.15 150)',
+    'destructive-emphasis': 'oklch(0.565 0.22 27)',
     border: 'oklch(0.92 0.01 286)',
     input: 'oklch(0.92 0.01 286)',
     ring: 'oklch(0.55 0.21 263)',
@@ -64,6 +66,8 @@ export const darkTokens: ForgeThemeTokens = {
     'success-foreground': 'oklch(0.18 0.02 150)',
     warning: 'oklch(0.8 0.15 75)',
     'warning-foreground': 'oklch(0.27 0.04 75)',
+    'success-emphasis': 'oklch(0.68 0.15 150)',
+    'destructive-emphasis': 'oklch(0.7 0.17 27)',
     border: 'oklch(0.3 0.01 286)',
     input: 'oklch(0.32 0.01 286)',
     ring: 'oklch(0.65 0.19 263)',
