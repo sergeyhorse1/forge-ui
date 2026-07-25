@@ -1,6 +1,6 @@
 {
   "name": "@sergeyhorse/forge",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Headless + styled React UI kit for dashboards",
   "license": "MIT",
   "author": "Sergey Horse",
@@ -87,7 +87,7 @@
     "lucide-react": "^1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "storybook": "10.4.6",
+    "storybook": "0.0.0",
     "tailwindcss": "4.3.1",
     "vite": "8.1.0",
     "vite-plugin-dts": "5.0.3",
